@@ -1,0 +1,19 @@
+name: field-academy
+version: 0.8.4
+requires_hermes: ">=0.22.0"
+manifest_version: 2
+api_version: 1
+description: Learn Hermes along four paths, Beginner to Advanced, then a capstone on your own problem, plus a Guide path with client labs, a real deployment and a review by someone you choose. Checks on real work, spaced review, and a Field Record you keep for each path, your own self-issued learning record. Not issued or endorsed by Nous Research.
+author: Damon Gardenhire
+license: MIT
+tags: [learning, progress-tracking, desktop]
+provides_tools:
+  - field_academy_snapshot
+  - field_academy_mission
+  - field_academy_grade_explanation
+  - field_academy_grade_review
+  - field_academy_grade_deployer
+  - field_academy_record_evidence
+provides_hooks:
+  - post_tool_call
+  - pre_llm_call

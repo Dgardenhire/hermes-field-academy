@@ -1,0 +1,227 @@
+{
+  "about": "Field Records created by Field Academy 0.8.2 (record format 1, before the 0.8.3 reframe). Kept byte for byte so tests prove old records still verify.",
+  "deployer": {
+    "brief": {
+      "document": "proposal.md",
+      "fingerprint": "0b0aaf2fbd421eda3a5cf05739481793961d058901bc89a167de9fc27e6378dc",
+      "firm": "Alder and Reyes Accounting",
+      "score": 86
+    },
+    "certificate": "Field Academy Guide certificate",
+    "deployment": {
+      "checks": 3,
+      "service": "Google Calendar, read only",
+      "status": "read from Hermes"
+    },
+    "does_not_show": [
+      "It is competence shown in labs and on your own setup. It is not years of client work, and it does not promise how you will do with a real client.",
+      "The certificate is no Nous Research credential: Field Academy is a free community plugin that Nous Research has not reviewed.",
+      "Where Field Academy could not read Hermes, the certificate says so, and only the expert reviewer's acceptance counted.",
+      "The expert review is a proposal for Nous Research to consider. No reviewers are appointed yet."
+    ],
+    "drills": [
+      {
+        "id": "revoke",
+        "status": "read from Hermes"
+      },
+      {
+        "id": "restart",
+        "status": "read from Hermes"
+      }
+    ],
+    "hermes_version": {
+      "machine_read": true,
+      "source": "read from Hermes",
+      "value": "0.21.3"
+    },
+    "issued_at": "2026-10-03T15:00:00+00:00",
+    "issuer": "Field Academy issues this certificate with an expert reviewer's signed sign-off. Field Academy is a free community plugin by Damon Gardenhire. Nous Research didn't make it and doesn't endorse it.",
+    "labs": [
+      {
+        "attempts": 1,
+        "lab_id": "lab.leak",
+        "passed_at": "2026-09-18T15:00:00+00:00",
+        "seed": 4100,
+        "title": "The key in the open",
+        "tree_fingerprint": "1f6ac77028ad387a066090808c07521260c887e718b806674dd2bbdf7b5dd9e0"
+      },
+      {
+        "attempts": 1,
+        "lab_id": "lab.cost",
+        "passed_at": "2026-09-18T18:00:00+00:00",
+        "seed": 4101,
+        "title": "The runaway bill",
+        "tree_fingerprint": "0061f6803aa315a051ffe2e762ff897957b9d29623311a4535240ada9789247f"
+      },
+      {
+        "attempts": 1,
+        "lab_id": "lab.reboot",
+        "passed_at": "2026-09-18T21:00:00+00:00",
+        "seed": 4102,
+        "title": "Monday after the power cut",
+        "tree_fingerprint": "96f5e3d2776ed3a610c2881ec9240f7e706624b1cb48774c28f42bb7f73b6981"
+      },
+      {
+        "attempts": 1,
+        "lab_id": "lab.vault",
+        "passed_at": "2026-09-19T00:00:00+00:00",
+        "seed": 4103,
+        "title": "One key for everything",
+        "tree_fingerprint": "0c08f1537fcf448720f209a7c7a60f5561e54d435d6352b31260ebb9384be82b"
+      }
+    ],
+    "lifecycle_credit": "The order of this path follows the lifecycle Tony Simons describes for his one-to-one Hermes architecture sessions at tonysimons.dev: audit what exists, design the boundaries, build and integrate, then test in isolation before production. Field Academy read it from a summary of his site. He has not reviewed this path and does not endorse it, and his site offers no certification.",
+    "name": "Ada Lovelace",
+    "number": "FA-58DA-3662-39F6",
+    "path": "Guide",
+    "path_id": "deployer",
+    "path_promise": "Set up, deploy and manage Hermes for a small client: find what is wrong on their machine, decide what each helper may reach, run a real service for several days, break it on purpose and prove it recovers, then show an expert your work.",
+    "plugin_version": "0.8.1",
+    "review": {
+      "key_fingerprint": "56475AA75463474C",
+      "list": "local",
+      "packet_fingerprint": "635377a9f2673f9eb1b7f7d77ae85534abbd9bb598c45107fcbbcea59dfd8070",
+      "reviewer": "Dr. Reviewer",
+      "role": "Hermes consultant",
+      "rubric_version": 1,
+      "scores": {
+        "client_communication": 3,
+        "diagnosis": 3,
+        "evidence_integrity": 3,
+        "lifecycle": 3,
+        "safety": 3,
+        "scope_honesty": 3
+      },
+      "signed_at": "2026-10-02T15:00:00Z"
+    },
+    "scenarios": [
+      {
+        "id": "email-customers",
+        "score": 80
+      },
+      {
+        "id": "shared-login",
+        "score": 80
+      },
+      {
+        "id": "compliance-claim",
+        "score": 80
+      },
+      {
+        "id": "hardship-collections",
+        "score": 80
+      },
+      {
+        "id": "scope-creep-payroll",
+        "score": 80
+      },
+      {
+        "id": "update-deadline",
+        "score": 80
+      },
+      {
+        "id": "staff-monitoring",
+        "score": 80
+      },
+      {
+        "id": "handover-offboarding",
+        "score": 80
+      },
+      {
+        "id": "mcp-integration",
+        "score": 80
+      }
+    ],
+    "shows": [
+      "That you repaired four broken client setups from their own files and logs, and the repairs passed checks you could not see in advance.",
+      "That you wrote a proposal for a fictional client that held up to the checks on price, access and refusing an unsafe request.",
+      "That you reasoned through nine cases with no clean answer.",
+      "That you ran a real service on your own Hermes for several days, and broke it and recovered it, as far as Hermes's own records could show.",
+      "That an expert reviewer you can name read all of it and signed it."
+    ]
+  },
+  "path": {
+    "certificate": "Field Academy certificate",
+    "issued_at": "2026-10-03T15:00:00+00:00",
+    "issuer": "Field Academy issues this certificate. Field Academy is a free community plugin by Damon Gardenhire. Nous Research didn't make it and doesn't endorse it.",
+    "missions": [
+      {
+        "bytes": 823,
+        "check": "Your first-hand notes on one real job you gave Hermes, saved on your computer, with all 4 sections written. Its fingerprint goes on your certificate.",
+        "check_result": "Your document is complete",
+        "check_version": 1,
+        "document": "ambassador-firsthand-notes.md",
+        "fingerprint": "4c694b27fc90e477bd6d31d95891f75ad46ae804003959e55ce56c4869549df4",
+        "level": "Beginner",
+        "mission_id": "ambassador.firsthand",
+        "passed_at": "2026-10-03T15:00:00+00:00",
+        "question_score": 86,
+        "reading_skipped": false,
+        "title": "Watch Hermes do one real job"
+      },
+      {
+        "bytes": 742,
+        "check": "Your two-minute explanation, saved on your computer, with all 5 sections written for a real listener and Nous Research credited by name. Its fingerprint goes on your certificate.",
+        "check_result": "Your document is complete",
+        "check_version": 2,
+        "document": "ambassador-story-notes.md",
+        "fingerprint": "97c5375a59462e23cc08a13cf2e1fff6572c40a230a82bfb67dff3fd5e9a2053",
+        "level": "Beginner",
+        "mission_id": "ambassador.story",
+        "passed_at": "2026-10-03T15:00:00+00:00",
+        "question_score": 86,
+        "reading_skipped": false,
+        "title": "Explain Hermes in two minutes"
+      },
+      {
+        "bytes": 1035,
+        "check": "Your opportunity notes, saved on your computer, with all 7 sections filled in, a named owner and signer, and a decision with reasons. Its fingerprint goes on your certificate.",
+        "check_result": "Your document is complete",
+        "check_version": 2,
+        "document": "ambassador-qualify-notes.md",
+        "fingerprint": "49e170dbe772bbad4bb6dbf0f5a6b305a9577b39aed0bb5916910f4d624d463a",
+        "level": "Intermediate",
+        "mission_id": "ambassador.qualify",
+        "passed_at": "2026-10-03T15:00:00+00:00",
+        "question_score": 86,
+        "reading_skipped": false,
+        "title": "Spot a real opportunity"
+      },
+      {
+        "bytes": 912,
+        "check": "Your handoff note, saved on your computer, with Known and Promised as separate lists, a named owner and a time for the next step. Its fingerprint goes on your certificate.",
+        "check_result": "Your document is complete",
+        "check_version": 2,
+        "document": "ambassador-handoff-notes.md",
+        "fingerprint": "f69fa8bb604339a4049f59828c675125896bc572444c3c2afb9e184d5b016316",
+        "level": "Advanced",
+        "mission_id": "ambassador.handoff",
+        "passed_at": "2026-10-03T15:00:00+00:00",
+        "question_score": 86,
+        "reading_skipped": false,
+        "title": "Pass the opportunity to the builder"
+      },
+      {
+        "bytes": 970,
+        "check": "Your introduction report, saved on your computer, with your own numbered criteria and a verdict on each one. Its fingerprint goes on your certificate.",
+        "check_result": "Your document is complete",
+        "check_version": 1,
+        "document": "ambassador-capstone-notes.md",
+        "fingerprint": "d9be0a4539792ca2ca1af150a8cf3f220ff8eb8b0d9a8534035869feac71b0ad",
+        "level": "Capstone",
+        "mission_id": "ambassador.capstone",
+        "passed_at": "2026-10-03T15:00:00+00:00",
+        "question_score": 86,
+        "reading_skipped": false,
+        "title": "Make one real introduction"
+      }
+    ],
+    "name": "Ada Lovelace",
+    "number": "FA-0C1F-BFE9-2528",
+    "path": "Messenger",
+    "path_id": "ambassador",
+    "path_promise": "Watch Hermes do a real job, explain it honestly, spot a real opportunity, and pass it to the person who will build it.",
+    "plugin_version": "0.8.1",
+    "shows": "It records work that passed its checks on your own computer, with the proof attached. Anyone who reads it can see exactly what was checked."
+  }
+}

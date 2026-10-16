@@ -1,0 +1,44 @@
+# Candidate entry for the Hermes plugin catalog.
+#
+# The catalog is a human-merged gate: presence in hermes-agent/plugin-catalog/
+# IS the approval, entries are added only by PR, and every entry pins a full
+# 40-character commit SHA. Bumps are new PRs.
+#
+# Two CI jobs run against this file once it is submitted:
+#   structural             — scripts/validate_plugin_catalog.py, schema only.
+#                            A placeholder sha FAILS here (^[0-9a-f]{40}$).
+#   pinned-source-validate — clones `repo` at `sha` and runs
+#                            `hermes plugins validate` on that exact commit,
+#                            so the repo must be PUBLIC and the sha reachable.
+#
+# Before opening the PR: push the repo, tag the release, set `sha` to the tagged
+# commit, and bump `version` in the same commit.
+#
+# `capabilities` must match what the code actually registers. `hermes plugins
+# validate` diffs plugin.yaml; tests/test_state.py additionally asserts this file
+# agrees with plugin.yaml, which is the check that catches a stale entry.
+
+name: field-academy
+repo: https://github.com/Dgardenhire/hermes-field-academy
+sha: REPLACE_WITH_40_CHAR_SHA_AFTER_FIRST_PUSH
+description: Learn Hermes along four paths, Beginner to Advanced, then a capstone on your own problem, plus a Guide path with client labs, a real deployment and a review by someone you choose. Checks on real work, spaced review, and a Field Record you keep for each path, your own self-issued learning record. Not issued or endorsed by Nous Research.
+maintainer: Dgardenhire
+tier: community
+category: desktop
+requires_hermes: ">=0.22.0"
+docs_url: https://github.com/Dgardenhire/hermes-field-academy/blob/main/docs/MANUAL.md
+version: "0.8.4"
+platforms: []
+capabilities:
+  provides_tools:
+    - field_academy_snapshot
+    - field_academy_mission
+    - field_academy_grade_explanation
+    - field_academy_grade_review
+    - field_academy_grade_deployer
+    - field_academy_record_evidence
+  provides_hooks:
+    - post_tool_call
+    - pre_llm_call
+  provides_middleware: []
+  requires_env: []

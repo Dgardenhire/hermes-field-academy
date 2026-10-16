@@ -1,0 +1,4 @@
+{
+  "about": "Field Academy's published list of reviewers for the Guide path. Listing a key here means Field Academy's maintainer checked who holds it. It does not mean Nous Research or the Hermes team appointed or approved the reviewer. A sign-off counts as listed only when its Ed25519 public key is here. Add an entry as {\"name\": \"...\", \"public_key\": \"<64 hex characters>\"} after checking who holds the key. The list ships empty: until a reviewer is added, a learner who finishes the path holds Guide, awaiting review, or relies on a reviewer they chose and added to their own local list, which their Field Record labels.",
+  "reviewers": []
+}

@@ -1,0 +1,104 @@
+<!doctype html>
+<!--
+  Field Academy harness: renders desktop/plugin.js in a browser with a stand-in
+  SDK (sdk.js) and a fake backend (harness.js + fixtures.json), so every screen
+  can be looked at and screenshotted without Hermes.
+
+  From the repo root:
+    python3 harness/make_fixtures.py
+    python3 harness/shoot.py map            (one screen at a time)
+
+  React and the query library load from esm.sh, codicons from jsdelivr. Theme
+  values approximate the default Hermes dark skin; light is for contrast checks.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field Academy harness</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@vscode/codicons@0.0.45/dist/codicon.css">
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@19.2.7",
+    "react/jsx-runtime": "https://esm.sh/react@19.2.7/jsx-runtime",
+    "react-dom/client": "https://esm.sh/react-dom@19.2.7/client?deps=react@19.2.7",
+    "@tanstack/react-query": "https://esm.sh/@tanstack/react-query@5.101.2?deps=react@19.2.7",
+    "@hermes/plugin-sdk": "./sdk.js"
+  }
+}
+</script>
+<style>
+:root[data-theme=dark] {
+  --ui-text-primary: rgba(230, 237, 243, 0.94);
+  --ui-accent: #4a84fe;
+  --ui-bg-secondary: #16181d;
+  --ui-bg-tertiary: #1d2129;
+  --ui-stroke-secondary: #2b313a;
+  --ui-success: #10b7a9;
+  --ui-yellow: #c08532;
+  --dt-destructive: #f85149;
+  --page: #0e0f12;
+  --chrome: #0d1015;
+  /* The same default-skin values Factory's harness uses, so the kit's surfaces read as in the app. */
+  --ui-bg-chrome: #0d1015;
+  --ui-bg-editor: #0e0f12;
+  --ui-bg-elevated: #16181d;
+  --ui-bg-quaternary: #1d2129;
+  --ui-row-hover-background: rgba(230, 237, 243, 0.05);
+  --ui-row-active-background: rgba(74, 132, 254, 0.14);
+  --dt-primary: #4a84fe;
+  --dt-primary-foreground: #161616;
+  color-scheme: dark;
+}
+:root[data-theme=light] {
+  --ui-text-primary: rgba(31, 35, 40, 0.94);
+  --ui-accent: #2f6fe4;
+  --ui-bg-secondary: #ffffff;
+  --ui-bg-tertiary: #eef1f5;
+  --ui-stroke-secondary: #d6dbe1;
+  --ui-success: #0f8f84;
+  --ui-yellow: #c08532;
+  --dt-destructive: #cf2d56;
+  --page: #f6f7f9;
+  --chrome: #eceff3;
+  --ui-bg-chrome: #f6f7f9;
+  --ui-bg-editor: #ffffff;
+  --ui-bg-elevated: #ffffff;
+  --ui-bg-quaternary: #e6e9ee;
+  --ui-row-hover-background: rgba(31, 35, 40, 0.04);
+  --ui-row-active-background: rgba(47, 111, 228, 0.12);
+  --dt-primary: #2f6fe4;
+  --dt-primary-foreground: #ffffff;
+  color-scheme: light;
+}
+html, body { margin: 0; height: 100%; background: var(--page); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.hb-frame { display: grid; grid-template-columns: 210px 1fr; height: 100%; }
+.hb-side { background: var(--chrome); border-right: 1px solid var(--ui-stroke-secondary); padding: 14px 10px; color: var(--ui-text-primary); font-size: 13px; }
+.hb-side div { padding: 6px 10px; border-radius: 6px; display: flex; gap: 8px; align-items: center; }
+.hb-side .on { background: rgba(74, 132, 254, 0.16); }
+#app { min-height: 0; height: 100%; }
+.hb-btn { font: inherit; font-size: 13px; font-weight: 600; border-radius: 8px; padding: 7px 14px; border: 1px solid transparent; cursor: pointer; background: var(--ui-accent); color: #fff; }
+.hb-btn[data-variant=secondary] { background: transparent; border-color: var(--ui-stroke-secondary); color: var(--ui-text-primary); }
+.hb-btn:disabled { opacity: 0.6; }
+.hb-input { box-sizing: border-box; width: 100%; font: inherit; font-size: 13px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--ui-stroke-secondary); background: var(--page); color: var(--ui-text-primary); }
+.hb-error { color: var(--ui-text-primary); border: 1px solid var(--ui-stroke-secondary); border-radius: 12px; padding: 20px; margin-top: 24px; }
+.hb-error-title { margin: 0 0 6px; font-size: 18px; }
+.hb-spin { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--ui-accent); border-right-color: transparent; display: inline-block; }
+</style>
+<link rel="stylesheet" href="./kit-sdk-stub.css">
+</head>
+<body>
+<div class="hb-frame">
+  <nav class="hb-side" aria-label="Hermes sidebar">
+    <div><i class="codicon codicon-comment-discussion"></i>New session</div>
+    <div><i class="codicon codicon-history"></i>Sessions</div>
+    <div><i class="codicon codicon-calendar"></i>Scheduled jobs</div>
+    <div><i class="codicon codicon-extensions"></i>Capabilities</div>
+    <div class="on"><i class="codicon codicon-mortar-board"></i>Field Academy</div>
+  </nav>
+  <div id="app"></div>
+</div>
+<script type="module" src="./harness.js"></script>
+</body>
+</html>
