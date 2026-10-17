@@ -1,0 +1,178 @@
+name: Platforms
+
+# Proves Field Academy on real Windows, Linux and macOS machines: the test suite, a real Hermes installed
+# the official way, the plugin installed from this commit the way a user installs it, Hermes's own
+# validator, and Field Academy's backend running a mission to a format 2 Field Record against that Hermes.
+# Throwaway GitHub runners only. No secrets are used.
+
+on:
+  push:
+    branches: [platform-proof]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  platform:
+    name: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Prepare log folder and scratch Hermes home
+        run: |
+          mkdir -p ci-logs
+          scratch="$RUNNER_TEMP/hermes-scratch"
+          mkdir -p "$scratch"
+          echo "SCRATCH_HOME=$scratch" >> "$GITHUB_ENV"
+          echo "== $(uname -a)" | tee ci-logs/00-machine.log
+          python --version | tee -a ci-logs/00-machine.log
+          git --version | tee -a ci-logs/00-machine.log
+
+      - name: 1. Test suite (stdlib Python, no Hermes)
+        timeout-minutes: 20
+        run: |
+          node --version | tee ci-logs/01-tests.log
+          python -m unittest discover -s tests -p "test_*.py" -v 2>&1 | tee -a ci-logs/01-tests.log
+
+      - name: 1b. The node tests ran (every tests/*.test.mjs runs through the Python suite, with its inputs)
+        if: ${{ !cancelled() }}
+        run: |
+          if grep -iE "skipped.*node" ci-logs/01-tests.log; then echo "node tests were skipped"; exit 1; fi
+          { grep -E "(test_learn_js|test_trail_map|test_deployer_ui|test_audit_070)\.[A-Za-z]+\.test_.*\.\.\. ok$" ci-logs/01-tests.log || true; } | tee ci-logs/01b-node-tests.log
+
+      - name: 2a. Install Hermes Agent (Linux / macOS one-liner)
+        if: ${{ !cancelled() && runner.os != 'Windows' }}
+        run: |
+          curl -fsSL https://hermes-agent.nousresearch.com/install.sh \
+            | bash -s -- --non-interactive --skip-browser --skip-computer-use 2>&1 | tee ci-logs/02-hermes-install.log
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: 2b. Install Hermes Agent (Windows PowerShell one-liner)
+        if: ${{ !cancelled() && runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          $installer = Invoke-RestMethod https://hermes-agent.nousresearch.com/install.ps1
+          & ([scriptblock]::Create($installer)) -NonInteractive -SkipBrowser -SkipComputerUse *>&1 | Tee-Object -FilePath ci-logs/02-hermes-install.log
+          "$env:LOCALAPPDATA\hermes\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: 2c. Hermes answers
+        if: ${{ !cancelled() }}
+        run: |
+          { which hermes; hermes --version; hermes plugins install --help; } 2>&1 | tee ci-logs/02c-hermes-version.log
+
+      - name: 3a. Install the plugin from this commit, the way a user does
+        if: ${{ !cancelled() }}
+        env:
+          HERMES_HOME: ${{ env.SCRATCH_HOME }}
+        run: |
+          if [ "$RUNNER_OS" = Windows ]; then src="file:///$(cygpath -m "$GITHUB_WORKSPACE")"; else src="file://$GITHUB_WORKSPACE"; fi
+          echo "installing $src at $GITHUB_SHA into $HERMES_HOME"
+          hermes plugins install "$src" --ref "$GITHUB_SHA" --enable --yes-deps < /dev/null 2>&1 | tee ci-logs/03a-plugin-install.log
+          hermes plugins list 2>&1 | tee -a ci-logs/03a-plugin-install.log
+          ls -la "$HERMES_HOME/plugins" | tee -a ci-logs/03a-plugin-install.log
+
+      - name: 3b. Hermes validates the plugin
+        if: ${{ !cancelled() }}
+        env:
+          HERMES_HOME: ${{ env.SCRATCH_HOME }}
+        run: |
+          set -o pipefail
+          hermes plugins validate "$HERMES_HOME/plugins/field-academy" 2>&1 | tee ci-logs/03b-validate-installed.log
+          hermes plugins validate "$GITHUB_WORKSPACE" 2>&1 | tee ci-logs/03b-validate-checkout.log
+
+      - name: 3c. Field Academy's backend against this Hermes (mission, progress, Field Record format 2)
+        if: ${{ !cancelled() }}
+        env:
+          HERMES_HOME: ${{ env.SCRATCH_HOME }}
+        run: |
+          python .github/platforms/hermes_run.py .github/platforms/exercise_field_academy.py 2>&1 | tee ci-logs/03c-exercise.log
+
+      - name: 3d. A Guide-path lab through the installed backend, repaired as a learner does (prepare)
+        if: ${{ !cancelled() }}
+        env:
+          HERMES_HOME: ${{ env.SCRATCH_HOME }}
+        run: |
+          python .github/platforms/hermes_run.py .github/platforms/exercise_guide_lab.py prepare "$RUNNER_TEMP/guide-lab.json" 2>&1 | tee ci-logs/03d-guide-lab-prepare.log
+
+      - name: 3e. Lock the key files with the learner's own command (Windows, PowerShell)
+        if: ${{ !cancelled() && runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          $state = Get-Content "$env:RUNNER_TEMP/guide-lab.json" -Raw | ConvertFrom-Json
+          & { foreach ($lab in $state.labs) {
+            foreach ($rel in $lab.files) {
+              $folder = Split-Path (Join-Path $lab.root $rel) -Parent
+              $name = Split-Path $rel -Leaf
+              Push-Location $folder
+              Write-Output "PS $folder> icacls $name /inheritance:r /grant:r `"`${env:USERDOMAIN}\`${env:USERNAME}:F`""
+              icacls $name /inheritance:r /grant:r "${env:USERDOMAIN}\${env:USERNAME}:F"
+              if ($LASTEXITCODE -ne 0) { throw "icacls failed on $rel" }
+              icacls $name
+              Pop-Location
+            }
+          } } *>&1 | Tee-Object -FilePath "$env:GITHUB_WORKSPACE/ci-logs/03e-lock.log"
+
+      - name: 3e. Lock the key files with the learner's own command (Linux, macOS)
+        if: ${{ !cancelled() && runner.os != 'Windows' }}
+        run: |
+          python - "$RUNNER_TEMP/guide-lab.json" <<'PY' | tee ci-logs/03e-lock.log
+          import json, os, sys
+          for lab in json.load(open(sys.argv[1]))["labs"]:
+              for rel in lab["files"]:
+                  print("chmod 600", rel)
+                  os.chmod(os.path.join(lab["root"], rel), 0o600)
+          PY
+
+      - name: 3f. The Guide-path labs pass through the installed backend (grade)
+        if: ${{ !cancelled() }}
+        env:
+          HERMES_HOME: ${{ env.SCRATCH_HOME }}
+        run: |
+          python .github/platforms/hermes_run.py .github/platforms/exercise_guide_lab.py grade "$RUNNER_TEMP/guide-lab.json" 2>&1 | tee ci-logs/03f-guide-lab-grade.log
+
+      - name: 3g. The Windows access-list tests ran on Windows (none skipped)
+        if: ${{ !cancelled() && runner.os == 'Windows' }}
+        run: |
+          if grep -E "test_windows_access\.WindowsAccessLists.*skipped" ci-logs/01-tests.log; then echo "Windows tests were skipped on Windows"; exit 1; fi
+          n=$(grep -cE "test_windows_access\.WindowsAccessLists\.test_[a-z_]+\) \.\.\. ok.?$" ci-logs/01-tests.log || true)
+          echo "Windows access-list tests passed: $n"
+          test "$n" -ge 20
+
+      - name: 4. Test suite again, with Hermes importable (runs the tests that call Hermes)
+        if: ${{ !cancelled() }}
+        run: |
+          python .github/platforms/hermes_run.py .github/platforms/run_suite.py 2>&1 | tee ci-logs/04-tests-with-hermes.log
+
+      - name: Collect Hermes logs
+        if: always()
+        run: |
+          for d in "$SCRATCH_HOME/logs" "$HOME/.hermes/logs" "${LOCALAPPDATA:-/nonexistent}/hermes/logs"; do
+            if [ -d "$d" ]; then mkdir -p "ci-logs/hermes-logs/$(echo "$d" | tr ':/\\ ' '____')"; cp -R "$d"/. "ci-logs/hermes-logs/$(echo "$d" | tr ':/\\ ' '____')/" || true; fi
+          done
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: logs-${{ matrix.os }}
+          path: ci-logs
+          retention-days: 30
