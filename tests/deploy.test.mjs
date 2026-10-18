@@ -91,6 +91,13 @@ test('state words, folder addresses and days', () => {
   assert.equal(stateWords('nonsense'), 'Not started')
   assert.equal(folderUrl('/Users/a b/field academy/labs'), 'file:///Users/a%20b/field%20academy/labs')
   assert.equal(folderUrl(''), '')
+  // A Windows drive letter keeps its colon: file:///C:/..., never file:///C%3A/...
+  assert.equal(folderUrl('C:\\Hermes data\\field-academy\\labs'), 'file:///C:/Hermes%20data/field-academy/labs')
+  assert.equal(folderUrl('d:/Labs'), 'file:///d:/Labs')
+  // A network share keeps its server name: file://server/share/...
+  assert.equal(folderUrl('\\\\server\\share\\labs'), 'file://server/share/labs')
+  // A colon anywhere else is still encoded.
+  assert.equal(folderUrl('/srv/labs/odd:name'), 'file:///srv/labs/odd%3Aname')
   assert.equal(daysSince('2026-10-01T09:00:00Z', new Date('2026-10-04T10:00:00Z')), 3)
   assert.equal(daysSince('', new Date()), 0)
 })

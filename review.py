@@ -222,7 +222,7 @@ def grading_prompt(session, answers) -> str:
             f"Question {number} of {len(session['items'])}. Mission: {item['title']} ({item['mission_id']})\n"
             f"Question asked: {item['question']}\n"
             f"A strong answer covers:\n{points}\n"
-            f"The learner's answer:\n---\n{answers[item['mission_id']]}\n---"
+            f"{learning.untrusted_answer(answers[item['mission_id']])}"
         )
     joined = "\n\n".join(blocks)
     return (

@@ -75,7 +75,7 @@ class DocumentFeedbackTests(AcademyCase):
 
     def test_a_missing_file_gets_a_hint_too(self):
         path = str(pathlib.Path(self.tmp) / "nope.md")
-        outcome = self.state.record_gate(DISCOVERY, "gate", self.state.verify_artifact(DISCOVERY, "gate", path))
+        outcome = self.state.record_gate(DISCOVERY, "gate", self.state.verify_artifact(DISCOVERY, "gate", path), artifact=path)
         self.assertEqual(outcome["feedback"]["focus"], "file")
         self.assertIn("Markdown", outcome["feedback"]["hint"])
 
@@ -99,7 +99,7 @@ class DocumentFeedbackTests(AcademyCase):
         other = self.step("integrator.handoff", "gate")
         path = self.write("guide.md", "# Guide\n")
         outcome = self.state.verify_artifact("integrator.handoff", other["id"], path)
-        feedback = self.state.record_gate("integrator.handoff", other["id"], outcome)["feedback"]
+        feedback = self.state.record_gate("integrator.handoff", other["id"], outcome, artifact=path)["feedback"]
         self.assertEqual(feedback["level"], 1)
 
     def test_the_same_file_cannot_pass_two_missions(self):

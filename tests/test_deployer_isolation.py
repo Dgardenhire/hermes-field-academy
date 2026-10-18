@@ -70,7 +70,8 @@ class Static(unittest.TestCase):
                     text = arg.value if isinstance(arg, ast.Constant) else "".join(v.value for v in arg.values if isinstance(v, ast.Constant))
                     self.assertRegex(text.strip(), r"^(?i:SELECT\b|PRAGMA query_only)", f"evidence.py line {node.lineno} runs SQL that is not a read: {text[:40]!r}")
         text = self.source("evidence")
-        self.assertIn("mode=ro&immutable=1", text, "run history must be opened read-only and immutable")
+        self.assertIn('?mode=ro"', text, "run history must be opened read-only")
+        self.assertNotIn("mode=rw", text)
         self.assertIn("PRAGMA query_only = ON", text)
 
     def test_only_two_places_delete_anything_and_both_are_guarded(self):

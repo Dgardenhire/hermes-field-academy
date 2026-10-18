@@ -198,7 +198,7 @@ WALKTHROUGH = {
 }
 
 HONEST_LIMITS = (
-    "Labs and the proposal were checked by scripts that read files, and by your own Hermes for the prose. Run history was read from Hermes where Hermes shows it. "
+    "Labs and the proposal were checked by scripts that read files, and by your own Hermes for the prose. Run history was read from Hermes's files where Field Academy could reach them, and otherwise reported by the Field Academy page from what Hermes showed it. "
     "Nothing here was tested against a live Hermes while it was written, so the exact layout of Hermes's run history is read generously. "
     "Where it could not be read, the packet carries your own excerpt and only the reviewer's acceptance counts."
 )

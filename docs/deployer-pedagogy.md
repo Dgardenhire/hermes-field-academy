@@ -139,12 +139,12 @@ Field Academy cannot watch them, so it reads what Hermes itself recorded afterwa
   is, and Field Academy does not pretend otherwise.
 
 **Not verified:** the layout of Hermes's run history and logs. The reader looks for a run-history database under
-`cron/` and for log lines that name the job, opens them read-only (and, for the database, immutable, so no journal
-or lock file is created beside it), and keeps only timestamps and whether a run looks failed. The database layout it
-assumes was taken from Tony Simons's manual as quoted in docs/curriculum-voice.md, which says run history lives in
+`cron/` and for log lines that name the job, opens them read-only (and never writes to the database), and keeps only timestamps and whether a run looks failed. The database layout it
+assumes was taken from Tony Simons's Hermes Agent Manual, which says run history lives in
 `cron/executions.db`. The Hermes source confirms that file and its `executions` table (cron/executions.py, checked
 2026-10-15). It could not be run against a live Hermes while this was written. Hermes writes that database in WAL
-mode, and an immutable read skips the newest, not yet checkpointed runs, so a run can show up late. The desktop half also
+mode. A read-only open sees the newest runs still in the WAL file. Only when that open fails does the reader fall
+back to an immutable read, which skips those newest runs, so a run can show up late. The desktop half also
 reads the scheduler list and the chat list with the same read-only calls the mission checks use. It cannot read
 the Kanban board (a plugin page reaches only its own backend), and says so on the screen.
 

@@ -116,8 +116,7 @@ def pass_mission(state, curriculum, data_dir, mission_id, score=86):
             target = Path(data_dir) / f"{mission_id.replace('.', '-')}-notes.md"
             target.write_text(build_document(step))
             live = {"passed": True, "title": "Hermes answered", "detail": "Hermes answered.", "facts": []} if step.get("live") else None
-            outcome = state.verify_artifact(mission_id, step["id"], str(target), live=live)
-            state.record_gate(mission_id, step["id"], outcome, artifact=str(target))
+            state.record_gate(mission_id, step["id"], None, artifact=str(target), live=live)
         else:
             state.record_gate(
                 mission_id,
@@ -221,8 +220,7 @@ def misses(state, curriculum, data_dir, store):
     gate = next(s for s in curriculum.MISSIONS[mission_id]["steps"] if s["kind"] == "gate")
     outcome = None
     for _ in range(2):
-        outcome = state.verify_artifact(mission_id, gate["id"], str(target))
-        state.record_gate(mission_id, gate["id"], outcome, artifact=str(target))
+        outcome = state.record_gate(mission_id, gate["id"], None, artifact=str(target))
     state.set_goal("integrator")
     return {"gate_outcome": outcome}
 

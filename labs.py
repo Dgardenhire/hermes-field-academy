@@ -34,6 +34,7 @@ import os
 import random
 import re
 import shutil
+import stat
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -788,11 +789,64 @@ def _access_built(mode: int) -> bytes:
     return b"shared" if mode & 0o077 else b"private"
 
 
+# Windows marks junctions, symbolic links and other redirects with this attribute. Python 3.9 doesn't call a
+# junction a link, so the attribute is checked directly.
+FILE_ATTRIBUTE_REPARSE_POINT = 0x400
+
+
+def is_link(path) -> bool:
+    """True for a symbolic link, a Windows junction or any other reparse point, and for anything unreadable."""
+    try:
+        info = os.lstat(path)
+    except OSError:
+        return True
+    return stat.S_ISLNK(info.st_mode) or bool(getattr(info, "st_file_attributes", 0) & FILE_ATTRIBUTE_REPARSE_POINT)
+
+
+def plain_file(root, rel) -> bool:
+    """True when root/rel is an ordinary file reached through ordinary folders, with no link on the way."""
+    path = Path(root)
+    for part in Path(rel).parts:
+        if part in ("", ".", "..") or is_link(path / part):
+            return False
+        path = path / part
+    try:
+        return stat.S_ISREG(os.lstat(path).st_mode)
+    except OSError:
+        return False
+
+
+def plain_files(root):
+    """Every ordinary file under root, never following a link, a junction or a reparse point."""
+    root = Path(root)
+    found, folders = [], [root]
+    while folders:
+        folder = folders.pop()
+        try:
+            entries = list(os.scandir(folder))
+        except OSError:
+            continue
+        for entry in entries:
+            path = Path(entry.path)
+            if is_link(path):
+                continue
+            mode = os.lstat(path).st_mode
+            if stat.S_ISDIR(mode):
+                folders.append(path)
+            elif stat.S_ISREG(mode):
+                found.append(path)
+    return found
+
+
+def skip_links(folder, names):
+    """For shutil.copytree: leave out every link, so a copy never holds a link or what one points to."""
+    return [name for name in names if is_link(os.path.join(folder, name))]
+
+
 def listing(root: Path) -> list:
-    """Every file under root, as forward-slash paths relative to it, the same on every platform."""
-    return sorted(
-        path.relative_to(root).as_posix() for path in root.rglob("*") if path.is_file()
-    )
+    """Every file under root, as forward-slash paths relative to it, the same on every platform. Links are skipped."""
+    root = Path(root)
+    return sorted(path.relative_to(root).as_posix() for path in plain_files(root))
 
 
 def tree_fingerprint(root: Path) -> str:
@@ -808,7 +862,7 @@ def tree_fingerprint(root: Path) -> str:
 
 def read(root: Path, rel: str) -> str:
     path = Path(root) / rel
-    return path.read_text(encoding="utf-8") if path.is_file() else ""
+    return path.read_text(encoding="utf-8") if plain_file(root, rel) else ""
 
 
 def manifest(spec: dict, root: Path) -> dict:

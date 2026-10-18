@@ -217,11 +217,23 @@ def analyze_recovery(times, *, started: datetime, ended: datetime | None, now: d
 
 
 def _ro_connect(path: Path):
-    """Open a SQLite file read-only and immutable, so no journal or lock file is made beside it."""
-    uri = f"file:{quote(path.as_posix())}?mode=ro&immutable=1"
-    conn = sqlite3.connect(uri, uri=True, timeout=1)
-    conn.execute("PRAGMA query_only = ON")
-    return conn
+    """Open a SQLite file read-only. Nothing is ever written to it.
+
+    Hermes writes its run history in WAL mode, so the newest runs can still be in
+    the -wal file. A plain read-only open sees them. Only if that open fails (for
+    example a folder this account can't write, where SQLite can't use the -shm
+    file) does it fall back to an immutable read, which skips those newest runs.
+    """
+    base = f"file:{quote(path.as_posix())}?mode=ro"
+    for uri in (base, base + "&immutable=1"):
+        try:
+            conn = sqlite3.connect(uri, uri=True, timeout=1)
+            conn.execute("PRAGMA query_only = ON")
+            conn.execute("SELECT name FROM sqlite_master LIMIT 1").fetchall()
+            return conn
+        except sqlite3.Error:
+            continue
+    raise sqlite3.OperationalError("The run history could not be opened read-only.")
 
 
 def read_run_history(home, job_name: str, now: datetime) -> dict:

@@ -138,7 +138,7 @@ def _last_feedback(conn, item_id):
 
 def _read_file(path):
     """Read a text file the learner named: bounded, UTF-8 only. Returns (text, sha256, size, problem)."""
-    target = Path(str(path or "")).expanduser()
+    target = documents.typed_path(path)
     if not target.is_file():
         return None, "", 0, {"id": "file", "what": f"Nothing is saved at {target}. Save the document as text or Markdown, then type where you saved it."}
     size = target.stat().st_size
@@ -384,7 +384,7 @@ def brief_submit(path):
             return _failed_outcome(conn, "brief", "No document to check", [problem], coach)
         result = brief_mod.check(text, brief)
         facts = [
-            {"label": "File", "value": Path(str(path)).name},
+            {"label": "File", "value": documents.typed_path(path).name},
             {"label": "Size", "value": f"{size} bytes, {len(text.split())} words"},
             {"label": "SHA-256", "value": digest[:16]},
         ]
@@ -398,7 +398,7 @@ def brief_submit(path):
                ON CONFLICT(item_id) DO UPDATE SET answer = excluded.answer, score = NULL, feedback = '', attempts = excluded.attempts, ladder_json = '', created_at = excluded.created_at, graded_at = ''""",
             (capped, _now()),
         )
-        _save_item(conn, "brief", status="scoring", detail={"stage": "scoring", "document": Path(str(path)).name, "checks_met_at": _now()}, fingerprint=digest)
+        _save_item(conn, "brief", status="scoring", detail={"stage": "scoring", "document": documents.typed_path(path).name, "checks_met_at": _now()}, fingerprint=digest)
         return {
             "passed": False, "awaiting_score": True,
             "title": "The checks on the document are met",
@@ -543,7 +543,7 @@ def _check_record(path, sections, item_id, extra=None):
     missing = list(analysis["missing"])
     if extra and not missing:
         missing += extra(analysis["sections"])
-    return {"name": Path(str(path)).name, "sha256": digest, "bytes": size, "words": len(text.split())}, digest, missing
+    return {"name": documents.typed_path(path).name, "sha256": digest, "bytes": size, "words": len(text.split())}, digest, missing
 
 
 def _broad_access(sections):
@@ -572,12 +572,29 @@ def deploy_record(path):
                 "facts": [{"label": "File", "value": record["name"]}, {"label": "SHA-256", "value": digest[:16]}], "missing": []}
 
 
+# Where evidence came from, as this side labels it. Only what the backend reads itself is "read from Hermes".
+FROM_PAGE = "reported by the Field Academy page"
+READ_BY_BACKEND = "hermes files"
+PAGE_LISTS = ("desktop scheduler list", "desktop chat list", "desktop scheduler and chat lists")
+
+
 def _valid_sample(sample, now):
+    """A run sample the page sent. Its label is set here: the page never says it was read from Hermes."""
     if not isinstance(sample, dict):
         return None
     times = [t for t in (sample.get("times") or [])[:500] if isinstance(t, str)]
     failed = [t for t in (sample.get("failed") or [])[:500] if isinstance(t, str)]
-    return {"source": _clean(str(sample.get("source", "desktop")), 40), "times": [evidence.iso(t) for t in evidence.clean_times(times, now)], "failed": [evidence.iso(t) for t in evidence.clean_times(failed, now)]}
+    which = str(sample.get("source", ""))
+    source = f"reported by the page ({which})" if which in PAGE_LISTS else "reported by the page"
+    return {"source": source, "times": [evidence.iso(t) for t in evidence.clean_times(times, now)], "failed": [evidence.iso(t) for t in evidence.clean_times(failed, now)]}
+
+
+def _evidence_status(conn, item_id):
+    """How a verified deployment or drill is described on the Field Record."""
+    if _item(conn, item_id)["status"] == "awaiting_review":
+        return "accepted by the reviewer"
+    sources = {s["source"] for s in _samples(conn, "deploy")}
+    return "read from Hermes" if READ_BY_BACKEND in sources else FROM_PAGE
 
 
 def _take_sample(conn, item_id, job, sample, home, read_home):
@@ -589,7 +606,7 @@ def _take_sample(conn, item_id, job, sample, home, read_home):
     if read_home:
         found = evidence.collect(home if home is not None else _hermes_home(), job, now) if (home is not None or _hermes_home().exists()) else {"found": False}
         if found.get("found"):
-            taken.append({"source": "hermes files", "times": found["times"], "failed": found["failed"]})
+            taken.append({"source": READ_BY_BACKEND, "times": found["times"], "failed": found["failed"]})
     for item in taken:
         conn.execute(
             "INSERT INTO deployer_samples(item_id, taken_at, source, times_json, failed_json) VALUES (?, ?, ?, ?, ?)",
@@ -628,7 +645,7 @@ def deploy_check(sample=None, home=None, read_home=True):
             coach["record_missing"] = {"hint": "The access record says what you granted and refused.", "example": ""}
             result["passed"] = False
         sources = sorted({s["source"] for s in _samples(conn, "deploy")})
-        note = f"Read from: {', '.join(sources) or 'nothing readable'}. {len(times)} run times, {len(failed)} failed."
+        note = f"Where the runs came from: {', '.join(sources) or 'nothing readable'}. {len(times)} run times, {len(failed)} failed."
         if result["passed"]:
             _clear_misses(conn, "deploy")
             _save_item(conn, "deploy", status="verified", detail={"result": {"passed": True, "facts": result["facts"], "checked_at": _now()}, "evidence_note": note}, passed=True)
@@ -840,7 +857,7 @@ def walkthrough_save(text, media_path=""):
             missing.append({"id": "walk_reflect", "what": "Say one thing you would do differently next time."})
         media = None
         if media_path:
-            target = Path(media_path).expanduser()
+            target = documents.typed_path(media_path)
             if not target.is_file():
                 missing.append({"id": "walk_media", "what": f"No file at {target}. Leave the recording out, or type the right location."})
             else:
@@ -1050,6 +1067,13 @@ def trusted_reviewers(conn=None):
     return walkthrough.load_trusted(PUBLISHED_REVIEWERS, local)
 
 
+def _reviewer_name(conn, result):
+    """The reviewer's name as the trusted list has it, never the name typed when signing."""
+    reviewer = result.get("reviewer") or {}
+    listed = trusted_reviewers(conn).get(str(reviewer.get("public_key", "")).lower(), {}).get("name", "")
+    return walkthrough._clean(listed or reviewer.get("name", ""), walkthrough.NAME_LIMIT)
+
+
 def trust_local_reviewer(name, public_key):
     """Add a reviewer's public key to this computer's own list.
 
@@ -1057,7 +1081,7 @@ def trust_local_reviewer(name, public_key):
     reviewer can add that reviewer's key here, and every Field Record signed with it
     says the key came from the learner's own list, so a reader knows to check it.
     """
-    clean_name = _clean(name, 120).strip()
+    clean_name = walkthrough._clean(name, walkthrough.NAME_LIMIT)
     key = str(public_key or "").strip().lower()
     if not clean_name:
         raise ValueError("Type the reviewer's name.")
@@ -1109,12 +1133,14 @@ def load_signoff(text):
 
 
 def set_version(value, source="typed by you"):
+    """Save the version the learner typed or the page read. The label is set here, never taken from the page."""
     value = _clean(value, 40)
     if not evidence.parse_version(value):
         raise ValueError("That does not look like a version. Type it the way Hermes shows it, for example 0.12.3.")
+    label = "typed by you" if str(source or "").startswith("typed") else FROM_PAGE
     with _conn() as conn:
         store.meta_set(conn, "deployer:hermes_version", value)
-        store.meta_set(conn, "deployer:hermes_version_source", _clean(source, 60))
+        store.meta_set(conn, "deployer:hermes_version_source", label)
         store.meta_set(conn, "deployer:hermes_version_seen", _now())
         return current_version(conn)
 
@@ -1125,9 +1151,13 @@ def current_version(conn):
     if not value:
         detected, how = evidence.detect_version()
         if detected:
-            return {"value": detected, "source": f"read from the {how}", "machine_read": True, "seen_at": ""}
-        return {"value": "", "source": "", "machine_read": False, "seen_at": ""}
-    return {"value": value, "source": source, "machine_read": not source.startswith("typed"), "seen_at": store.meta_get(conn, "deployer:hermes_version_seen", "")}
+            return {"value": detected, "source": f"read from the {how}", "machine_read": True, "from_page": False, "seen_at": ""}
+        return {"value": "", "source": "", "machine_read": False, "from_page": False, "seen_at": ""}
+    # A saved version came from the page: typed by the learner, or read by the page. 0.8.4 and earlier
+    # saved the page's own label, so anything not typed is shown as reported by the page.
+    typed = source.startswith("typed")
+    return {"value": value, "source": "typed by you" if typed else FROM_PAGE, "machine_read": False, "from_page": not typed,
+            "seen_at": store.meta_get(conn, "deployer:hermes_version_seen", "")}
 
 
 def reverify_view(conn):
@@ -1235,10 +1265,10 @@ def issue_certificate(name):
             "labs": labs_body,
             "brief": {"firm": brief_mod.brief_for(_brief_seed(conn))["firm"], "document": b["detail"].get("document", ""), "fingerprint": b["fingerprint"], "score": b["score"]},
             "scenarios": [{"id": sid, "score": scenario_view(conn, sid)["score"]} for sid in scenarios.IDS],
-            "deployment": {"service": d["detail"].get("service", ""), "status": "accepted by the reviewer" if d["status"] == "awaiting_review" else "read from Hermes", "checks": len(_samples(conn, "deploy"))},
-            "drills": [{"id": i, "status": ("accepted by the reviewer" if _item(conn, f"drill.{i}")["status"] == "awaiting_review" else "read from Hermes")} for i in DRILL_IDS if _drill_state(conn, i) == "verified"],
+            "deployment": {"service": d["detail"].get("service", ""), "status": _evidence_status(conn, "deploy"), "checks": len(_samples(conn, "deploy"))},
+            "drills": [{"id": i, "status": _evidence_status(conn, f"drill.{i}")} for i in DRILL_IDS if _drill_state(conn, i) == "verified"],
             "review": {
-                "reviewer": result["reviewer"]["name"], "role": result["reviewer"].get("role", ""), "key_fingerprint": result["key_fingerprint"], "list": result["list"],
+                "reviewer": _reviewer_name(conn, result), "role": _clean(result["reviewer"].get("role", ""), walkthrough.ROLE_LIMIT), "key_fingerprint": result["key_fingerprint"], "list": result["list"],
                 "packet_fingerprint": review["fingerprint"], "scores": result["scores"], "signed_at": result["signed_at"], "rubric_version": walkthrough.RUBRIC_VERSION,
             },
             "shows": C.WHAT_IT_SHOWS,
@@ -1286,7 +1316,7 @@ def certificate_markdown(certificate):
         "## What this record shows", "", *[f"- {line}" for line in display["shows"]], "",
         "## What it does not show", "", *[f"- {line}" for line in display["does_not_show"]], "",
         body["lifecycle_credit"], "", display["issuer"], "", display["disclaimer"], "",
-        "The record number is the first 12 characters of a SHA-256 over this record's contents, as stored in the matching .json file. Change any line and the number stops matching.", "",
+        "The record number is the first 12 characters of a SHA-256 over this record's contents, as stored in the matching .json file. " + "It shows the record hasn't been changed by accident. Anyone can edit a record and make a new number, so the number isn't proof by itself.", "",
     ]
     note = state.legacy_note(display)
     if note:

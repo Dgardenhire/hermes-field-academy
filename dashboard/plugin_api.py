@@ -112,10 +112,11 @@ async def mission_step(mission_id: str, step_id: str, body: dict):
 async def gate(mission_id: str, step_id: str, body: dict):
     """Close a gate.
 
-    ``path`` given  -> this side reads and hashes the file (artifact gate). A
-    gate that also reads the live app sends that result as ``live``.
-    ``outcome`` given -> the desktop ran a live check; its facts are recorded
-    verbatim so the record stays inspectable.
+    ``path`` given  -> this side reads, checks and hashes the file (artifact gate).
+    A gate that also reads the live app sends the page's reading as ``live``.
+    ``outcome`` given -> taken only for a step the page checks itself (verify
+    "desktop"); state.record_gate keeps its plain parts and labels it as
+    reported by the page. A sent outcome for any other gate is refused.
     """
     try:
         if isinstance(body.get("text"), str) and body["text"].strip() and not body.get("path"):
@@ -123,20 +124,18 @@ async def gate(mission_id: str, step_id: str, body: dict):
             # Academy's own folder, then checked exactly like a typed path.
             body = {**body, "path": state.save_pasted_document(mission_id, step_id, body["text"])}
         if body.get("path"):
-            outcome = diagnostics.verify_artifact(
-                mission_id, step_id, body.get("path", ""), live=body.get("live") if isinstance(body.get("live"), dict) else None
+            outcome = state.record_gate(
+                mission_id,
+                step_id,
+                None,
+                session_id=body.get("session_id", ""),
+                artifact=str(body.get("path", "")),
+                live=body.get("live") if isinstance(body.get("live"), dict) else None,
             )
         elif isinstance(body.get("outcome"), dict):
-            outcome = body["outcome"]
+            outcome = state.record_gate(mission_id, step_id, body["outcome"], session_id=body.get("session_id", ""))
         else:
             raise ValueError("A gate needs either a file path or a check outcome.")
-        state.record_gate(
-            mission_id,
-            step_id,
-            outcome,
-            session_id=body.get("session_id", ""),
-            artifact=body.get("path", ""),
-        )
         return {"outcome": outcome, "mission": state.mission_snapshot(mission_id)}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

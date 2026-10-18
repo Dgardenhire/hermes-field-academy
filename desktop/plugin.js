@@ -1537,7 +1537,13 @@ function folderUrl(path) {
   const clean = str2(path);
   if (!clean) return "";
   const slashed = clean.replace(/\\/g, "/");
-  return `file://${slashed.startsWith("/") ? "" : "/"}${slashed.split("/").map(encodeURIComponent).join("/")}`;
+  if (/^\/\/[^/]/.test(slashed)) {
+    const [host3, ...rest] = slashed.slice(2).split("/");
+    return `file://${encodeURIComponent(host3)}/${rest.map(encodeURIComponent).join("/")}`;
+  }
+  const encode = (part, index) => index === 0 && /^[A-Za-z]:$/.test(part) ? part : encodeURIComponent(part);
+  const parts = (slashed.startsWith("/") ? slashed.slice(1) : slashed).split("/");
+  return `file:///${parts.map(encode).join("/")}`;
 }
 
 // desktop/src/deployer.js
@@ -1679,7 +1685,7 @@ function createDeployerViews(ui) {
         jsxs4("div", { className: "hk-grow hk-stack", style: { gap: 2 }, children: [
           jsx4(Label2, { plain: true, children: "Hermes version on record" }),
           jsx4("strong", { children: version.value }),
-          jsx4("span", { className: "hk-small", children: version.machine_read ? `Read from Hermes (${version.source}).` : "You typed this. Field Academy could not read it, and the Field Record says so." })
+          jsx4("span", { className: "hk-small", children: version.machine_read ? `Read from Hermes (${version.source}).` : version.from_page ? "The Field Academy page read this from Hermes, and the Field Record says so." : "You typed this. Field Academy could not read it, and the Field Record says so." })
         ] }),
         jsx4("p", { className: "hk-small", style: { maxWidth: "24rem" }, children: "The Field Record shows this version. When the major version of Hermes changes, it shows Re-verify needed and asks you to repeat the four labs on new cases." })
       ] }) });
@@ -2266,7 +2272,8 @@ function createDeployerViews(ui) {
       ] }) }),
       jsxs4("div", { key: "actions", className: "hk-actions", children: [
         jsx4(Button2, { loading: save.busy === "s", onClick: () => save.run("s", () => ctxRest2("/deployer/certificate/save", { method: "POST", body: {} })), children: "Save as a file" }),
-        jsx4(Pill, { tone: issued.valid ? "good" : "bad", icon: issued.valid ? "pass-filled" : "error", children: issued.valid ? "The record number matches its contents" : "The record number does not match its contents" }),
+        // Neutral on purpose: the number catches accidental changes. Anyone can edit a record and make a new one.
+        jsx4(Pill, { tone: issued.valid ? "idle" : "bad", icon: issued.valid ? "info" : "error", children: issued.valid ? "The record number shows no accidental changes" : "The record number doesn't match what's on the record" }),
         rv ? jsx4(Pill, { tone: rv.status === "reverify" ? "warn" : rv.status === "current" ? "good" : "idle", icon: rv.status === "reverify" ? "history" : "check", children: rv.status === "reverify" ? "Re-verify needed" : rv.status === "current" ? "Current for this Hermes" : "Version unknown" }) : null
       ] }),
       rv ? jsx4("p", { key: "rv", children: rv.words }) : null,
@@ -3069,12 +3076,13 @@ async function readHermes(jobName) {
 }
 var versionTried = false;
 async function syncVersion(deployer) {
-  if (versionTried || !deployer || deployer.hermes_version && deployer.hermes_version.machine_read) return;
+  const known = deployer && deployer.hermes_version;
+  if (versionTried || !deployer || known && (known.machine_read || known.from_page)) return;
   versionTried = true;
   try {
     const found = versionFrom(await rpc("setup.runtime_check"));
     if (found) {
-      await ctxRest("/deployer/version", { method: "POST", body: { value: found, source: "read from Hermes" } });
+      await ctxRest("/deployer/version", { method: "POST", body: { value: found, source: "page" } });
       await refreshDeployer();
     }
   } catch (error) {
@@ -4258,10 +4266,11 @@ function CertificateView({ track, go }) {
     ] }) }, "cert"),
     jsxs6("div", { className: "hk-actions", key: "save", children: [
       jsx7(Button3, { loading: busy, onClick: save, children: "Save as a file" }),
+      // Neutral on purpose: the number catches accidental changes. Anyone can edit a record and make a new one.
       jsx7(Pill, {
-        tone: issued.valid ? "good" : "bad",
-        icon: issued.valid ? "pass-filled" : "error",
-        children: issued.valid ? "The record number matches its contents" : "The record number doesn't match its contents"
+        tone: issued.valid ? "idle" : "bad",
+        icon: issued.valid ? "info" : "error",
+        children: issued.valid ? "The record number shows no accidental changes" : "The record number doesn't match what's on the record"
       })
     ] }),
     saved ? jsx7(Result, { result: { passed: true, title: "Saved", detail: "A readable copy and a data copy are on your computer.", facts: [
@@ -4283,7 +4292,7 @@ function CertificateView({ track, go }) {
         jsx7("td", { children: item.level }),
         jsx7("td", { children: jsx7("strong", { children: item.title }) }),
         jsx7("td", { children: shortDate(item.passed_at) }),
-        jsx7("td", { children: item.check_result || item.check }),
+        jsx7("td", { children: item.checked_by ? jsxs6("span", { children: [item.check_result || item.check, jsx7("br", {}), jsx7("span", { className: "hk-small", children: item.checked_by })] }) : item.check_result || item.check }),
         jsx7("td", { children: item.check_version ? `Version ${item.check_version}${item.reading_skipped ? ", reading skipped by placement" : ""}` : "" }),
         jsx7("td", { children: item.question_score == null ? "" : `${item.question_score} of 100` }),
         jsx7("td", { children: item.document ? jsxs6("span", { children: [item.document, jsx7("br", {}), jsx7("span", { className: "hk-mono", children: `SHA-256 ${String(item.fingerprint || "").slice(0, 16)}` })] }) : "" })

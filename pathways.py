@@ -48,7 +48,7 @@ RECEIVE = [
     "A Field Record with your name, the path, and the date you finished it",
     "The proof behind every mission: what each check found, your score on each question, "
     "and the fingerprint of every document you wrote",
-    "A record number calculated from that proof. Change any line and the number stops matching",
+    "A record number made from that proof. It shows the record hasn't been changed by accident, but it isn't proof by itself",
     "The version of each check you passed, and a note on any mission where a placement check skipped the reading",
     "A copy saved as a file on your computer, to keep or share",
 ]

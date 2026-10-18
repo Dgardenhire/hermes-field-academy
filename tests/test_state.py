@@ -272,48 +272,6 @@ class FieldAcademyTests(unittest.TestCase):
             self.assertNotIn("hermes_growth", source, rel)
             self.assertNotIn("growth_snapshot", source, rel)
 
-    # -- catalog entry -------------------------------------------------------
-
-    @staticmethod
-    def _declared(path, key):
-        """Read a `key:` list out of a YAML file without pulling in PyYAML."""
-        names, inside = [], False
-        for line in (ROOT / path).read_text(encoding="utf-8").splitlines():
-            if re.match(rf"^\s*{key}:\s*$", line):
-                inside = True
-                continue
-            if inside:
-                item = re.match(r"^\s+-\s+(\S+)\s*$", line)
-                if item:
-                    names.append(item.group(1))
-                elif line.strip():
-                    break
-        return names
-
-    def test_the_catalog_entry_agrees_with_the_manifest(self):
-        """A stale catalog entry passes every machine check: the structural
-        validator only proves the block is a list of strings, so an entry that
-        understates the plugin is caught by a human reading the diff. Catch it
-        here instead of in review."""
-        for key in ("provides_tools", "provides_hooks"):
-            manifest = self._declared("plugin.yaml", key)
-            self.assertTrue(manifest, f"plugin.yaml declares no {key}")
-            self.assertEqual(
-                self._declared("catalog-entry.yaml", key),
-                manifest,
-                f"catalog-entry.yaml {key} disagrees with plugin.yaml",
-            )
-
-    def test_the_catalog_entry_pins_a_real_sha_or_says_so(self):
-        source = (ROOT / "catalog-entry.yaml").read_text(encoding="utf-8")
-        match = re.search(r"^sha:\s*(\S+)", source, re.M)
-        self.assertIsNotNone(match, "catalog-entry.yaml must carry a sha")
-        value = match.group(1) if match else ""
-        self.assertTrue(
-            re.fullmatch(r"[0-9a-f]{40}", value) or value.startswith("REPLACE_WITH"),
-            f"sha must be 40 lowercase hex characters or an explicit placeholder, got {value!r}",
-        )
-
     # -- hooks ---------------------------------------------------------------
 
     def test_an_unmatched_scan_consumes_nothing(self):

@@ -242,13 +242,16 @@ class SignScript(DeployerCase):
 
         folder = pathlib.Path(tempfile.mkdtemp())
         key = folder / "reviewer.key"
-        out = subprocess.run([sys.executable, str(ROOT / "scripts" / "sign_review.py"), "keygen", "--out", str(key)], capture_output=True, text=True)
+        # Apple's /usr/bin/python3 writes its bytecode cache under ~/Library/Caches, which here is
+        # the fake home the case watches. The script needs no cache, so the child writes none.
+        env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+        out = subprocess.run([sys.executable, str(ROOT / "scripts" / "sign_review.py"), "keygen", "--out", str(key)], capture_output=True, text=True, env=env)
         self.assertEqual(out.returncode, 0, out.stderr)
         fileaccess = importlib.import_module(f"{self.name}.fileaccess")
         self.assertTrue(fileaccess.is_private(key), f"the secret key must be readable only by its owner: {fileaccess.others(key)}")
         if not fileaccess.ON_WINDOWS:
             self.assertEqual(oct(key.stat().st_mode & 0o777), "0o600")
-        again = subprocess.run([sys.executable, str(ROOT / "scripts" / "sign_review.py"), "keygen", "--out", str(key)], capture_output=True, text=True)
+        again = subprocess.run([sys.executable, str(ROOT / "scripts" / "sign_review.py"), "keygen", "--out", str(key)], capture_output=True, text=True, env=env)
         self.assertNotEqual(again.returncode, 0, "it must not overwrite an existing key")
         public = re.search(r"Public key:\s+([0-9a-f]{64})", out.stdout).group(1)
         packet = self.walkthrough.build_packet(
@@ -260,7 +263,7 @@ class SignScript(DeployerCase):
         args = [sys.executable, str(ROOT / "scripts" / "sign_review.py"), "sign", "--packet", str(path), "--key", str(key), "--name", "Dr. Reviewer", "--decision", "approved", "--out", str(folder / "so.json"), "--accept", "deploy"]
         for rid in self.walkthrough.RUBRIC_IDS:
             args += ["--score", f"{rid}=3"]
-        signed = subprocess.run(args, capture_output=True, text=True)
+        signed = subprocess.run(args, capture_output=True, text=True, env=env)
         self.assertEqual(signed.returncode, 0, signed.stderr)
         signoff = json.loads((folder / "so.json").read_text(encoding="utf-8"))
         packet_check = self.walkthrough.verify_signoff(signoff, packet, {public: {"name": "Dr. Reviewer", "list": "published"}})
@@ -268,12 +271,12 @@ class SignScript(DeployerCase):
         self.assertEqual(packet_check["accepted_evidence"], ["deploy"])
         # a score outside the scale, a missing line, an unknown accept, and an edited packet are all refused
         for extra, label in (([ "--score", "safety=9"], "scale"), ([ "--accept", "nope"], "accept")):
-            bad = subprocess.run(args + extra, capture_output=True, text=True)
+            bad = subprocess.run(args + extra, capture_output=True, text=True, env=env)
             self.assertNotEqual(bad.returncode, 0, label)
         short = [a for a in args if not a.startswith(("diagnosis=", "safety="))]
         edited = dict(packet, learner="Someone Else")
         path.write_text(json.dumps(edited))
-        self.assertNotEqual(subprocess.run(args, capture_output=True, text=True).returncode, 0, "an edited packet must not be signed")
+        self.assertNotEqual(subprocess.run(args, capture_output=True, text=True, env=env).returncode, 0, "an edited packet must not be signed")
 
     def test_the_published_reviewer_list_ships_and_is_valid_json(self):
         data = json.loads((ROOT / "reviewers" / "trusted-reviewers.json").read_text(encoding="utf-8"))

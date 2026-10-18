@@ -56,7 +56,7 @@ folder; delete that folder to start over.
   never have passed on a real install (the skill check and a paused scheduled job); both are fixed and tested.
 - All tests pass: `python3 -m unittest discover -s tests` (Python and Node).
 
-It has not run inside a live Hermes Desktop, and no learner outside the author has taken a path.
+It runs in the author's own Hermes Desktop. We don't yet know of a learner outside the author who has finished a path.
 
 ## Open questions we would value your view on
 

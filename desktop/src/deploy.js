@@ -148,7 +148,15 @@ export function folderUrl(path) {
   const clean = str(path)
   if (!clean) return ''
   const slashed = clean.replace(/\\/g, '/')
-  return `file://${slashed.startsWith('/') ? '' : '/'}${slashed.split('/').map(encodeURIComponent).join('/')}`
+  // A network share (\\server\share) keeps its server as the address's host.
+  if (/^\/\/[^/]/.test(slashed)) {
+    const [host, ...rest] = slashed.slice(2).split('/')
+    return `file://${encodeURIComponent(host)}/${rest.map(encodeURIComponent).join('/')}`
+  }
+  // A drive letter (C:) keeps its colon; encodeURIComponent would turn it into C%3A.
+  const encode = (part, index) => (index === 0 && /^[A-Za-z]:$/.test(part) ? part : encodeURIComponent(part))
+  const parts = (slashed.startsWith('/') ? slashed.slice(1) : slashed).split('/')
+  return `file:///${parts.map(encode).join('/')}`
 }
 
 /** How the clock reads for a deployment that is running: whole days since it started. */

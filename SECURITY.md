@@ -19,8 +19,12 @@ other.
 
 ## Reporting
 
-Open an issue at https://github.com/Dgardenhire/hermes-field-academy/issues, or email
-the maintainer if the report should not be public first.
+Report a security problem privately through GitHub: open the repository's
+**Security** tab and choose **Report a vulnerability**, or go straight to
+https://github.com/Dgardenhire/hermes-field-academy/security/advisories/new.
+Only the maintainer sees the report until a fix is out. For anything that is
+safe to discuss in public, open an issue at
+https://github.com/Dgardenhire/hermes-field-academy/issues.
 
 ## Boundaries this plugin holds itself to
 
@@ -28,6 +32,11 @@ the maintainer if the report should not be public first.
 read is capped at 5 MiB (`MAX_ARTIFACT_BYTES` in `state.py`) and the bytes must
 decode as UTF-8, so a binary cannot satisfy a heading check by accident and a
 large file cannot be read into the gateway process.
+
+**Links in a lab folder are never followed.** Symbolic links, Windows junctions
+and other reparse points inside a lab are skipped when a lab is listed, graded,
+fingerprinted or copied into the review packet (`plain_files` and `plain_file`
+in `labs.py`). A link to a real `~/.hermes/.env` is never read and never copied.
 
 **Model-authored input is validated.** The transcript directive's `mission`
 attribute is untrusted model output. It is trimmed and matched against
@@ -40,9 +49,26 @@ scheduled, webhook, and gateway-delivered sessions by id prefix, and refuse
 one-shot CLI runs by argv (`-z`, `--oneshot`, `-Q`). Session prefixes alone do
 not catch a one-shot run, which gets a bare timestamp id.
 
-**Gates cannot be talked around.** The state layer refuses `status='done'` on any
-step a check owns, so the HTTP API cannot close a gate, a graded explanation, or
-an artifact step without the check passing.
+**What a check enforces, and what it takes from the page.** The state layer
+refuses `status='done'` on any step a check owns, so the HTTP API cannot mark a
+gate, a graded explanation or a fill-in step done by asking.
+
+- A document gate closes only when the backend reads the saved file and checks it
+  itself (`record_gate` and `verify_artifact` in `state.py`). A pass sent from
+  the page for a document gate is refused.
+- Four Operator gates read the learner's live Hermes, which only the page can do
+  (`verify: "desktop"` in the curriculum). Their pass or miss is taken from the
+  page as sent. The backend keeps only the plain parts and labels them on the
+  Field Record as reported by the page. Someone who calls the backend directly
+  can report a pass for these four. The same goes for the part of a document gate
+  that reads Hermes (`live`).
+- Written answers are scored by the learner's own Hermes through the agent tools.
+  No page route writes a score. The learner runs that agent, so a score is only
+  as honest as the learner and the model. The grading request marks the answer as
+  untrusted text and tells the model to ignore instructions inside it.
+- The Field Record is self-issued and kept on the learner's own computer. Its
+  number shows the record hasn't been changed by accident. Anyone can edit a
+  record and make a new number, so the number isn't proof on its own.
 
 **No network calls.** The plugin makes none. It reads the local gateway over
 JSON-RPC and its own backend namespace over the desktop bridge, and it opens a

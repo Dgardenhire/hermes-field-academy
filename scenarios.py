@@ -15,6 +15,8 @@ from Tony Simons's description of his architecture sessions on tonysimons.dev.
 
 from __future__ import annotations
 
+from . import learning
+
 PASS_SCORE = 70
 MIN_CHARS = 240
 
@@ -247,7 +249,7 @@ def grading_prompt(item: dict, answer: str) -> str:
         "Grade a Field Academy judgment scenario. Stay in the learner's own Hermes; do not restart the exercise.\n\n"
         f"Scenario: {item['title']}\n{item['situation']}\n\nQuestion asked: {item['question']}\n\n"
         f"A strong answer does these things:\n{covers}\n\n"
-        f"The learner's answer:\n---\n{answer}\n---\n\n"
+        f"{learning.untrusted_answer(answer)}\n\n"
         "There is no single right verdict. Two learners can decide differently and both score well. Score 0-100 on the reasoning: did they name the competing duties, "
         "weigh them, choose and say why, and say who decides and what would change their mind. Ignore style and length. "
         "An answer that only states a verdict, or restates the case, scores under 40. One that covers most of the above with one clear gap scores in the 70s. "

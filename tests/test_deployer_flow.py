@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import secrets
 import shutil
 import sqlite3
 import sys
@@ -358,7 +359,8 @@ class Flow(DeployerCase):
             con.close()
         if logs:
             lines = [f"{stamp} cron job={job} status=ok" for stamp in self.runs(START + timedelta(days=5))[:3]] + [f"{iso(START + timedelta(days=2))} cron job=another status=ok"]
-            (home / "logs" / "agent.log").write_text("\n".join(lines) + "\nBearer abcdefghijklmnopqrstuvwxyz0123456789 in the log\n")
+            bearer = "Bearer " + secrets.token_urlsafe(27)  # made up when the test runs
+            (home / "logs" / "agent.log").write_text("\n".join(lines) + f"\n{bearer} in the log\n")
 
     def test_the_backend_reads_hermes_run_history_without_changing_it(self):
         self.start_deploy()
@@ -395,7 +397,8 @@ class Flow(DeployerCase):
         self.start_deploy()
         self.deployer.deploy_record(self.file("access.md", self.record_doc()))
         self.set_time(START + timedelta(days=5))
-        excerpt = "\n".join(f"{t} cron deployer-calendar-brief ran ok token=abc123secretvalue456" for t in self.runs(self.now))
+        fake = secrets.token_hex(10)  # made up when the test runs
+        excerpt = "\n".join(f"{t} cron deployer-calendar-brief ran ok token={fake}" for t in self.runs(self.now))
         reply = self.deployer.deploy_fallback(excerpt, "Hermes showed no history on my version.")
         self.assertEqual(reply["deploy"]["status"], "awaiting_review")
         self.assertNotEqual(reply["deploy"]["status"], "verified")
@@ -403,7 +406,7 @@ class Flow(DeployerCase):
         with self.conn() as c:
             self.assertEqual(self.deployer._item_state(c, "deploy"), "awaiting_review")
             stored = self.deployer._item(c, "deploy")["detail"]["fallback"]["excerpt"]
-        self.assertNotIn("abc123secretvalue456", stored)
+        self.assertNotIn(fake, stored)
         self.assertIn("[removed]", stored)
 
     def test_fallback_needs_a_real_excerpt_and_the_written_record_first(self):
@@ -700,6 +703,58 @@ class Flow(DeployerCase):
         cert = self.deployer.issue_certificate("Ada Lovelace")
         self.assertEqual(cert["body"]["review"]["list"], "local")
         self.assertIn("not on Field Academy's published reviewer list", self.deployer.certificate_markdown(cert))
+
+    def test_only_what_the_backend_reads_itself_is_labelled_read_from_hermes(self):
+        self.deployer.set_version("0.21.3", "read from Hermes")
+        with self.conn() as c:
+            version = self.deployer.current_version(c)
+        self.assertFalse(version["machine_read"])
+        self.assertTrue(version["from_page"])
+        self.assertEqual(version["source"], "reported by the Field Academy page")
+        self.deployer.set_version("0.21.3", "typed by you")
+        with self.conn() as c:
+            version = self.deployer.current_version(c)
+        self.assertEqual((version["machine_read"], version["from_page"], version["source"]), (False, False, "typed by you"))
+        self.start_deploy()
+        self.set_time(START + timedelta(days=4, hours=1))
+        self.deployer.deploy_check(sample={"source": "read from Hermes files", "times": self.runs(self.now)}, home=self.hermes / "nothing-here")
+        self.deployer.deploy_check(sample=self.sample(self.now), home=self.hermes / "nothing-here")
+        with self.conn() as c:
+            sources = [row["source"] for row in c.execute("SELECT source FROM deployer_samples")]
+        self.assertEqual(sources, ["reported by the page", "reported by the page (desktop scheduler list)"])
+
+    def test_a_deployment_the_page_reported_is_not_called_read_from_hermes_on_the_record(self):
+        self.everything()
+        view = self.deployer.build_review_packet("Ada Lovelace")
+        self.trust(where="local")
+        self.assertEqual(self.deployer.load_signoff(self.signoff(view))["status"], "signed")
+        self.deployer.set_version("0.21.3", "read from Hermes")
+        body = self.deployer.issue_certificate("Ada Lovelace")["body"]
+        self.assertEqual(body["deployment"]["status"], "reported by the Field Academy page")
+        self.assertTrue(all(d["status"] == "reported by the Field Academy page" for d in body["drills"]), body["drills"])
+        self.assertFalse(body["hermes_version"]["machine_read"])
+
+    def test_the_record_names_the_reviewer_from_the_trusted_list_not_the_typed_name(self):
+        self.everything()
+        view = self.deployer.build_review_packet("Ada Lovelace")
+        self.trust(where="local")
+        signed = self.signoff(view, name="Teknium, Nous Research\n\n# Approved by Nous Research")
+        wk = importlib_import(self.name, "walkthrough")
+        signed["reviewer"]["role"] = "Hermes team\n## Official certificate\n" + "x" * 500
+        signed["comments"] = "Fine.\n# Certified by Nous Research\nMore."
+        signed = wk.sign({k: v for k, v in signed.items() if k != "signature"}, SECRET)
+        result = self.deployer.load_signoff(signed)
+        self.assertEqual(result["status"], "signed", result["problems"])
+        self.assertEqual(result["reviewer"]["name"], "Dr. Reviewer")
+        self.assertNotIn("\n", result["reviewer"]["role"])
+        self.assertLessEqual(len(result["reviewer"]["role"]), 120)
+        self.assertNotIn("\n", result["comments"])
+        self.deployer.set_version("0.21.3")
+        cert = self.deployer.issue_certificate("Ada Lovelace")
+        self.assertEqual(cert["body"]["review"]["reviewer"], "Dr. Reviewer")
+        markdown = self.deployer.certificate_markdown(cert)
+        self.assertNotIn("Teknium", markdown)
+        self.assertFalse([line for line in markdown.splitlines() if "Nous Research" in line and line.startswith("#")])
 
     def test_a_signature_from_an_unlisted_key_is_valid_but_does_not_count(self):
         self.everything()

@@ -38,6 +38,7 @@ from datetime import datetime
 from pathlib import Path
 
 from . import ed25519
+from .labs import is_link, skip_links
 
 RUBRIC_VERSION = 1
 FLOOR = 2
@@ -180,12 +181,23 @@ def write_packet(folder: Path, packet: dict, lab_sources: dict) -> dict:
     if copies.exists():
         shutil.rmtree(copies)
     for lab_id, source in lab_sources.items():
-        if Path(source).is_dir():
-            shutil.copytree(source, copies / lab_id.split(".")[1])
+        # Links are left out, never followed: a link to the real ~/.hermes/.env must not reach a reviewer.
+        if Path(source).is_dir() and not is_link(source):
+            shutil.copytree(source, copies / lab_id.split(".")[1], symlinks=True, ignore=skip_links)
     return {"folder": str(folder), "packet_json": str(folder / "packet.json"), "packet_md": str(folder / "packet.md"), "rubric": str(folder / "rubric.md"), "template": str(folder / "signoff-template.json")}
 
 
 # ------------------------------------------------------------------ sign-off --
+
+
+def _clean(text, limit: int) -> str:
+    """One plain line: no line breaks, and nothing at the start that reads as a heading, quote or list."""
+    return " ".join(str(text or "").split()).lstrip("#>*-=+|` ")[:limit]
+
+
+NAME_LIMIT = 80
+ROLE_LIMIT = 120
+COMMENTS_LIMIT = 2000
 
 
 def sign_body(signoff: dict) -> bytes:
@@ -213,7 +225,7 @@ def load_trusted(published_path: Path, local_path: Path | None) -> dict:
             for item in data.get("reviewers", []):
                 key = str(item.get("public_key", "")).lower()
                 if len(key) == 64:
-                    trusted[key] = {"name": item.get("name", ""), "list": which}
+                    trusted[key] = {"name": _clean(item.get("name", ""), NAME_LIMIT), "list": which}
     return trusted
 
 
@@ -236,7 +248,15 @@ def verify_signoff(signoff, packet: dict, trusted: dict) -> dict:
         problems.append("The signature does not match the sign-off. It was edited after signing, or it was signed with a different key.")
         return result
     result["valid"] = True
-    result["reviewer"] = {"name": reviewer.get("name", ""), "role": reviewer.get("role", ""), "public_key": key_hex}
+    # The name on the record is the one on the trusted list, never the one typed at signing.
+    typed = _clean(reviewer.get("name", ""), NAME_LIMIT)
+    listed = trusted.get(key_hex, {}).get("name", "") if isinstance(trusted, dict) else ""
+    result["reviewer"] = {
+        "name": _clean(listed, NAME_LIMIT) or typed,
+        "typed_name": typed,
+        "role": _clean(reviewer.get("role", ""), ROLE_LIMIT),
+        "public_key": key_hex,
+    }
     result["key_fingerprint"] = key_fingerprint(key_hex)
     if signoff.get("packet_fingerprint") != packet.get("fingerprint") or packet_fingerprint(packet) != packet.get("fingerprint"):
         problems.append("The sign-off is for a different packet, or the packet was changed after it was made. Build a new packet and ask the reviewer to sign that one.")
@@ -269,7 +289,7 @@ def verify_signoff(signoff, packet: dict, trusted: dict) -> dict:
     needed = [item["item"] for item in packet.get("fallback_evidence") or []]
     accepted = [a for a in (signoff.get("accepted_evidence") or []) if isinstance(a, str)]
     result["accepted_evidence"] = accepted
-    result["comments"] = str(signoff.get("comments", ""))[:2000]
+    result["comments"] = _clean(signoff.get("comments", ""), COMMENTS_LIMIT)
     result["signed_at"] = str(signed)
     result["needs_acceptance"] = [n for n in needed if n not in accepted]
     result["approved"] = not problems

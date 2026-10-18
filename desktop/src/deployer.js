@@ -185,7 +185,11 @@ export function createDeployerViews(ui) {
         jsxs('div', { className: 'hk-grow hk-stack', style: { gap: 2 }, children: [
           jsx(Label, { plain: true, children: 'Hermes version on record' }),
           jsx('strong', { children: version.value }),
-          jsx('span', { className: 'hk-small', children: version.machine_read ? `Read from Hermes (${version.source}).` : 'You typed this. Field Academy could not read it, and the Field Record says so.' }),
+          jsx('span', { className: 'hk-small', children: version.machine_read
+            ? `Read from Hermes (${version.source}).`
+            : version.from_page
+              ? 'The Field Academy page read this from Hermes, and the Field Record says so.'
+              : 'You typed this. Field Academy could not read it, and the Field Record says so.' }),
         ] }),
         jsx('p', { className: 'hk-small', style: { maxWidth: '24rem' }, children: 'The Field Record shows this version. When the major version of Hermes changes, it shows Re-verify needed and asks you to repeat the four labs on new cases.' }),
       ] }) })
@@ -836,7 +840,8 @@ export function createDeployerViews(ui) {
       ] }) }),
       jsxs('div', { key: 'actions', className: 'hk-actions', children: [
         jsx(Button, { loading: save.busy === 's', onClick: () => save.run('s', () => ctxRest('/deployer/certificate/save', { method: 'POST', body: {} })), children: 'Save as a file' }),
-        jsx(Pill, { tone: issued.valid ? 'good' : 'bad', icon: issued.valid ? 'pass-filled' : 'error', children: issued.valid ? 'The record number matches its contents' : 'The record number does not match its contents' }),
+        // Neutral on purpose: the number catches accidental changes. Anyone can edit a record and make a new one.
+        jsx(Pill, { tone: issued.valid ? 'idle' : 'bad', icon: issued.valid ? 'info' : 'error', children: issued.valid ? 'The record number shows no accidental changes' : "The record number doesn't match what's on the record" }),
         rv ? jsx(Pill, { tone: rv.status === 'reverify' ? 'warn' : rv.status === 'current' ? 'good' : 'idle', icon: rv.status === 'reverify' ? 'history' : 'check', children: rv.status === 'reverify' ? 'Re-verify needed' : rv.status === 'current' ? 'Current for this Hermes' : 'Version unknown' }) : null,
       ] }),
       rv ? jsx('p', { key: 'rv', children: rv.words }) : null,

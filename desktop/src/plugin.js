@@ -568,12 +568,14 @@ let versionTried = false
 
 /** Read the Hermes version once, if Hermes shows it, so the Field Record can show it. A version the page cannot read stays for the learner to type. */
 async function syncVersion(deployer) {
-  if (versionTried || !deployer || (deployer.hermes_version && deployer.hermes_version.machine_read)) return
+  const known = deployer && deployer.hermes_version
+  if (versionTried || !deployer || (known && (known.machine_read || known.from_page))) return
   versionTried = true
   try {
     const found = versionFrom(await rpc('setup.runtime_check'))
     if (found) {
-      await ctxRest('/deployer/version', { method: 'POST', body: { value: found, source: 'read from Hermes' } })
+      // The backend labels this as reported by the page; only its own reads count as read from Hermes.
+      await ctxRest('/deployer/version', { method: 'POST', body: { value: found, source: 'page' } })
       await refreshDeployer()
     }
   } catch (error) {
@@ -1914,8 +1916,9 @@ function CertificateView({ track, go }) {
     ] }) }, 'cert'),
     jsxs('div', { className: 'hk-actions', key: 'save', children: [
       jsx(Button, { loading: busy, onClick: save, children: 'Save as a file' }),
-      jsx(Pill, { tone: issued.valid ? 'good' : 'bad', icon: issued.valid ? 'pass-filled' : 'error',
-        children: issued.valid ? 'The record number matches its contents' : "The record number doesn't match its contents" }),
+      // Neutral on purpose: the number catches accidental changes. Anyone can edit a record and make a new one.
+      jsx(Pill, { tone: issued.valid ? 'idle' : 'bad', icon: issued.valid ? 'info' : 'error',
+        children: issued.valid ? 'The record number shows no accidental changes' : "The record number doesn't match what's on the record" }),
     ] }),
     saved
       ? jsx(Result, { result: { passed: true, title: 'Saved', detail: 'A readable copy and a data copy are on your computer.', facts: [
@@ -1933,7 +1936,9 @@ function CertificateView({ track, go }) {
         jsx('td', { children: item.level }),
         jsx('td', { children: jsx('strong', { children: item.title }) }),
         jsx('td', { children: shortDate(item.passed_at) }),
-        jsx('td', { children: item.check_result || item.check }),
+        jsx('td', { children: item.checked_by
+          ? jsxs('span', { children: [item.check_result || item.check, jsx('br', {}), jsx('span', { className: 'hk-small', children: item.checked_by })] })
+          : item.check_result || item.check }),
         jsx('td', { children: item.check_version ? `Version ${item.check_version}${item.reading_skipped ? ', reading skipped by placement' : ''}` : '' }),
         jsx('td', { children: item.question_score == null ? '' : `${item.question_score} of 100` }),
         jsx('td', { children: item.document

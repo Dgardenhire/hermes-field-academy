@@ -37,7 +37,7 @@ DIAGNOSIS_MIN_CHARS = 120
 def _text(root: Path, rel: str) -> str:
     path = root / rel
     try:
-        return path.read_text(encoding="utf-8") if path.is_file() else ""
+        return path.read_text(encoding="utf-8") if labs.plain_file(root, rel) else ""
     except (OSError, UnicodeDecodeError):
         return ""
 
@@ -75,9 +75,7 @@ def parse_env(text: str) -> dict:
 
 def _files_to_scan(root: Path):
     """Every file that must not hold a secret: all of them except .env files and the stand-in provider website."""
-    for path in sorted(root.rglob("*")):
-        if not path.is_file():
-            continue
+    for path in sorted(labs.plain_files(root)):
         rel = path.relative_to(root)
         if path.name == ".env" or rel.parts[0] == "provider-console":
             continue
@@ -369,7 +367,7 @@ def _grade_reboot(spec, root: Path, diagnosis: str):
         missing.append(_miss("unit_not_enabled", "The service is not on the list of units that start at boot. Having the file is not the same as turning it on."))
     for rel in spec["secret_files"]:
         path = root / rel
-        if not path.is_file():
+        if not labs.plain_file(root, rel):
             missing.append(_miss("secret_deleted", f"{rel} is missing. Lock the file down, do not delete it."))
             break
         if not fileaccess.is_private(path):
@@ -400,10 +398,10 @@ def _grade_reboot(spec, root: Path, diagnosis: str):
                 missing.append(_miss("cron_path", f"The backup line points at {script}, which does not exist on this machine. The script is in the scripts folder."))
             else:
                 target = root / script[len(labs.FAKE_ROOT) + 1:]
-                if not target.is_file():
+                if not labs.plain_file(root, script[len(labs.FAKE_ROOT) + 1:]):
                     missing.append(_miss("cron_path", f"The backup line points at {script}, and no such file exists."))
     script_path = root / "scripts/backup.sh"
-    if not script_path.is_file() or not script_path.read_text(encoding="utf-8").startswith("#!") or "tar" not in script_path.read_text(encoding="utf-8"):
+    if not labs.plain_file(root, "scripts/backup.sh") or not script_path.read_text(encoding="utf-8").startswith("#!") or "tar" not in script_path.read_text(encoding="utf-8"):
         missing.append(_miss("script_damaged", "The backup script is missing, lost its first line, or no longer copies anything."))
     elif not _can_start(script_path, cron):
         if fileaccess.ON_WINDOWS:
@@ -497,7 +495,7 @@ def _grade_vault(spec, root: Path, diagnosis: str):
     for agent in agents:
         env_path = root / "profiles" / agent["profile"] / ".env"
         envs.append(parse_env(_text(root, f"profiles/{agent['profile']}/.env")))
-        if not env_path.is_file():
+        if not labs.plain_file(root, f"profiles/{agent['profile']}/.env"):
             missing.append(_miss("env_missing", f"profiles/{agent['profile']}/.env does not exist. Each profile keeps its own keys in its own file."))
             break
         if not fileaccess.is_private(env_path):

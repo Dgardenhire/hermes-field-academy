@@ -277,7 +277,8 @@ def _file_problem(target, title, detail, facts):
 def verify_artifact(mission_id, step_id, path, live=None):
     """Read a real file and check each section for real content, then hash it.
 
-    This is the only way an artifact gate closes. Each section needs its own
+    record_gate runs this for every document gate, so a pass is never taken on
+    the caller's word. Each section needs its own
     words, its own number or name where the section asks for one, and no
     placeholder text. A document that is mostly the worked example fails. A
     fingerprint already used for another mission fails, so one file can't pass
@@ -292,7 +293,7 @@ def verify_artifact(mission_id, step_id, path, live=None):
     step = STEPS[(mission_id, step_id)]
     if step.get("verify") != "artifact":
         raise ValueError("This step is not an artifact gate.")
-    target = Path(str(path or "")).expanduser()
+    target = documents.typed_path(path)
     if not target.is_file():
         return _file_problem(
             target,
@@ -420,8 +421,39 @@ def _gate_feedback(conn, mission_id, step, outcome):
     )
 
 
-def record_gate(mission_id, step_id, outcome, session_id="", artifact=""):
-    """Store a gate result and flip the step. Evidence carries the hash.
+# Where a gate's result came from, as the server labels it. The page never names its own source.
+CHECKED_BY_BACKEND = "Field Academy read and checked the saved file"
+CHECKED_BY_BOTH = "Field Academy read and checked the saved file. The part about Hermes was reported by the Field Academy page"
+CHECKED_BY_PAGE = "Reported by the Field Academy page, which read it from Hermes"
+
+
+def _page_outcome(outcome):
+    """Keep only the plain parts of a result the page sent: pass or miss, words, facts, misses."""
+    if not isinstance(outcome, dict):
+        raise ValueError("A gate needs either a file path or a check outcome.")
+    facts = []
+    for fact in (outcome.get("facts") or [])[:8]:
+        if isinstance(fact, dict):
+            facts.append({"label": _clean(str(fact.get("label", "")), 80), "value": _clean(str(fact.get("value", "")), 300)})
+    clean = {
+        "passed": outcome.get("passed") is True,
+        "title": _clean(str(outcome.get("title", "")), 200),
+        "detail": _clean(str(outcome.get("detail", "")), 600),
+        "facts": facts,
+    }
+    if outcome.get("missing"):
+        clean["missing"] = _safe_missing(outcome.get("missing"))
+    return clean
+
+
+def record_gate(mission_id, step_id, outcome, session_id="", artifact="", live=None):
+    """Check a gate, store the result and flip the step. Evidence carries the hash.
+
+    Only the steps the page checks itself (verify "desktop") take a result sent
+    in ``outcome``, and only its plain parts are kept. Every other gate is
+    checked here from the saved file at ``artifact``; a result sent for one is
+    refused, so a made-up pass can't close it. ``live`` is the page's reading of
+    Hermes for a document gate that also reads the app.
 
     A miss gets the hint ladder: what was missing, one hint, and on the second
     miss a worked example. A step that already passed stays passed when a later
@@ -430,6 +462,14 @@ def record_gate(mission_id, step_id, outcome, session_id="", artifact=""):
     if (mission_id, step_id) not in STEPS:
         raise ValueError(f"Unknown mission step: {mission_id}/{step_id}")
     step = STEPS[(mission_id, step_id)]
+    if step.get("verify") == "desktop":
+        outcome = _page_outcome(outcome)
+        artifact = ""
+    else:
+        if not str(artifact or "").strip():
+            raise ValueError("This check reads a saved file. Type where the file is saved, or paste the document.")
+        artifact = str(documents.typed_path(artifact))
+        outcome = verify_artifact(mission_id, step_id, artifact, live=live if isinstance(live, dict) else None)
     passed = bool(outcome.get("passed"))
     with _connection() as conn:
         before = _step_status(conn, mission_id, step_id)
@@ -626,7 +666,7 @@ def grading_prompt(mission_id, step_id, answer):
         f"Mission: {mission['title']} ({mission_id})\n"
         f"Question asked: {step['body']}\n\n"
         f"An answer that actually understands this covers:\n{covers}\n\n"
-        f"The learner's answer:\n---\n{answer}\n---\n\n"
+        f"{learning.untrusted_answer(answer)}\n\n"
         "Score 0-100 on substance only: did they explain the idea in their own words and hit the points above. "
         "Ignore style, length, and phrasing. An answer that restates the question or stays vague scores under 40. "
         "A correct answer missing one required point scores in the 70s. An answer that covers all of it in plain "
@@ -1475,6 +1515,11 @@ def _mission_proof(conn, mission_id):
         "question_score": explanation["score"] if explanation and explanation["score"] is not None else None,
         "reading_skipped": bool(placed and placed["n"]),
     }
+    if latest:
+        if latest.get("kind") != "artifact":
+            proof["checked_by"] = CHECKED_BY_PAGE
+        else:
+            proof["checked_by"] = CHECKED_BY_BOTH if gate_step.get("live") else CHECKED_BY_BACKEND
     if latest.get("kind") == "artifact":
         proof["document"] = Path(latest.get("artifact", "")).name
         proof["fingerprint"] = latest.get("sha256", "")
@@ -1580,8 +1625,8 @@ def certificate_markdown(certificate):
         "",
         "## The proof behind it",
         "",
-        "| Level | Mission | Passed | What the check found | Check version | Question score | Document |",
-        "|---|---|---|---|---|---|---|",
+        "| Level | Mission | Passed | What the check found | Checked by | Check version | Question score | Document |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     for item in body["missions"]:
         document = ""
@@ -1596,7 +1641,7 @@ def certificate_markdown(certificate):
             marks.append("reading skipped by placement")
         lines.append(
             f"| {item['level']} | {item['title']} | {_human_date(item['passed_at'])} | "
-            f"{item.get('check_result') or item['check']} | {', '.join(marks)} | {score} | {document} |"
+            f"{item.get('check_result') or item['check']} | {item.get('checked_by', '')} | {', '.join(marks)} | {score} | {document} |"
         )
     lines += [
         "",
@@ -1609,7 +1654,8 @@ def certificate_markdown(certificate):
         display["disclaimer"],
         "",
         "The record number is the first 12 characters of a SHA-256 over this record's "
-        "contents, as stored in the matching .json file. Change any line and the number stops matching.",
+        "contents, as stored in the matching .json file. It shows the record hasn't been changed by accident. "
+        "Anyone can edit a record and make a new number, so the number isn't proof by itself.",
         "",
     ]
     note = legacy_note(display)

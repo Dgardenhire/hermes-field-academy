@@ -20,9 +20,31 @@ message says so.
 
 from __future__ import annotations
 
+import os
 import re
+from pathlib import Path
 
 DEFAULT_MIN_WORDS = 8
+
+# What a macOS or Linux terminal puts a backslash in front of when a file is dragged in.
+_SHELL_ESCAPED = re.compile(r"\\([ !\"#$&'()*,;<>?\[\]^`{|}~])")
+
+
+def typed_path(text, windows=None) -> Path:
+    """The path a learner typed or pasted, as a Path. Text only; nothing is read.
+
+    Windows "Copy as path" wraps the path in double quotes, so one pair of
+    matching quotes around the whole path is taken off. On macOS and Linux a
+    path dragged into a terminal has a backslash before each space and some
+    other characters; those backslashes are taken off too. On Windows a
+    backslash separates folders, so it stays.
+    """
+    raw = str(text or "").strip()
+    if len(raw) >= 2 and raw[0] == raw[-1] and raw[0] in "\"'":
+        raw = raw[1:-1].strip()
+    if not (os.name == "nt" if windows is None else windows):
+        raw = _SHELL_ESCAPED.sub(r"\1", raw)
+    return Path(raw).expanduser()
 
 # Unfilled template text. Each of these is what a stub looks like.
 PLACEHOLDER = re.compile(

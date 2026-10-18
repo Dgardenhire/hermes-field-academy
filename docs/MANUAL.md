@@ -6,7 +6,7 @@ Hermes Desktop plugin
 
 Learn Hermes by doing real work. Five paths take you from your first Hermes job to advanced work. Every mission ends with a check on what you made, and you keep a Field Record of what you prove.
 
-- **Version:** 0.8.4
+- **Version:** 0.8.5
 - **Needs:** Hermes 0.22.0 or later
 - **License:** MIT, free
 - **Source:** [GitHub](https://github.com/Dgardenhire/hermes-field-academy)
@@ -173,9 +173,9 @@ Every Field Record carries this line: "Self-issued with Field Academy, a communi
 
 ### The record number
 
-The record number is a short code made from everything on the record. Change any line and the code stops matching, and the record says so.
+The record number is a short code made from everything on the record. It shows the record hasn't been changed by accident.
 
-It catches mistakes, not cheating. Someone who changes their own data on purpose can make a new code.
+It catches mistakes, not cheating. Anyone can edit a record and make a new number, so the number isn't proof by itself.
 
 Records made before version 0.8.3 were called certificates. Their record numbers still match, and the screen shows them with the new name.
 
@@ -233,7 +233,7 @@ No. Field Academy has no server, no tracking and no account. Your progress is sa
 
 ### Can someone fake a pass?
 
-Yes, if they change their own saved data. Field Academy is a learning tool, and your record shows what passed on your own computer.
+Yes, if they change their own saved data, or send Field Academy a made-up result for one of the four checks that read Hermes. Field Academy checks every document itself. It's a learning tool, and your record shows what passed on your own computer.
 
 ### Do I lose a pass when a lesson changes?
 

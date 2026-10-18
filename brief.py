@@ -32,7 +32,7 @@ from __future__ import annotations
 import random
 import re
 
-from . import documents
+from . import documents, learning
 
 PASS_SCORE = 70
 
@@ -303,7 +303,7 @@ def grading_prompt(brief: dict, document: str) -> str:
         f"The brief the learner answered:\n{brief['brief']}\n"
         f"Constraints: {' '.join(brief['constraints'])}\n\n"
         f"A strong proposal does these things:\n{covers}\n\n"
-        f"The learner's proposal:\n---\n{document}\n---\n\n"
+        f"{learning.untrusted_answer(document, 'proposal')}\n\n"
         "Score 0-100 on substance only. Ignore style and length. A proposal that restates the brief or stays vague scores under 40. "
         "A proposal that does most of the above with one clear gap scores in the 70s. One that does all of it plainly scores 85 or better. "
         f"The threshold to pass is {PASS_SCORE}.\n\n"

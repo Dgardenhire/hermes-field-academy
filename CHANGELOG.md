@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.8.5 (2026-10-18)
+
+Security and bug fixes from a review of the live plugin. Your progress and your Field Records carry over.
+
+- **A document check is always done by Field Academy.** Before, the page could send a made-up pass for any
+  check, and a whole path's Field Record could be made that way. Now Field Academy reads and checks every
+  document itself and refuses a sent result. Only the four Operator checks that read Hermes take the page's
+  result, and the Field Record says those were reported by the page.
+- **The Guide record names the reviewer from your trusted list.** The name typed when signing no longer
+  appears. The role and comments are kept to one plain line with a length limit.
+- **Plain words about the record number.** It shows the record hasn't been changed by accident. Anyone can
+  edit a record and make a new number, so it isn't proof by itself. The badge is no longer a green pass.
+- **Clear labels for Guide evidence.** Run times and a Hermes version sent by the page are labelled as
+  reported by the page. Only what Field Academy reads itself is labelled read from Hermes.
+- **Answers are marked as the learner's own text.** When Hermes scores an answer, the answer sits between
+  two labelled markers, and Hermes is told to ignore any instructions inside it.
+- **Links in a lab folder are skipped.** A link is never followed, read, graded or copied into the review
+  packet, and a broken link no longer stops the packet.
+- **Paths you paste just work.** Quotes from Windows "Copy as path" and the backslashes a Mac terminal adds
+  before spaces are taken off.
+- **The Open folder button works on Windows.** Drive letters such as `C:` stay as they are in the address.
+- **Newer runs show up.** Hermes's run history is read without the setting that skipped the newest runs.
+- **How to report a problem.** SECURITY.md points to GitHub's private Report a vulnerability form.
+- **Tidier repository.** The placeholder catalog entry is gone, the reviewer guide says the plugin runs in the
+  author's own Hermes, and the voice guide describes its sources in our words instead of quoting them.
+
 ## 0.8.4 (2026-10-16)
 
 Ready for the public catalog: links point where they will live, and examples read right on any computer.

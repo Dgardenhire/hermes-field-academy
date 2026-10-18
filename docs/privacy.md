@@ -53,7 +53,7 @@ Labs are folders of files under `plugin-data/field-academy/labs/`, made of fake 
 folder under `plugin-data/field-academy/deployer/review/` with everything the reviewer reads, which includes your
 written answers, your walkthrough, and any log excerpt you pasted (key-shaped text is removed first). It stays on
 your computer until you send it to a reviewer. A recording you name for the walkthrough is fingerprinted and never
-copied. Reading Hermes is read only: the plugin opens Hermes's run-history database read-only and immutable, reads
+copied. Reading Hermes is read only: the plugin opens Hermes's run-history database read-only and never writes to it, reads
 log files up to a size limit, and keeps only the times of lines that name your job.
 
 **`session_id` is an identifier only.** It is stored so an opportunity can be

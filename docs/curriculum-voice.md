@@ -1,51 +1,34 @@
 # Curriculum voice guide
 
 Every word a learner reads in Field Academy is held to the register of the two
-people the missions route to. This file exists because an earlier pass wrote the
-copy in a rhetorical register nobody teaches in, and it read as machine-written.
+people the missions route to.
 
 Sources for the register, both read directly:
 
-- **Tonbi**, Hermes Agent Masterclass and Desktop App Masterclass. Transcripts of
-  seven episodes are mined in `sources/tonbi/` (kept out of the repo; see
-  Licensing below).
+- **Tonbi**, Hermes Agent Masterclass and Desktop App Masterclass (videos).
 - **Tony Simons**, *The Whole Damn Thing* and the Hermes Agent Manual at
   `launch.tonysimons.dev`, which is written documentation rather than speech and
   is the closer model for lesson prose.
 
-## What the sources actually sound like
+## What the sources sound like
 
-Tonbi, mid-lesson, narrating a screen:
+These are summaries in our words, not quotes.
 
-> "So I'm going to show you this skill here with my Hermes agent and I'm going to
-> ask it research recent papers about recursive reasoning models. And you can see
-> it automatically goes to a couple skills here. Skill one is this archive, which
-> I showed you before and then paper summary, which is another skill to read some
-> of these and then give me a summary here."
+Tonbi narrates a screen while he works. In one episode he asks his agent to
+research recent papers, then points to each skill the agent picks up on its own
+and says what each one does. He warns that an agent can make skills without you
+noticing unless you watch the tool calls, and he gives the reason the skills
+help: the research goes faster and avoids common mistakes. (Tonbi, Hermes Agent
+Masterclass.)
 
-> "Because sometimes you may not, it might just create skills without you really
-> realizing unless you're looking closely at all the tool calls."
-
-> "So those skills just help with this kind of research, doing it faster and more
-> efficiently, finding the proper information and making sure it doesn't fall
-> into any kind of common problems or issues."
-
-Tony Simons, in his manual:
-
-> "A skill is a `SKILL.md` instruction document — a name, a description, and a
-> step-by-step procedure — that teaches Hermes how to do a specific task (deploy
-> to Kubernetes, open a GitHub PR, search GIFs). Skills live in
-> `~/.hermes/skills/`, the primary directory and source of truth."
-
-> "Skills are loaded on demand: Hermes reads every skill's short description for
-> free and only loads the full content when a task actually calls for it."
-
-> "Provider API keys are stored in your profile's `.env` file under `~/.hermes/`
-> — not hardcoded into scripts or committed to repositories."
-
-> "Job specifications are stored in `~/.hermes/jobs.json`, while durable run
-> history, attempt logs, and telemetry are tracked in
-> `~/.hermes/cron/executions.db`."
+Tony Simons writes reference prose. He defines a skill as one instruction file
+with a name, a description and a step-by-step procedure, gives a few real tasks
+as examples in brackets, and names the folder where skills live. He explains
+that Hermes reads only each skill's short description until a task needs the
+rest. He says where provider keys belong (the profile's `.env` file under
+`~/.hermes/`, never in scripts or repositories), and where job settings and run
+history are kept (`jobs.json` and `cron/executions.db`). (Tony Simons, Hermes
+Agent Manual.)
 
 (The jobs file is `~/.hermes/cron/jobs.json` in the Hermes source, October 2026.)
 
@@ -54,20 +37,19 @@ Tony Simons, in his manual:
 1. **Name the concrete thing.** A skill name, a file path, a command, a UI
    surface, a repo. Both sources put a real artifact in nearly every paragraph.
    Tony names `~/.hermes/skills/`, `~/.hermes/cron/jobs.json`, `hermes doctor`,
-   `hermes model`. Tonbi names "the archive skill", "paper summary", "the Hermes
-   dashboard", "GitHub issues".
-2. **You, present tense, active verb.** "You can see it goes to a couple skills."
-   "Run the diagnostics to confirm the install is healthy." Not "the operator
-   should verify."
+   `hermes model`. Tonbi names the skills, the dashboard and the GitHub issues he
+   is using.
+2. **You, present tense, active verb.** "Open Scheduled jobs and check that the
+   job is on." Not "the operator should verify."
 3. **Give the reason in the same sentence, plainly.** Use *because*, *so*, *which
-   is why*. "Because sometimes you may not realize unless you're looking closely
-   at all the tool calls." A fact with no reason attached is a slogan.
-4. **Concrete examples in parentheses**, the way Tony does: "(deploy to
-   Kubernetes, open a GitHub PR, search GIFs)".
+   is why*. "Watch the tool calls, because Hermes can save a skill without telling
+   you." A fact with no reason attached is a slogan.
+4. **Concrete examples in parentheses**, the way Tony does: "(open a pull
+   request, read a calendar, send a summary)".
 5. **Warnings state the observable symptom, not a principle.** "It will look fine
    for a week and then quietly deliver nothing" beats "silent failure is
-   dangerous." Tonbi does this: "you may not realize unless you're looking
-   closely at all the tool calls."
+   dangerous." Tonbi does this when he says where you would spot the problem: in
+   the tool calls.
 6. **Bracketed callouts for asides.** Tony uses `[NOTE]`, `[PRO TIP]`,
    `[SECURITY BOUNDARY]`. Use the same shape when a lesson needs a warning
    separated from the flow.
@@ -97,7 +79,6 @@ does the job"), authority boundary (say what the agent may reach), value model
 
 ## Licensing
 
-The transcripts in `sources/` are other people's work. They are working notes for
-voice mining and content checking. They are deliberately **not** in the plugin
-repository and must not be redistributed with it. Missions link the source video
+Tonbi's videos and Tony Simons's writing are their own work. This guide describes
+their style in our words and doesn't reproduce it. Missions link the source video
 or article; they never quote it at length.

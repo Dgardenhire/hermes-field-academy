@@ -1,5 +1,5 @@
-"""Release checks for an outside reviewer: the manifest, the catalog entry and
-register() agree; versions agree everywhere; the shipped tree carries no personal
+"""Release checks for an outside reviewer: the manifest and register() agree, and
+no placeholder catalog entry ships; versions agree everywhere; the shipped tree carries no personal
 paths or secrets; the reviewer documents exist and say the honest things; the home
 banner is inline SVG drawn from theme variables with every camp on the mountain."""
 
@@ -66,11 +66,16 @@ class ManifestTests(AcademyCase):
         self.assertEqual([n for _, n in _block("plugin.yaml", "provides_tools")], tools)
         self.assertEqual([n for _, n in _block("plugin.yaml", "provides_hooks")], hooks)
 
-    def test_catalog_entry_lists_are_evenly_indented(self):
+    def test_plugin_yaml_lists_are_evenly_indented(self):
         """A misindented item reads as a list item to a loose parser and as a YAML error to the catalog CI."""
         for key in ("provides_tools", "provides_hooks"):
-            indents = {indent for indent, _ in _block("catalog-entry.yaml", key)}
-            self.assertEqual(len(indents), 1, f"catalog-entry.yaml {key} items are indented {sorted(indents)}")
+            indents = {indent for indent, _ in _block("plugin.yaml", key)}
+            self.assertEqual(len(indents), 1, f"plugin.yaml {key} items are indented {sorted(indents)}")
+
+    def test_no_catalog_entry_ships_in_the_repo(self):
+        """The catalog's entry lives in the plugin catalog and pins this repo's commit, which a file in this
+        repo can't know. A copy here could only carry a placeholder."""
+        self.assertFalse((ROOT / "catalog-entry.yaml").exists())
 
 
 class VersionTests(unittest.TestCase):
@@ -79,9 +84,7 @@ class VersionTests(unittest.TestCase):
 
     def test_versions_agree(self):
         version = self.version()
-        self.assertEqual(version, "0.8.4")
-        catalog = re.search(r'^version:\s*"?([^"\s]+)"?', (ROOT / "catalog-entry.yaml").read_text(encoding="utf-8"), re.M).group(1)
-        self.assertEqual(catalog, version)
+        self.assertEqual(version, "0.8.5")
         changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         first = re.search(r"^## (\S+)", changelog, re.M).group(1)
         self.assertEqual(first.lstrip("v"), version)
