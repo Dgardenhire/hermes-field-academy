@@ -51,6 +51,12 @@ FIELD_ACADEMY_GRADE_EXPLANATION = {
                 "type": "string",
                 "description": "Two or three sentences: what they got right, the specific point they missed, what to add.",
             },
+            "level": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4,
+                "description": "Foundations missions only (mission ids starting f.): the rubric level, 1 to 4, from the grading instruction. Required there; leave it out for the paths.",
+            },
         },
         "required": ["mission_id", "step_id", "score", "feedback"],
     },

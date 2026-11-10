@@ -1,0 +1,25 @@
+{
+ "response": {
+  "bracket": {
+   "from": "m3",
+   "to": "f-pending-1",
+   "words": "The chat showed Saved to memory, but the note is waiting for your approval and is not in MEMORY.md."
+  },
+  "bracket_pinned": true,
+  "dropped": 1,
+  "model": "fake-model-1",
+  "ms": 0,
+  "pins": [
+   {
+    "event_id": "m3",
+    "kept": null,
+    "source": "model",
+    "why": "This is where your score and Hermes split. Open that memory row in your chat."
+   }
+  ],
+  "state": "ready",
+  "tries": 1,
+  "trimmed": 0
+ },
+ "route": "POST /guide/{attempt_id}/pins"
+}

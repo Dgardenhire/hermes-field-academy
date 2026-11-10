@@ -19,10 +19,13 @@ import {
   useKeys, useListKeys, usePolled,
 } from 'hermes-ui-kit'
 import { Bezel, CampLine, CertCorners, Compass, Contours, ElevationProfile, FIELD_CSS, Legend, Seal, TrailMap, TrailMark } from './field.js'
-import { compassReading, overview, trailModel } from './trail.js'
+import { compassReading, overview, trailModel, withPlaced } from './trail.js'
 import { DEPLOYER_CSS, createDeployerViews, partFor } from './deployer.js'
 import { BANNER_CSS, Banner } from './banner.js'
 import { PROSE_CSS, Prose, withoutExampleWord } from './prose.js'
+import { FOUNDATIONS_CSS, createFoundationsViews } from './foundations.js'
+import { DESK_CSS } from './desk.js'
+import { homeAction, isPracticeProfile } from './loop.js'
 import { folderUrl, sampleFromHermes, versionFrom } from './deploy.js'
 import {
   CONNECTION_KEYS, blob, classifyConnection, dueWords, flattenSkills, jobHasSchedule, jobRequest, jobRequestRead, minutesWords, norm, pastedMatches, promptCues,
@@ -75,7 +78,7 @@ const CSS = `
 .fa-lore{margin:-4px 0 0;max-width:62ch;font-size:13.5px;line-height:1.55;font-style:italic;color:var(--hk-ink);opacity:.9}
 .fa-deeper{padding-top:8px;border-top:1px solid var(--hk-stroke)}
 .fa-table{width:100%;border-collapse:collapse;font-size:var(--hk-fs-sm);line-height:1.45}
-.fa-table th{text-align:left;font-weight:600;padding:8px 8px 6px 0;border-bottom:1px solid var(--hk-stroke);font-variant-caps:all-small-caps;letter-spacing:.06em;font-size:var(--hk-fs)}
+.fa-table th{text-align:left;font-weight:600;padding:8px 8px 6px 0;border-bottom:1px solid var(--hk-stroke);text-transform:uppercase;font-size:12px;letter-spacing:.06em}
 .fa-table td{padding:8px 8px 8px 0;border-bottom:1px solid var(--hk-stroke);vertical-align:top;overflow-wrap:break-word}
 .fa-table tr:last-child td{border-bottom:0}
 .fa-pre{font-family:var(--hk-mono);font-size:var(--hk-fs-sm);padding:7px 9px;border-radius:var(--hk-radius-sm);background:var(--hk-sunken);overflow-x:auto;margin:0}
@@ -473,9 +476,58 @@ function readView() {
   return { name: 'map' }
 }
 
+/* ----------------------------------------------------- the home profile -- */
+//
+// Opening a practice chat (host.newChat('academy-practice')) moves the app's active gateway profile to the practice
+// profile, and this plugin's REST calls follow the active profile. The practice profile has no Field Academy backend,
+// so while it is active the page makes no backend call at all, and the background poll (the status chip) waits.
+// When the learner comes back to this page, the page alone moves the app back to the profile Field Academy runs in
+// (host.ensureAgent), the one it last loaded from. The practice chat keeps its own profile.
+
+const HOME_KEY = 'field-academy.home-profile'
+let home = null
+
+function activeProfile() {
+  try { return String(host.state?.profile?.get?.() || '') } catch (error) { return '' }
+}
+
+function noteHome() {
+  const profile = activeProfile()
+  if (!profile || isPracticeProfile(profile)) return
+  let connectionId = null
+  try { connectionId = host.state?.connectionId?.get?.() ?? null } catch (error) { connectionId = null }
+  home = { profile, connectionId }
+  try { api?.storage?.set?.(HOME_KEY, home) } catch (error) { /* kept in memory only */ }
+}
+
+function knownHome() {
+  if (home) return home
+  try {
+    const saved = api?.storage?.get?.(HOME_KEY, null)
+    if (saved && typeof saved.profile === 'string') home = saved
+  } catch (error) { /* none saved */ }
+  return home
+}
+
+const PRACTICE_ACTIVE = 'Field Academy runs in your own profile, and the app is on a practice profile right now.'
+
+/** Called by the page when it opens: if a practice profile is active, go back to the home profile first. */
+async function comeHome() {
+  const target = knownHome()
+  const what = homeAction(activeProfile(), target, typeof host.ensureAgent === 'function', true)
+  if (what !== 'repin') return what === 'call'
+  try {
+    await host.ensureAgent(target.connectionId, target.profile)
+    return !isPracticeProfile(activeProfile())
+  } catch (error) {
+    return false
+  }
+}
+
 function ctxRest(path, options) {
   if (!api) return Promise.reject(new Error('Field Academy is still starting.'))
-  return api.rest(path, options || {})
+  if (isPracticeProfile(activeProfile())) return Promise.reject(new Error(PRACTICE_ACTIVE))
+  return api.rest(path, options || {}).then(out => { noteHome(); return out })
 }
 
 /** The passport: polled lightly, kept on screen while it refreshes or if a refresh fails. */
@@ -752,6 +804,8 @@ function scrollToId(id) {
   target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
 }
 
+const foundationsViews = createFoundationsViews({ Frame, Label, ctxRest, errorText, copyText, openFolder, sendInNewChat, plural, longDate })
+
 const deployerViews = createDeployerViews({
   Prose, withoutExampleWord, Frame, Label, Result, Feedback, ctxRest, errorText, shortDate, longDate, plural, sendToHermes, refreshDeployer, openFolder, copyText, readHermes, scrollToId,
 })
@@ -797,7 +851,7 @@ function GoalCard({ data }) {
   return jsx(Card, { tone: 'info', tint: !goal.asked, className: 'hk-enter', children: jsxs('div', { className: 'hk-stack', style: { gap: 8 }, children: [
     jsx(Label, { children: goal.asked ? 'Your goal' : 'Before you start' }),
     jsx('h2', { className: 'hk-h2', children: 'What do you want Hermes to do for you?' }),
-    jsx('p', { children: 'One or two sentences about your own work. Your answer becomes the example in every practice prompt and mission. You can change it any time, or skip it.' }),
+    jsx('p', { children: 'One or two sentences about your own work. Your answer becomes the example in the practice prompts and missions on the paths. Foundations uses its own made-up examples. You can change it any time, or skip it.' }),
     jsx(Textarea, {
       style: { minHeight: '4.5rem', width: '100%' },
       value: text,
@@ -852,8 +906,9 @@ function NextStep({ next, info, go }) {
     ] })
   }
   const started = info.tracks.some(track => track.waypoints.some(w => w.status !== 'waiting'))
-  return jsxs('div', { className: 'fa-panel fa-next hk-enter', children: [
-    jsx(Label, { children: started ? 'Next best step' : 'Start here' }),
+  return jsxs('div', { className: `fa-panel fa-next hk-enter${started ? '' : ' fa-next-quiet'}`, children: [
+    // Foundations holds the page's one Start here; this card is the next step on the paths (0.9 persona test).
+    jsx(Label, { children: started ? 'Next best step on the paths' : 'When you want a path' }),
     jsx('h2', { className: 'hk-h2', children: next.title }),
     jsxs('div', { className: 'fa-next-meta', children: [
       jsxs('span', { children: [jsx(Codicon, { name: 'location', size: 13 }), `${next.track_name} path`] }),
@@ -862,7 +917,7 @@ function NextStep({ next, info, go }) {
     ] }),
     jsx('p', { children: next.reason }),
     next.use_text ? jsx('div', { className: 'fa-use', children: [jsx(Label, { plain: true, children: 'Why this matters to you' }, 'l'), jsx('p', { children: next.use_text }, 'p')] }) : null,
-    jsx('div', { className: 'hk-actions', children: jsx(Button, { onClick: () => go({ name: 'mission', id: next.mission_id }), children: started ? 'Continue' : 'Start' }) }),
+    jsx('div', { className: 'hk-actions', children: jsx(Button, { variant: started ? 'default' : 'secondary', onClick: () => go({ name: 'mission', id: next.mission_id }), children: started ? 'Continue' : 'Start this path mission' }) }),
   ] })
 }
 
@@ -1012,14 +1067,20 @@ function bannerCamps(info, deployer) {
   return camps.slice(0, 5)
 }
 
-/** The banner's facts line, counted from the passport so it can never drift from the map. */
-function bannerFacts(info, deployer) {
+/** The banner's facts line, counted from the passport and the Foundations list so it can never drift from the page.
+ *  Foundations is counted first, since it comes first (0.9 persona test). */
+function bannerFacts(info, deployer, foundations = 0) {
   const paths = info.tracks.length + (deployer && deployer.track ? 1 : 0)
-  return [plural(info.total, 'mission', 'missions'), plural(paths, 'path', 'paths'), 'Checks on real work', 'Stays on your computer']
+  const first = foundations ? [plural(foundations, 'Foundations mission', 'Foundations missions')] : []
+  return [...first, `${plural(info.total, 'mission', 'missions')} on ${plural(paths, 'trail', 'trails')}`, 'Checks on real work']
 }
 
 function MapView({ data, go, deployer }) {
   const info = overview(data)
+  const foundations = foundationsViews.useFoundations()
+  // Foundations proper: the practice missions placed on the trails count with their trails.
+  const placedIds = new Set((data.tracks || []).flatMap(t => (t.placed || []).map(m => m.id)))
+  const fCount = (foundations.data?.missions || []).filter(m => !m.trail && !placedIds.has(m.id)).length
   const camps = bannerCamps(info, deployer)
   const models = info.tracks
   const extra = deployer && deployer.track ? 1 : 0
@@ -1027,14 +1088,30 @@ function MapView({ data, go, deployer }) {
     count: models.length + extra,
     onOpen: i => (models[i] ? go({ name: 'path', id: models[i].id }) : extra && go({ name: 'path', id: 'deployer' })),
   })
+  // Paths are the page. The first-run practice sits at the top of it as the "Start here" entry, not on a tab of its own.
+  const banner = jsx(Banner, {
+    promise: data.school_line || 'Get good at Hermes by using it, learn all of what it can do, then learn to help other people use it.',
+    facts: bannerFacts(info, deployer, fCount),
+    camps,
+    summitDone: camps.length > 0 && camps.every(camp => camp.done),
+    compact: true,
+  }, 'head')
   return jsx(Frame, { onKey: list.keyProps.onKeyDown, children: [
-    jsx(Banner, {
-      eyebrow: 'A field guide to Hermes',
-      promise: 'Learn Hermes by doing real work on your own setup, one camp at a time, and keep a Field Record of everything you prove',
-      facts: bannerFacts(info, deployer),
-      camps,
-      summitDone: camps.length > 0 && camps.every(camp => camp.done),
-    }, 'head'),
+    banner,
+    jsxs('div', { className: 'fa-top', children: [
+      jsx('div', { className: 'fa-top-map', children: jsx('div', { children: [
+          jsx(Section, { title: 'Trail map', count: models.length + extra, actions: jsx(KeyHint, { keys: ['J', 'K'], label: 'to move between trails, Enter to open' }),
+            children: jsx(TrailMap, {
+              models, list,
+              onOpenTrack: id => go({ name: 'path', id }),
+              onOpenMission: id => go({ name: 'mission', id }),
+              lines: data.camp_lines || null, summitLine: data.summit_line || '',
+              foot: [jsx(Legend, {}, 'legend'), jsx('span', { className: 'hk-small', children: 'Click a trail, a waypoint or a flag to open it.' }, 'tip')],
+            }) }, 'map')
+      ] }) }),
+      jsx('div', { className: 'fa-top-start', children: jsx(foundationsViews.FirstFlightCard, { go, foundations, compact: true }) }),
+    ] }, 'top'),
+    extra ? jsx(DeployerTrailPanel, { deployer, list, offset: models.length, go }, 'deployer') : null,
     jsx('p', { className: 'hk-lead', children: `${plural(models.length + extra, 'path', 'paths')} up the mountain, each named for one of Hermes's old jobs. Every path climbs from Beginner to Advanced, then a capstone on your own problem, and ends at the summit with a Field Record of the work you did.` }, 'lead'),
     jsx(GoalCard, { data }, 'goal'),
     jsxs('div', { className: 'fa-here', children: [
@@ -1043,16 +1120,10 @@ function MapView({ data, go, deployer }) {
     ] }, 'here'),
     jsx(ReviewQueue, { data, go }, 'review'),
     jsx(ChangesPanel, { data, go }, 'changes'),
-    jsx(Section, { title: 'Trail map', count: models.length + extra, actions: jsx(KeyHint, { keys: ['J', 'K'], label: 'to move between trails, Enter to open' }),
-      children: jsx(TrailMap, {
-        models, list,
-        onOpenTrack: id => go({ name: 'path', id }),
-        onOpenMission: id => go({ name: 'mission', id }),
-        foot: [jsx(Legend, {}, 'legend'), jsx('span', { className: 'hk-small', children: 'Click a trail, a waypoint or a flag to open it.' }, 'tip')],
-      }) }, 'map'),
-    extra ? jsx(DeployerTrailPanel, { deployer, list, offset: models.length, go }, 'deployer') : null,
+    jsx(foundationsViews.FoundationsCard, { go, foundations }, 'foundations'),
     jsxs(Section, { title: 'How the trail works', children: [
       jsxs('ol', { className: 'fa-numbered', children: [
+        jsx('li', { children: jsx('span', { children: 'Foundations, just above, works differently: each of its missions runs in a practice profile Field Academy makes, with a problem planted first. The steps below are for the paths.' }) }),
         jsx('li', { children: jsx('span', { children: 'Pick a trail and open its first mission. Each mission shows how long it takes before you start.' }) }),
         jsx('li', { children: jsx('span', { children: 'Read a short lesson, then see a finished example, then fill the gaps in a half-finished one. The help fades, and then you do it on your own.' }) }),
         jsx('li', { children: jsx('span', { children: 'Try it in your own Hermes, answer one question in your own words, and click Check my work. Each check reads something you made.' }) }),
@@ -1228,7 +1299,9 @@ function PlacementPanel({ track, go }) {
   ] }) }) }, 'placement')
 }
 
-function PathView({ track, go }) {
+function PathView({ track: own, go }) {
+  // The capability missions placed in this trail's camps show in their camps, beside the path's own missions.
+  const track = withPlaced(own)
   const model = trailModel(track)
   const rung = track.levels.find(item => item.current)
   const rows = track.levels.flatMap(level => level.missions.filter(id => track.missions.some(m => m.id === id)))
@@ -1256,7 +1329,7 @@ function PathView({ track, go }) {
         ...track.levels.map(item => jsx(Camp, { rung: item, track, go, rows, list }, item.id)),
         jsx(SummitRow, { track }, 'summit'),
       ] }) }, 'levels'),
-    jsx(CertificateRoute, { track, go }, 'route'),
+    jsx(CertificateRoute, { track: own, go }, 'route'),
   ] })
 }
 
@@ -2214,17 +2287,47 @@ function DeployerUnavailable({ loading, error, go }) {
   ] })
 }
 
+/** The app is on a practice profile and this desktop can't move it back by itself. */
+function AwayFromHome({ onRetry }) {
+  const target = knownHome()
+  return jsx(Frame, { width: 'narrow', children: jsx(Card, { tone: 'info', children: jsxs('div', { className: 'hk-stack', children: [
+    jsx('p', { className: 'hk-h3', style: { margin: 0 }, children: 'You\'re in a practice profile' }),
+    jsx('p', { style: { margin: 0 }, children: `The app is on ${activeProfile() || 'a practice profile'} because a practice chat is open. Field Academy runs in ${target ? target.profile : 'your own profile'}.` }),
+    jsx('p', { style: { margin: 0 }, children: target ? `Pick ${target.profile} in the profile menu, then come back here. Your practice chat stays as it is.` : 'Pick your own profile in the profile menu, then come back here. Your practice chat stays as it is.' }),
+    jsx('div', { className: 'hk-actions', children: jsx(Button, { variant: 'secondary', onClick: onRetry, children: 'Try again' }) }),
+  ] }) }) })
+}
+
 function Page() {
+  const [homeReady, setHomeReady] = useState(() => !isPracticeProfile(activeProfile()))
+  const [away, setAway] = useState(false)
   const query = usePassport()
   const deployerQuery = useDeployer()
   const deployer = deployerQuery.data && deployerQuery.data.track ? deployerQuery.data : null
   const [view, setView] = useState(() => readView())
 
+  const goHome = async () => {
+    const ok = await comeHome()
+    setAway(!ok)
+    setHomeReady(ok)
+    if (ok) {
+      refresh()
+      refreshDeployer()
+    }
+  }
+
+  // Opening a practice chat moved the app to the practice profile. Coming back to this page moves it home first.
+  useEffect(() => { if (!homeReady) goHome() }, [])
+
   useEffect(() => {
     if (deployer) syncVersion(deployer)
   }, [Boolean(deployer)])
 
-  const go = next => setView(next)
+  // A capability or teaching mission placed in a trail's camp runs on the practice-profile engine, like Foundations.
+  const go = next => {
+    const id = next && (next.name === 'mission' ? next.id : next.name === 'deployer' ? next.part : '')
+    setView(/^f\./.test(String(id || '')) ? { name: 'f-mission', id } : next)
+  }
 
   // An in-chat offer can ask for a mission while the page is already open.
   useEffect(() => {
@@ -2237,14 +2340,24 @@ function Page() {
   }, [])
 
   let body = null
-  if (query.loading) {
+  if (away) {
+    body = jsx(AwayFromHome, { onRetry: goHome })
+  } else if (!homeReady || query.loading) {
     body = jsx(Frame, { children: jsx(SkeletonPage, { label: 'Loading your paths', cards: MAP_SHAPE }) })
   } else if (query.error && !query.data) {
     body = jsx(Offline, { error: query.error, onRetry: () => query.refetch() })
   } else {
     const data = query.data || {}
     const track = (data.tracks || []).find(item => item.id === view.id)
-    if (view.name === 'path' && view.id === 'deployer') {
+    if (view.name === 'foundations') {
+      body = jsx(foundationsViews.FoundationsPath, { go })
+    } else if (view.name === 'f-record') {
+      body = jsx(foundationsViews.FieldRecordView, { go })
+    } else if (view.name === 'f-mission' && view.id) {
+      body = jsx(foundationsViews.MissionLoop, { missionId: view.id, go, initialStep: view.step, testOut: view.testOut === true, firstFlight: view.firstFlight === true, harnessGrade: view.harnessGrade || null })
+    } else if (view.name === 'sample') {
+      body = jsx(foundationsViews.SampleRun, { go })
+    } else if (view.name === 'path' && view.id === 'deployer') {
       body = deployer
         ? jsx(deployerViews.DeployerPath, { data: deployer, go })
         : jsx(DeployerUnavailable, { loading: deployerQuery.loading, error: deployerQuery.error, go })
@@ -2311,13 +2424,14 @@ export default {
   register(ctx) {
     api = ctx
     registerPage(ctx, {
-      id: 'field-academy', route: ROUTE, label: 'Field Academy', codicon: 'mortar-board', css: CSS + FIELD_CSS + BANNER_CSS + DEPLOYER_CSS + PROSE_CSS,
+      id: 'field-academy', route: ROUTE, label: 'Field Academy', codicon: 'mortar-board', css: CSS + FIELD_CSS + BANNER_CSS + DEPLOYER_CSS + PROSE_CSS + FOUNDATIONS_CSS + DESK_CSS,
       render: () => jsx(Page, {}),
       status: { side: 'right', order: 118, render: () => jsx(StatusChip, {}) },
       palette: [{
         id: 'field-academy.open',
         label: 'Field Academy',
-        detail: 'Learn Hermes step by step and build your own Field Record',
+        // The palette calls detail() on every open (apps/desktop/src/app/command-palette/index.tsx, 0.22.0 to 0.23.0).
+        detail: () => 'Learn Hermes step by step and build your own Field Record',
         keywords: ['learn', 'field record', 'training', 'hermes', 'academy', 'path'],
         run: () => host.navigate(ROUTE),
       }],

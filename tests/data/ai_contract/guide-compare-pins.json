@@ -1,0 +1,86 @@
+{
+ "response": {
+  "do_it_with_me": null,
+  "enabled": true,
+  "explain": [],
+  "help": {
+   "all_helps": 5,
+   "hunt_helps": 4,
+   "key": "shown",
+   "used": [
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "ask",
+     "rung": null,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "where",
+     "rung": 2,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "reveal",
+     "rung": 3,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "pins",
+     "rung": null,
+     "step": "compare"
+    }
+   ],
+   "words": "The guide showed the answer"
+  },
+  "ladder": {
+   "nudge": {
+    "event_id": "m3",
+    "model": "fake-model-1",
+    "ms": 212,
+    "source": "model",
+    "state": "ready",
+    "text": "At 03:53 Hermes answered with a memory row. Open it and read every line.",
+    "tokens": {
+     "input": 120,
+     "output": 40,
+     "total": 160
+    }
+   },
+   "reveal": {
+    "available": true,
+    "opens": "compare"
+   },
+   "where": {
+    "available": true,
+    "text": "Go back to the chat where you asked Hermes to remember the fact. Open the memory row and read every line of it, not just its title."
+   }
+  },
+  "mission_id": "f.memory",
+  "off_reason": null,
+  "off_words": "",
+  "pins": [
+   {
+    "event_id": "m3",
+    "kept": true,
+    "source": "model",
+    "why": "This is where your score and Hermes split. Open that memory row in your chat."
+   }
+  ],
+  "starters": [
+   "Why did the chat look like the save worked?",
+   "Which line in the memory row should I have read?",
+   "What else can make a save look done when it isn't?"
+  ],
+  "step": "compare"
+ },
+ "route": "GET /guide/{attempt_id}?step=&active="
+}

@@ -1,0 +1,52 @@
+{
+ "response": {
+  "entry": {
+   "body": {
+    "at": "2026-10-03T09:00:00+00:00",
+    "kind": "reveal",
+    "mission": "f.memory",
+    "rung": 3,
+    "source": "",
+    "step": "check"
+   },
+   "hash": "7f092608f216d83f5b7382502cf874e9b366c6464f79b423d7b335fb70e106c7",
+   "kind": "help"
+  },
+  "help": {
+   "all_helps": 4,
+   "hunt_helps": 4,
+   "key": "shown",
+   "used": [
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "ask",
+     "rung": null,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "where",
+     "rung": 2,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "reveal",
+     "rung": 3,
+     "step": "check"
+    }
+   ],
+   "words": "The guide showed the answer"
+  },
+  "shown": {
+   "opens": "compare"
+  }
+ },
+ "route": "POST /guide/{attempt_id}/help"
+}

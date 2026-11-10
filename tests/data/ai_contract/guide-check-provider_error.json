@@ -1,0 +1,44 @@
+{
+ "response": {
+  "do_it_with_me": null,
+  "enabled": true,
+  "explain": [],
+  "help": {
+   "all_helps": 0,
+   "hunt_helps": 0,
+   "key": "own",
+   "used": [],
+   "words": "No hints used"
+  },
+  "ladder": {
+   "nudge": {
+    "fallback_text": "Find the row in your practice chat where Hermes answered your request to remember the fact. Open it and read every line.",
+    "message": "Your model's provider says it is busy right now.",
+    "model": "",
+    "ms": 0,
+    "next_step": "Wait a minute, then press Try again. If it keeps happening, check the model in Settings, Models.",
+    "state": "provider_error",
+    "text": ""
+   },
+   "reveal": {
+    "available": true,
+    "opens": "compare"
+   },
+   "where": {
+    "available": true,
+    "text": ""
+   }
+  },
+  "mission_id": "f.memory",
+  "off_reason": null,
+  "off_words": "",
+  "pins": [],
+  "starters": [
+   "What should I open first when a check misses?",
+   "Where does Hermes keep what it remembers, and how do I open it?",
+   "Why does a new chat matter for this check?"
+  ],
+  "step": "check"
+ },
+ "route": "GET /guide/{attempt_id}?step=&active="
+}

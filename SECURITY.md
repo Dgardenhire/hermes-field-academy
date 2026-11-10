@@ -69,8 +69,20 @@ gate, a graded explanation or a fill-in step done by asking.
 - The Field Record is self-issued and kept on the learner's own computer. Its
   number shows the record hasn't been changed by accident. Anyone can edit a
   record and make a new number, so the number isn't proof on its own.
+  The same goes for `MANIFEST.sha256` in a saved record folder: it shows the files
+  match each other, not that the folder is the one saved. A reader who wants that
+  compares the record number with one the holder sent earlier by another route.
+- Everything kept from a practice profile is scrubbed: excerpts, check facts,
+  titles and details, and every string in a record body (fingerprints and times
+  excepted). An excerpt the current scrubber would change is withheld from a new
+  record. Excerpts in `record.md` sit in a code fence longer than any backtick run
+  inside them.
 
-**No network calls.** The plugin makes none. It reads the local gateway over
+**No network calls of its own.** The plugin makes none itself. Its AI help asks the learner's own model through
+Hermes's plugin model API (`ctx.llm.complete_structured`, tasks `field_academy_guide` and `field_academy_grader`), so
+Hermes, not Field Academy, talks to the provider; every input passes the scrubber first, and the AI help switch turns
+every call off. (A planted connector in missions 2 and 7 is a setting Hermes
+acts on: Hermes downloads its pinned npm package with `npx` when a practice chat starts. See "Practice profiles".) It reads the local gateway over
 JSON-RPC and its own backend namespace over the desktop bridge, and it opens a
 URL in the OS browser only when the learner clicks a source card.
 
@@ -104,6 +116,37 @@ secrets. `requires_env` is empty.
 **No self-updater.** The plugin does not fetch or replace its own files. Updates
 arrive through `hermes plugins update`, or through a reviewed SHA bump in the
 Hermes plugin catalog.
+
+## Practice profiles (Foundations, 0.9)
+
+Foundations is the only part of Field Academy that writes outside its own data folder, and it writes into one
+place: a practice profile it planned and recorded itself.
+
+- **Names.** A practice profile is only ever `<root>/profiles/academy-practice[-b][-N]` (`practice.NAME` in
+  `practice.py`). Anything else, a link in its place, or a `profiles` folder that is itself a link, is refused.
+- **Writes** (`practice_write.py`): named `config.yaml` keys only, through `yaml_keys.set_values`, which changes just
+  those lines; whole-file prefills of `memories/MEMORY.md` and `memories/USER.md`; and sample files inside the
+  practice folder. Every write is refused when the profile isn't recorded at exactly that path, when a file or
+  folder is a link, when the profile's backend is running (`gateway.pid`), or once anyone has sent a message in it.
+  Writes go through a temporary file and `os.replace`. Never written: `.env`, `auth.json`, `mcp-tokens/`,
+  `pairing/`, `platforms/`, any other file, any profile Field Academy didn't record, and the learner's own profiles.
+- **Reads** (`hermes_read*.py`) are read-only and bounded: SQLite files open with `mode=ro` and `query_only` (`evidence._ro_connect`), text
+  reads are capped, folder walks stop at a fixed count and never follow links, and only the `config.yaml` keys in
+  `hermes_read.CONFIG_KEYS` are kept. Excerpts pass through `scrub.py`, which removes key-shaped text, before they
+  are stored. `.env` and `auth.json` are never opened; a test watches every open during a full run of the readers.
+- **Identity.** When a practice profile is recorded, its folder's identity on disk (device and inode) is kept. Every
+  write, the delete, the memory view, the checks and the job list check the folder at that path is still the one
+  recorded; a profile deleted and made again under the name, or another profile renamed to it, is refused and the
+  record let go. A name that was planned but never recorded is deleted only when the folder there is the one Field
+  Academy asked for: made after the plan, carrying the planned SOUL.md (not a link), and not a Hermes Bots profile.
+- **Planted problems act like real settings** until the learner fixes them: a filesystem connector Hermes starts
+  with `npx` (a pinned npm package, so Hermes downloads and runs it, scoped to a folder in the practice profile), an
+  approval safeguard switched off in mission 9 (the terminal tool still reaches the whole computer), and hourly jobs.
+  See `docs/privacy.md`, "What the planted problems do while they stand".
+- **Gateway calls into a practice profile** go through `host.requestProfile` on that profile's local route:
+  `cron.manage` (`add`, then `pause`, and `remove` for a job that won't pause) for the jobs a mission needs,
+  `session.list` and `rollback.list`. Profiles are made with `profiles.create` and removed with the app's own
+  `deleteProfile`, only after the learner confirms.
 
 ## Data
 

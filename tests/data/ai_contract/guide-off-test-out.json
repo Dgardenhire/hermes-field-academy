@@ -1,0 +1,38 @@
+{
+ "response": {
+  "do_it_with_me": null,
+  "enabled": false,
+  "explain": [],
+  "help": {
+   "all_helps": 0,
+   "hunt_helps": 0,
+   "key": "own",
+   "used": [],
+   "words": "No hints used"
+  },
+  "ladder": {
+   "nudge": {
+    "state": "not_started",
+    "text": ""
+   },
+   "reveal": {
+    "available": false
+   },
+   "where": {
+    "available": false,
+    "text": ""
+   }
+  },
+  "mission_id": "f.memory",
+  "off_reason": "test_out",
+  "off_words": "The Field guide is off while you test out, so the result is all yours.",
+  "pins": [],
+  "starters": [
+   "What should I open first when a check misses?",
+   "Where does Hermes keep what it remembers, and how do I open it?",
+   "Why does a new chat matter for this check?"
+  ],
+  "step": "check"
+ },
+ "route": "GET /guide/{attempt_id}?step=&active="
+}

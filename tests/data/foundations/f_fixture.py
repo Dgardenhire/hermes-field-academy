@@ -1,0 +1,60 @@
+"""A test mission for the Foundations engine and checker. Built from the memory sample; never shipped as content."""
+
+MISSION = {
+    "id": "f.fixture",
+    "title": "Save a fact to memory and check it stuck",
+    "idea_refs": [4, 5],
+    "domain": "D3",
+    "level": "beginner",
+    "minutes": {"read": 15, "do": 25},
+    "cost": {"chats": 2, "words": "a few cents in model fees"},
+    "as_of": [
+        {"fact": "MEMORY.md holds 2,200 characters by default", "file": "hermes_cli/config_defaults.py",
+         "pattern": r'"memory_char_limit":\s*2200', "since": "0.22"},
+        {"fact": "Old chats are kept until you choose to clear them", "file": "hermes_cli/config_defaults.py",
+         "pattern": r'"auto_prune":\s*False,(?:\s*#[^\n]*)*\s*"retention_days":\s*90', "since": "0.22.4"},
+    ],
+    "recall": {"prompts": ["One thing Hermes did last time that you didn't expect.", "The weakness you said you'd watch for."],
+               "seconds": 180, "from": ""},
+    "claim": {"text": "I can get one fact into Hermes's memory and prove, from the memory file and a brand-new chat, that it stuck.",
+              "author": "course"},
+    "standard": [
+        {"id": "s1", "text": "The fact is in the memory file of the profile you used, as one short line.", "proves_by": "live:memory_line"},
+        {"id": "s2", "text": "A brand-new chat uses the fact without you mentioning it.", "proves_by": "live:fresh_use"},
+        {"id": "s3", "text": "You can say which kind of memory holds it, and why that kind.", "proves_by": "rubric:explain"},
+        {"id": "s4", "text": "If something in your setup stops the save, you find it and say how.", "proves_by": "live:plant_fixed"},
+    ],
+    "predict": {"per_check": True, "ask_step": True},
+    "idea": "md/f.fixture.idea.md",
+    "expert": "md/f.fixture.expert.md",
+    "expert_slots": ["What makes an expert distrust a reply that says Saved?"],
+    "lab": {
+        "body": "Field Academy has made a practice profile called academy-practice. Work only in that profile. Pick one real fact, ask Hermes to save it, then prove each check.",
+        "profile": {"soul": ""},
+        "plants": ["write_approval", "memory_full", "wrong_profile"],
+        "plants_at": {"beginner": 1, "intermediate": 2, "advanced": 2},
+    },
+    "live_checks": [
+        {"id": "memory_line", "reader": "memory.line_matching", "visible": True},
+        {"id": "fresh_use", "reader": "sessions.used_before_said", "visible": True},
+        {"id": "plant_fixed", "reader": "plant.fixed", "visible": False},
+        {"id": "user_line", "reader": "memory.user_line", "visible": True},
+        {"id": "skill_not_memory", "reader": "skills.procedure_not_memory", "visible": True},
+    ],
+    "explain": {
+        "question": "A friend says Hermes forgot something she told it yesterday on Telegram. Give her the three likeliest reasons, in the order you'd check them, and how she'd check each one.",
+        "rubric": {
+            1: "Restates the question or names no reason that fits Telegram.",
+            2: "Names one or two reasons, with no order and no way to check them.",
+            3: "Names three reasons that fit Telegram, in a sensible order, with a check for most of them.",
+            4: "Three reasons that fit Telegram, a sensible order, a check she could do for each, and a point from the learner's own run.",
+        },
+        "pass_level": 3,
+    },
+    "transfer": {
+        "body": "Save a second fact that is about you, so it belongs in USER.md. Then ask Hermes to save the steps of one weekly task, and say where they belong.",
+        "live_checks": ["user_line", "skill_not_memory"],
+    },
+    "review": [],
+    "revisions": [],
+}

@@ -26,7 +26,8 @@ export const FIELD_CSS = `
   --fa-ground-far:color-mix(in srgb,var(--hk-ink) 4%,transparent);
   font-family:var(--dt-font-sans,inherit);
 }
-.fa-sc{font-variant-caps:all-small-caps;letter-spacing:.07em;font-weight:600;font-size:var(--hk-fs);line-height:1.2}
+/* Real capitals at 12px, not small caps: small caps at 13px draw letters the height of 9px type. */
+.fa-sc{text-transform:uppercase;letter-spacing:.06em;font-weight:600;font-size:12px;line-height:1.25}
 .fa-sc-blaze{color:var(--fa-blaze-ink)}
 .fa-num{font-weight:200;font-variant-numeric:lining-nums tabular-nums;letter-spacing:-.03em;line-height:1}
 .fa-num-xl{font-size:34px}
@@ -41,6 +42,7 @@ export const FIELD_CSS = `
 .fa-where{grid-template-columns:auto minmax(0,1fr);column-gap:18px;align-items:center}
 .fa-where-lines{display:grid;gap:5px;min-width:0}
 .fa-next{border-left:3px solid var(--fa-blaze)}
+.fa-next-quiet{border-left-color:var(--hk-stroke)}
 .fa-next-meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--hk-fs-sm)}
 .fa-next-meta span{display:inline-flex;gap:5px;align-items:center}
 .fa-next-meta .codicon{color:var(--fa-blaze-ink)}
@@ -61,6 +63,10 @@ export const FIELD_CSS = `
 .fa-map-grid{position:relative;display:grid;grid-template-columns:var(--fa-label) minmax(0,1fr)}
 .fa-map-head{grid-column:2;position:relative;height:34px;border-bottom:1px dashed var(--hk-stroke)}
 .fa-map-head span{position:absolute;top:12px;transform:translateX(-50%);white-space:nowrap;font-size:var(--hk-fs-sm)}
+.fa-map-head[data-lines]{height:66px}
+.fa-map-head .fa-map-col{display:grid;gap:3px;justify-items:center;text-align:center;white-space:normal}
+.fa-map-head .fa-map-col>span{position:static;transform:none}
+.fa-map-line{display:block;font-size:12px;line-height:1.3;font-weight:400;letter-spacing:0;text-transform:none;opacity:.85}
 .fa-map-corner{grid-column:1;height:34px;border-bottom:1px dashed var(--hk-stroke);padding:12px 0 0 16px;font-size:var(--hk-fs-sm)}
 .fa-trail-label{grid-column:1;display:grid;align-content:center;gap:3px;padding:8px 14px 8px 16px;border:0;border-right:1px dashed var(--hk-stroke);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-width:0;
   transition:background-color var(--hk-dur) var(--hk-ease)}
@@ -73,7 +79,7 @@ export const FIELD_CSS = `
 .fa-trail-cert{font-size:var(--hk-fs-sm);display:inline-flex;gap:5px;align-items:center}
 .fa-trail-cert .codicon{color:var(--fa-blaze-ink)}
 .fa-map-svg{grid-column:2;display:block;overflow:visible}
-@container (max-width:760px){.fa-map{--fa-label:170px}.fa-map .fa-trail-promise,.fa-map .fa-trail-cert{display:none}.fa-map-head span{font-size:11px;letter-spacing:.04em}}
+@container (max-width:760px){.fa-map{--fa-label:170px}.fa-map .fa-trail-promise,.fa-map .fa-trail-cert{display:none}.fa-map-head span{font-size:12px;letter-spacing:.04em}}
 .fa-map-foot{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px dashed var(--hk-stroke);position:relative}
 
 /* trail marks (SVG) */
@@ -391,7 +397,7 @@ function trailCertWords(model) {
  * summit flag. Trail labels are the keyboard list (j/k, Enter opens the path);
  * waypoints and flags are buttons too.
  */
-export function TrailMap({ models, list, onOpenTrack, onOpenMission, foot }) {
+export function TrailMap({ models, list, onOpenTrack, onOpenMission, foot, lines = null, summitLine = '' }) {
   const [ref, width] = useWidth()
   const camps = models[0] ? models[0].camps : []
   const height = models.length * ROW
@@ -402,13 +408,21 @@ export function TrailMap({ models, list, onOpenTrack, onOpenMission, foot }) {
     jsx(Contours, { width: box, height: height + 34 + 52, seed: models.length }),
     jsxs('div', { className: 'fa-map-grid', children: [
       jsx('div', { className: 'fa-map-corner fa-sc', children: 'Trail' }),
-      jsx('div', { className: 'fa-map-head', ref, children: columns
+      jsx('div', { className: 'fa-map-head', ref, 'data-lines': lines ? '' : undefined, children: columns
         ? [
             ...camps.map((camp, i) => {
               const col = columns.camps[Math.min(i, columns.camps.length - 1)]
-              return jsx('span', { className: 'fa-sc', style: { left: (col.x0 + col.x1) / 2 }, children: col.x1 - col.x0 < 150 ? (camp.short || camp.name) : `${camp.short || camp.name} camp` }, camp.id)
+              const name = col.x1 - col.x0 < 150 ? (camp.short || camp.name) : `${camp.short || camp.name} camp`
+              const line = lines && lines[camp.id]
+              return line
+                ? jsxs('span', { className: 'fa-map-col', style: { left: (col.x0 + col.x1) / 2, width: Math.max(80, col.x1 - col.x0 - 10) }, children: [
+                    jsx('span', { className: 'fa-sc', children: name }), jsx('small', { className: 'fa-map-line', children: line })] }, camp.id)
+                : jsx('span', { className: 'fa-sc', style: { left: (col.x0 + col.x1) / 2 }, children: name }, camp.id)
             }),
-            jsx('span', { className: 'fa-sc', style: { left: 'auto', right: 8, transform: 'none' }, children: 'Summit' }, 'summit'),
+            summitLine
+              ? jsxs('span', { className: 'fa-map-col', style: { left: 'auto', right: 4, transform: 'none', width: 64, justifyItems: 'end', textAlign: 'right' }, children: [
+                  jsx('span', { className: 'fa-sc', children: 'Summit' }), jsx('small', { className: 'fa-map-line', children: summitLine })] }, 'summit')
+              : jsx('span', { className: 'fa-sc', style: { left: 'auto', right: 8, transform: 'none' }, children: 'Summit' }, 'summit'),
           ]
         : null }),
       ...models.map((model, i) => jsxs('button', {

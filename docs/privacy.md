@@ -56,6 +56,41 @@ your computer until you send it to a reviewer. A recording you name for the walk
 copied. Reading Hermes is read only: the plugin opens Hermes's run-history database read-only and never writes to it, reads
 log files up to a size limit, and keeps only the times of lines that name your job.
 
+### Foundations practice profiles (0.9)
+
+Foundations missions run in practice profiles Field Academy makes for you, named `academy-practice` and
+`academy-practice-b` (with a number added for a new try), through Hermes's own `profiles.create`. Hermes copies your
+current provider sign-in into a new profile by default so practice chats work; Field Academy never reads, hashes or
+copies those files (the folder fingerprint lists `.env`, `auth.json`, `.env.*` and anything under `mcp-tokens/`,
+`pairing/` and `platforms/` by size and time only). It never reads or writes any profile it did not make and record,
+including your own: when it records a practice profile it keeps the folder's identity on disk, and before every
+write, read and delete it checks the folder there is still that one. A profile deleted and made again under the
+practice name, or another profile renamed to it, is left alone and Field Academy lets go of its record.
+
+Field Academy writes only into a practice profile it recorded, and only before anyone has chatted in it and while
+its backend isn't running:
+
+- `config.yaml`, named keys only (the list is in `practice_write.py`): `terminal.cwd`, always set to the practice
+  profile's own folder or its practice folder; `memory.write_approval` and `skills.write_approval`;
+  `approvals.mode`, `approvals.timeout` and `approvals.cron_mode`; `checkpoints.enabled`; `model.default`,
+  `cron.model` and `delegation.model`; connector entries under `mcp_servers.<name>` (`command`, `args`, `enabled`,
+  `trust`, `tools.include`, `tools.exclude`); `agent.disabled_toolsets`, `command_allowlist` and
+  `fallback_providers`;
+- `memories/MEMORY.md` and `memories/USER.md`: a few seed notes, and for one planted problem enough notes to fill
+  memory close to its limit;
+- sample files (orders, notes, a CSV) in the profile's practice folder, at most two folders deep.
+
+Through Hermes's gateway, aimed at the practice profile only, the page asks Hermes to make and pause the scheduled
+jobs a mission needs (`cron.manage`), lists its chats (`session.list`) and undo snapshots (`rollback.list`), opens a
+new chat there, and on a Hermes that offers them starts that profile's doctor and backup.
+
+It reads, read-only, from the practice profile only: the two memory files, staged saves under `pending/`, named
+`config.yaml` keys, skill names, descriptions and use counts, chat records and usage in `state.db`, `cron/jobs.json`
+and the run history, `agent.log`, `errors.log`, `gateway.log` and `mcp-stderr.log`, and the undo snapshot folder.
+Everything is compared on your computer. Only short excerpts with key-shaped text removed are kept, and you can
+withhold any of them from your Field Record. It deletes a practice profile only after you confirm, through the
+app's own delete, and never a profile it did not make. Your app's active profile never changes.
+
 **`session_id` is an identifier only.** It is stored so an opportunity can be
 offered once per session. The plugin never reads a session's transcript, and it
 does not store one.
@@ -66,6 +101,27 @@ column in the database and it stays on the machine.
 
 **`artifact` is a file path the learner typed.** The gate stores the path, the
 byte count, and the SHA-256. It does not copy the document.
+
+### What the planted problems do while they stand
+
+A planted problem is a real setting in the practice profile, so it acts like one until you fix it. None of them
+touches your own profiles. Read this before a mission, not after:
+
+- **Connectors (missions 2 and 7).** The practice profile gets a filesystem connector,
+  `npx -y @modelcontextprotocol/server-filesystem@2026.8.31` aimed at a folder inside the practice profile. When a
+  practice chat starts, Hermes runs it: `npx` downloads that pinned package from the npm registry (a network call
+  Hermes makes, not Field Academy) and keeps it running as a background program while the chat is open. It can reach
+  only the folder it is given. Mission 10 points a connector at a program inside the practice folder that isn't
+  there, so Hermes fails to start it; don't put a program at that path to "fix" it.
+- **Safety settings (mission 9).** One of `approvals.mode: off` or a recursive delete in `command_allowlist` is
+  planted. While it stands, a terminal command in a practice chat can run without the approval prompt, and the
+  terminal tool reaches your whole computer, not only the practice folder. Find and fix the setting before you give
+  Hermes the tidying job, and never point a practice chat at files you care about.
+- **Scheduled jobs (missions 8, 10 and 11).** Jobs are made through Hermes's own `cron.manage`, most of them paused.
+  Mission 10's job is left on with a misspelled delivery place, so Hermes blocks each hourly run before it starts.
+  A job you repair runs every hour on your provider and delivers where you point it: use `local` unless you mean to
+  send a message. Pause or delete practice jobs when a mission ends; deleting the practice profile removes them.
+- **Practice chats** use your own model provider, like any chat; each mission states its expected cost.
 
 ## What leaves the machine
 

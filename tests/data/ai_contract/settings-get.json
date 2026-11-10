@@ -1,0 +1,7 @@
+{
+ "response": {
+  "ai_help": true,
+  "practice_offer": true
+ },
+ "route": "GET /settings/ai"
+}

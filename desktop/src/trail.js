@@ -29,11 +29,38 @@ function waypointStatus(status) {
 }
 
 /**
+ * The track with its placed missions (``track.placed``: capability and teaching missions, run like Foundations) in the
+ * camps they belong to, each camp's counts and status made again. The path's own lists are never changed.
+ */
+export function withPlaced(track) {
+  const t = obj(track)
+  const placed = arr(t.placed).filter(m => m && typeof m === 'object' && str(m.id))
+  if (!placed.length) return track
+  const own = arr(t.missions)
+  const missions = [...own, ...placed.filter(m => !own.some(o => o && o.id === m.id))]
+  const byId = new Map(missions.filter(m => m && typeof m === 'object').map(m => [m.id, m]))
+  let found = false
+  const levels = arr(t.levels).map(level => {
+    const l = obj(level)
+    const ids = [...arr(l.missions), ...placed.filter(m => m.level === l.id && !arr(l.missions).includes(m.id)).map(m => m.id)]
+    const statuses = ids.map(id => obj(byId.get(id)).status)
+    const passed = statuses.filter(s => s === 'verified').length
+    const status = statuses.length && passed === statuses.length ? 'passed' : statuses.some(s => s && s !== 'not_started') ? 'started' : 'not_started'
+    const current = !found && status !== 'passed'
+    found = found || current
+    return { ...l, missions: ids, passed, total: ids.length, status, current }
+  })
+  const here = str(t.here) && obj(byId.get(t.here)).status !== 'verified' ? t.here
+    : (levels.flatMap(l => l.missions).find(id => obj(byId.get(id)).status !== 'verified') || '')
+  return { ...t, missions, levels, here, verified_missions: missions.filter(m => obj(m).status === 'verified').length }
+}
+
+/**
  * One track as a trail: camps in order, each with its waypoints, plus where the marker
  * stands. Stops are numbered 0 (trailhead), 1..n (waypoints), n+1 (summit).
  */
 export function trailModel(track) {
-  const t = obj(track)
+  const t = obj(withPlaced(track))
   const missions = arr(t.missions).filter(m => m && typeof m === 'object' && str(m.id))
   const byId = new Map(missions.map(m => [m.id, m]))
   const placed = new Set()

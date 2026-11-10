@@ -1,0 +1,744 @@
+{
+ "record": "Field Academy Field Record",
+ "record_format": 3,
+ "kind": "foundations",
+ "scope": {
+  "holder": {
+   "name": "",
+   "checked_by": "you wrote it"
+  },
+  "issuer": "self",
+  "issuer_line": "Issued by its holder with Field Academy, a community plugin for Hermes Agent. Nobody else issued it.",
+  "not_official": "This is not an official certificate. Field Academy is an independent plugin by Damon Gardenhire, not an official Hermes course from Nous Research.",
+  "dates": {
+   "first_work": "2026-10-03T15:02:00+00:00",
+   "last_entry": "2026-10-03T16:10:00+00:00",
+   "issued": "2026-10-03T16:16:00+00:00"
+  },
+  "hermes": {
+   "version": "0.22.4",
+   "read_from": "git tag",
+   "exact": true,
+   "checked_by": "Field Academy read it",
+   "line": "Hermes 0.22.4, read from the release tag of the Hermes code installed on this computer."
+  },
+  "hours": {
+   "active_minutes": 68,
+   "hours": 1.1,
+   "rule": "Counted from the times work was saved and checked. Gaps over 15 minutes, including waits for a scheduled run, are left out.",
+   "checked_by": "Field Academy counted it"
+  },
+  "missions_in_record": 1,
+  "missions_in_course": 16
+ },
+ "claims": [
+  {
+   "n": 1,
+   "mission": "f.memory",
+   "mission_title": "Save a fact to memory and check it stuck",
+   "claim": "I can get one fact into Hermes's memory and prove, from the memory file and a brand-new chat, that it stuck, without relying on what Hermes tells me.",
+   "author": "course",
+   "checked_by": "the course wrote it",
+   "standard": [
+    {
+     "id": "s1",
+     "text": "The fact is in the memory file of the profile you used, as one short line."
+    },
+    {
+     "id": "s2",
+     "text": "A brand-new chat uses the fact without you mentioning it."
+    },
+    {
+     "id": "s3",
+     "text": "You can say which kind of memory holds it, and why that kind."
+    },
+    {
+     "id": "s4",
+     "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+    }
+   ],
+   "standard_frozen_at": "2026-10-03T15:12:00+00:00",
+   "changes": []
+  }
+ ],
+ "entries": [
+  {
+   "n": 1,
+   "entry_hash": "280508f9e5942f987691c911fed8bf6dae0ee32494f7c166b68178fa9ec9648f",
+   "prev_hash": "",
+   "added_at": "2026-10-03T16:10:00+00:00",
+   "mission": "f.memory",
+   "mission_title": "Save a fact to memory and check it stuck",
+   "level": "beginner",
+   "attempt_no": 1,
+   "claim": {
+    "text": "I can get one fact into Hermes's memory and prove, from the memory file and a brand-new chat, that it stuck, without relying on what Hermes tells me.",
+    "author": "course",
+    "checked_by": "the course wrote it"
+   },
+   "mode": "full",
+   "tested_out": false,
+   "skipped": [],
+   "where_wrong": {
+    "text": "Finding whatever is planted. I don't know where to look yet.",
+    "checked_by": "you wrote it"
+   },
+   "checks": [
+    {
+     "id": "s1",
+     "text": "The fact is in the memory file of the profile you used, as one short line.",
+     "expect_pass": true,
+     "confidence": 90,
+     "self_pass": true,
+     "passed": false,
+     "passed_after_fix": true,
+     "level": null,
+     "checked_by": "Field Academy read it"
+    },
+    {
+     "id": "s2",
+     "text": "A brand-new chat uses the fact without you mentioning it.",
+     "expect_pass": true,
+     "confidence": 75,
+     "self_pass": true,
+     "passed": false,
+     "passed_after_fix": true,
+     "level": null,
+     "checked_by": "Field Academy read it"
+    },
+    {
+     "id": "s3",
+     "text": "You can say which kind of memory holds it, and why that kind.",
+     "expect_pass": true,
+     "confidence": 70,
+     "self_pass": true,
+     "passed": true,
+     "passed_after_fix": true,
+     "level": 3,
+     "checked_by": "your Hermes graded it"
+    },
+    {
+     "id": "s4",
+     "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how.",
+     "expect_pass": false,
+     "confidence": 60,
+     "self_pass": true,
+     "passed": false,
+     "passed_after_fix": true,
+     "level": null,
+     "checked_by": "Field Academy read it"
+    }
+   ],
+   "result_first": {
+    "checked_by": "Field Academy read it",
+    "of": 4,
+    "passed": 1
+   },
+   "result_after_fix": {
+    "checked_by": "Field Academy read it",
+    "of": 4,
+    "passed": 4
+   },
+   "transfer": {
+    "checked_by": "Field Academy read it",
+    "note": "",
+    "of": 2,
+    "one_off": {
+     "checked_by": "Field Academy read it",
+     "detail": "The printer quote came in at noon today",
+     "saved": false,
+     "why": "It matters for one afternoon, so it doesn't earn a line.",
+     "why_checked_by": "not graded yet"
+    },
+    "passed": 2
+   },
+   "explain": {
+    "checked_by": "your Hermes graded it",
+    "feedback": "Three real causes, each with a check. For level 4, use what happened in your own run.",
+    "level": 3,
+    "pass_level": 3
+   },
+   "caught": [
+    {
+     "checked_by": "Field Academy read it",
+     "facts": [
+      {
+       "label": "Saves waiting for approval",
+       "value": "0"
+      },
+      {
+       "label": "Saves Hermes staged in a chat",
+       "value": "1"
+      },
+      {
+       "label": "memory.write_approval",
+       "value": "on"
+      }
+     ],
+     "kind": "write_approval",
+     "ran_into_it": true,
+     "title": "Saves waited for approval"
+    }
+   ],
+   "missed": [],
+   "gap": {
+    "text": "I trusted Saved to memory. Expanded, the row said the save was staged for approval.",
+    "checked_by": "you wrote it"
+   },
+   "diagnosis": {
+    "text": "",
+    "checked_by": "you wrote it"
+   },
+   "fix": {
+    "text": "Approved the waiting save with /memory pending, then checked the file and a new chat.",
+    "checked_by": "you wrote it"
+   },
+   "evidence": [
+    {
+     "id": 1,
+     "check": "plant_fixed",
+     "kind": "pending",
+     "file": "pending/memory/1125870c.json",
+     "sha256": "50db9c5543bde0cca571a410c0ef120d9a61523cd0dc8b10af27c6658d5fb3ee",
+     "read_at": "2026-10-03T15:36:00+00:00",
+     "checked_by": "Field Academy read it",
+     "withheld": false,
+     "excerpt": "add Harbor Bakery uses QuickBooks Online; the other five use Xero",
+     "excerpt_file": "evidence/01-pending.txt",
+     "backs": {
+      "n": 4,
+      "label": "Backs check 4",
+      "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+     },
+     "phase": "first",
+     "facts": [
+      {
+       "label": "Saves waiting for approval",
+       "value": "1"
+      },
+      {
+       "label": "Saves Hermes staged in a chat",
+       "value": "1"
+      },
+      {
+       "label": "memory.write_approval",
+       "value": "on"
+      }
+     ]
+    },
+    {
+     "id": 2,
+     "check": "plant_fixed",
+     "kind": "tool_result",
+     "file": "state.db",
+     "sha256": "c4ceba81bf400aa9448475ded435db6f734affae349957453ac0b9085d5cb88d",
+     "read_at": "2026-10-03T15:38:00+00:00",
+     "checked_by": "Field Academy read it",
+     "withheld": false,
+     "excerpt": "Staged for approval. Not yet saved.",
+     "excerpt_file": "evidence/01-tool-result.txt",
+     "backs": {
+      "n": 4,
+      "label": "Backs check 4",
+      "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+     },
+     "phase": "first",
+     "facts": [
+      {
+       "label": "Saves waiting for approval",
+       "value": "1"
+      },
+      {
+       "label": "Saves Hermes staged in a chat",
+       "value": "1"
+      },
+      {
+       "label": "memory.write_approval",
+       "value": "on"
+      }
+     ]
+    },
+    {
+     "id": 3,
+     "check": "memory_line",
+     "kind": "memory",
+     "file": "memories/MEMORY.md",
+     "sha256": "8852d9810ba03ae18f7575487348044336aedb7dae5877ad1d627ee888f8e7ad",
+     "read_at": "2026-10-03T15:50:00+00:00",
+     "checked_by": "Field Academy read it",
+     "withheld": false,
+     "excerpt": "Harbor Bakery uses QuickBooks Online; the other five use Xero",
+     "excerpt_file": "evidence/01-memory.txt",
+     "backs": {
+      "n": 1,
+      "label": "Backs check 1",
+      "text": "The fact is in the memory file of the profile you used, as one short line."
+     },
+     "phase": "after_fix",
+     "facts": [
+      {
+       "label": "MEMORY.md",
+       "value": "543 of 2,200 characters, 6 lines"
+      },
+      {
+       "label": "USER.md",
+       "value": "35 of 1,375 characters, 1 line"
+      }
+     ]
+    },
+    {
+     "id": 4,
+     "check": "fresh_use",
+     "kind": "session",
+     "file": "state.db",
+     "sha256": "d963abce075d3f93d34a6379ba7683ec031b0aa66e237d9f3cff38769f7f35de",
+     "read_at": "2026-10-03T15:54:00+00:00",
+     "checked_by": "Field Academy read it",
+     "withheld": false,
+     "excerpt": "1. Export the bank feed from QuickBooks Online.",
+     "excerpt_file": "evidence/01-session.txt",
+     "backs": {
+      "n": 2,
+      "label": "Backs check 2",
+      "text": "A brand-new chat uses the fact without you mentioning it."
+     },
+     "phase": "after_fix",
+     "facts": [
+      {
+       "label": "Saved at",
+       "value": "November 10, 2026, 04:05:17 UTC, from the memory file's time"
+      },
+      {
+       "label": "Chats started after the save",
+       "value": "1"
+      },
+      {
+       "label": "The chat that used it started",
+       "value": "November 10, 2026, 04:06:17 UTC"
+      }
+     ]
+    },
+    {
+     "id": 6,
+     "check": "user_line",
+     "kind": "memory",
+     "file": "memories/USER.md",
+     "sha256": "7c7ad44f53411bc7aba2bd7a599047b1fbe22d6bc2094e0330620b2ef59c4cf8",
+     "read_at": "2026-10-03T16:06:00+00:00",
+     "checked_by": "Field Academy read it",
+     "withheld": true,
+     "excerpt": "",
+     "excerpt_file": null,
+     "backs": {
+      "n": null,
+      "label": "Backs the transfer task",
+      "text": "the same idea, used on a second job."
+     },
+     "phase": "transfer",
+     "facts": []
+    }
+   ],
+   "corrections": [],
+   "help": {
+    "words": "No hints used",
+    "key": "own",
+    "hunt_helps": 0,
+    "checked_by": "Field Academy counted it"
+   },
+   "cost": {
+    "practice": "This practice: Hermes hadn't recorded any usage yet.",
+    "guide": "Field guide and grading: not used.",
+    "practice_usd": null,
+    "guide_tokens": 0,
+    "checked_by": "Field Academy counted it"
+   }
+  }
+ ],
+ "calibration": {
+  "per_mission": [
+   {
+    "mission": "f.loop",
+    "title": "Check whether Hermes really did what it says",
+    "order": 1,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.cost",
+    "title": "See what a chat costs, and cut it",
+    "order": 2,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.memory",
+    "title": "Save a fact to memory and check it stuck",
+    "order": 3,
+    "in_record": true,
+    "checks": 4,
+    "predicted": 3,
+    "self_scored": 4,
+    "passed_first": 1
+   },
+   {
+    "mission": "f.new-chats",
+    "title": "Start a new chat at the right time",
+    "order": 4,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.skills",
+    "title": "Turn a repeat job into a skill",
+    "order": 5,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.profiles",
+    "title": "Keep two jobs apart in two profiles",
+    "order": 6,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.connectors",
+    "title": "Connect an outside tool safely",
+    "order": 7,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.schedules",
+    "title": "Set up a job that runs on a schedule",
+    "order": 8,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.safety",
+    "title": "Stop a mistake before it happens, or undo it",
+    "order": 9,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.diagnose",
+    "title": "Find out why Hermes failed, and fix it",
+    "order": 10,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.review",
+    "title": "Foundations review",
+    "order": 11,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.delegation",
+    "title": "Hand work to helper agents, and check what each one did",
+    "order": 12,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.toolsets",
+    "title": "Give Hermes only the tools a job needs",
+    "order": 13,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.teach-profile",
+    "title": "Set Hermes up for someone else",
+    "order": 14,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.teach-walkthrough",
+    "title": "Write a walkthrough someone can follow on their own",
+    "order": 15,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   },
+   {
+    "mission": "f.teach-review",
+    "title": "Judge someone's work from their Field Record",
+    "order": 16,
+    "in_record": false,
+    "checks": null,
+    "predicted": null,
+    "self_scored": null,
+    "passed_first": null
+   }
+  ],
+  "note": "One row per mission: the checks the holder predicted would pass beside the checks that did, the first time. No average and no verdict: with about four checks a mission, one lucky or unlucky check moves any average more than judgment does. Read down the rows and see whether the guesses got closer.",
+  "checked_by": "Field Academy read it"
+ },
+ "first_and_last": {
+  "first": {
+   "n": 1,
+   "mission": "f.memory",
+   "mission_title": "Save a fact to memory and check it stuck",
+   "added_at": "2026-10-03T16:10:00+00:00",
+   "found_wrong": "I trusted Saved to memory. Expanded, the row said the save was staged for approval.",
+   "found_wrong_by": "you wrote it",
+   "caught": 1,
+   "missed": 0,
+   "first_result": {
+    "passed": 1,
+    "of": 4
+   },
+   "checked_by": "Field Academy read it"
+  },
+  "last": null,
+  "note": "Only one mission is in the record, so first and last are the same work. Add more to see the change."
+ },
+ "can_claim": {
+  "passed": [
+   {
+    "mission": "f.memory",
+    "title": "Save a fact to memory and check it stuck",
+    "claim": "I can get one fact into Hermes's memory and prove, from the memory file and a brand-new chat, that it stuck, without relying on what Hermes tells me.",
+    "date": "2026-10-03T16:10:00+00:00",
+    "after_fix": true,
+    "tested_out": false,
+    "entry": 1,
+    "checked_by": "Field Academy read it"
+   }
+  ],
+  "not_yet": [
+   {
+    "mission": "f.loop",
+    "title": "Check whether Hermes really did what it says",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.cost",
+    "title": "See what a chat costs, and cut it",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.new-chats",
+    "title": "Start a new chat at the right time",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.skills",
+    "title": "Turn a repeat job into a skill",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.profiles",
+    "title": "Keep two jobs apart in two profiles",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.connectors",
+    "title": "Connect an outside tool safely",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.schedules",
+    "title": "Set up a job that runs on a schedule",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.safety",
+    "title": "Stop a mistake before it happens, or undo it",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.diagnose",
+    "title": "Find out why Hermes failed, and fix it",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.review",
+    "title": "Foundations review",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.delegation",
+    "title": "Hand work to helper agents, and check what each one did",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.toolsets",
+    "title": "Give Hermes only the tools a job needs",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.teach-profile",
+    "title": "Set Hermes up for someone else",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.teach-walkthrough",
+    "title": "Write a walkthrough someone can follow on their own",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   },
+   {
+    "mission": "f.teach-review",
+    "title": "Judge someone's work from their Field Record",
+    "why": "Not in the record yet.",
+    "entry": null,
+    "checked_by": "Field Academy read it"
+   }
+  ]
+ },
+ "passed": {
+  "missions": [
+   {
+    "mission": "f.memory",
+    "title": "Save a fact to memory and check it stuck",
+    "where": "Foundations, the trailhead",
+    "how": "after a fix",
+    "date": "2026-10-03T16:10:00+00:00",
+    "entry": 1,
+    "claim": "I can get one fact into Hermes's memory and prove, from the memory file and a brand-new chat, that it stuck, without relying on what Hermes tells me.",
+    "checks": "4 of 4",
+    "evidence": [
+     {
+      "file": "evidence/01-pending.txt",
+      "withheld": false,
+      "kind": "pending",
+      "read_from": "pending/memory/1125870c.json",
+      "sha256": "50db9c5543bde0cca571a410c0ef120d9a61523cd0dc8b10af27c6658d5fb3ee",
+      "excerpt": "add Harbor Bakery uses QuickBooks Online; the other five use Xero"
+     },
+     {
+      "file": "evidence/01-tool-result.txt",
+      "withheld": false,
+      "kind": "tool_result",
+      "read_from": "state.db",
+      "sha256": "c4ceba81bf400aa9448475ded435db6f734affae349957453ac0b9085d5cb88d",
+      "excerpt": "Staged for approval. Not yet saved."
+     },
+     {
+      "file": "evidence/01-memory.txt",
+      "withheld": false,
+      "kind": "memory",
+      "read_from": "memories/MEMORY.md",
+      "sha256": "8852d9810ba03ae18f7575487348044336aedb7dae5877ad1d627ee888f8e7ad",
+      "excerpt": "Harbor Bakery uses QuickBooks Online; the other five use Xero"
+     },
+     {
+      "file": "evidence/01-session.txt",
+      "withheld": false,
+      "kind": "session",
+      "read_from": "state.db",
+      "sha256": "d963abce075d3f93d34a6379ba7683ec031b0aa66e237d9f3cff38769f7f35de",
+      "excerpt": "1. Export the bank feed from QuickBooks Online."
+     },
+     {
+      "file": "",
+      "withheld": true,
+      "kind": "memory",
+      "read_from": "memories/USER.md",
+      "sha256": "7c7ad44f53411bc7aba2bd7a599047b1fbe22d6bc2094e0330620b2ef59c4cf8",
+      "excerpt": ""
+     }
+    ],
+    "checked_by": "Field Academy read it"
+   }
+  ],
+  "note": "Each mission below passed every check. Field Academy read each line of evidence from the practice profile itself; the file is in this folder's evidence/ folder and its SHA-256 is in MANIFEST.sha256."
+ },
+ "case": {
+  "text": "",
+  "checked_by": "you wrote it",
+  "note": "No case was written for this record."
+ },
+ "limits": {
+  "text": "",
+  "checked_by": "yours, not graded"
+ },
+ "reviewer": null,
+ "reviewer_note": "Nobody outside has reviewed this record.",
+ "chain": {
+  "head": "280508f9e5942f987691c911fed8bf6dae0ee32494f7c166b68178fa9ec9648f",
+  "entries": 1,
+  "intact": true,
+  "checked_by": "Field Academy read it"
+ },
+ "chain_head": "280508f9e5942f987691c911fed8bf6dae0ee32494f7c166b68178fa9ec9648f",
+ "shows": "Work done in practice profiles on the holder's own computer: what the holder predicted before each mission, what Field Academy read from the practice profile, what the holder's own Hermes graded, and which planted problems were caught or missed.",
+ "does_not_show": "That anyone outside checked the work, that the holder has used Hermes on real work for months, or anything about a Hermes version other than the one named here. The fingerprints show the files match each other; they don't show this folder is the one the holder saved, and they don't prove Hermes produced them.",
+ "disclaimer": "Self-issued with Field Academy, a community plugin for Hermes Agent. Not issued or endorsed by Nous Research.",
+ "plugin_version": "0.9.0",
+ "issued_at": "2026-10-03T16:16:00+00:00"
+}

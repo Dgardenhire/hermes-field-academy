@@ -27,8 +27,11 @@ DISCLAIMER = (
 )
 
 # Bumped when the stored wording of a new record changes. Format 1 (0.8.2 and earlier)
-# has no record_format key and called itself a certificate.
+# has no record_format key and called itself a certificate. Path records and the Guide's
+# record stay at format 2 until each is rebuilt; Foundations records are format 3
+# (field_record.RECORD_FORMAT), with a scope, claims, entries and a calibration table.
 RECORD_FORMAT = 2
+FOUNDATIONS_RECORD_FORMAT = 3
 
 ABOUT = (
     "A Field Record is your own learning record for a path. You build it mission by mission, "

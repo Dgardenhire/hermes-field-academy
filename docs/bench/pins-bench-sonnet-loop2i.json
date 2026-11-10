@@ -1,0 +1,541 @@
+{
+ "summary": {
+  "when": "2026-11-09 07:07 CST",
+  "model": "sonnet",
+  "runs": 10,
+  "runs_with_bracket_pin": 7,
+  "whole_call_failures": 0,
+  "length_failures": 0,
+  "max_words": 20,
+  "median_seconds": 19.97,
+  "bracket": {
+   "from": "m3",
+   "to": "f-pending-1",
+   "words": "The chat showed Saved to memory, but the note is waiting for your approval and is not in MEMORY.md."
+  },
+  "facts": "The check facts (all true): the memory row in the chat is titled Saved to memory but its result says the save was staged for approval and not yet saved; a held save sits in the profile's pending/memory folder; MEMORY.md is unchanged (479 of 2,200 characters, no line holds the fact); the new chat did NOT use the fact (it asked which software Harbor Bakery uses); the fact the learner wanted saved is 'Harbor Bakery uses QuickBooks Online; the other five use Xero'."
+ },
+ "rows": [
+  {
+   "run": 1,
+   "state": "ready",
+   "error": "",
+   "seconds": 32.58,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "The words \"Staged for approval\" and \"memory.write_approval is on\" show the setting that made the save look finished.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "f-memory",
+     "why": "MEMORY.md stayed at 479 of 2,200 characters, so the fact about Harbor Bakery never got into it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "file:memory",
+      "title": "MEMORY.md unchanged",
+      "text": "479 of 2,200 characters, as the check read it."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "Hermes asked which software Harbor Bakery uses, so the new chat had no way to know the answer.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    18,
+    17,
+    18
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 2,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The row's own words say \\\"Staged\\\" and \\\"Not yet saved\\\", and the setting memory.write_approval is on, so the title Saved to memory misled.\"},{\"event_id\":\"f-memory\",\"why\":\"This file stayed at 479 of 2,200 characters, so the Harbor Bakery fact never reached the file Hermes reads in new chats.\"},{\"event_id\":\"m5\",\"why\":\"In the new chat Hermes asked which software Harbor Bakery uses, so the fact you gave earlier was not used.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 19.06
+    },
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The words \\\"Staged for approval\\\" and \\\"memory.write_approval is on\\\" show the setting that made the save look finished.\"},{\"event_id\":\"f-memory\",\"why\":\"MEMORY.md stayed at 479 of 2,200 characters, so the fact about Harbor Bakery never got into it.\"},{\"event_id\":\"m5\",\"why\":\"Hermes asked which software Harbor Bakery uses, so the new chat had no way to know the answer.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 13.46
+    }
+   ]
+  },
+  {
+   "run": 2,
+   "state": "ready",
+   "error": "",
+   "seconds": 25.4,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "The title says Saved, but 'Staged' and 'memory.write_approval is on' in the row show the setting behind it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m4",
+     "why": "This request names Harbor Bakery but never mentions the software, so only memory could supply it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "user",
+      "title": "You asked",
+      "text": "Draft this month's reconciliation checklist for Harbor Bakery."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "Hermes asked which software Harbor Bakery uses, so the new chat had no fact to work from.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    18,
+    16,
+    17
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 2,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The row says \\\"memory.write_approval is on\\\" and \\\"Not yet saved\\\", so the title \\\"Saved to memory\\\" was only a label, and that setting caused it.\"},{\"event_id\":\"f-memory\",\"why\":\"MEMORY.md stayed at 479 of 2,200 characters, so the QuickBooks fact never reached the file Hermes reads in new chats.\"},{\"event_id\":\"m5\",\"why\":\"In the new chat Hermes asked which software Harbor Bakery uses, so the fact you asked it to keep never reached this chat.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 10.0
+    },
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The title says Saved, but 'Staged' and 'memory.write_approval is on' in the row show the setting behind it.\"},{\"event_id\":\"m4\",\"why\":\"This request names Harbor Bakery but never mentions the software, so only memory could supply it.\"},{\"event_id\":\"m5\",\"why\":\"Hermes asked which software Harbor Bakery uses, so the new chat had no fact to work from.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 15.36
+    }
+   ]
+  },
+  {
+   "run": 3,
+   "state": "ready",
+   "error": "",
+   "seconds": 13.19,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "The row's title says Saved, but its text says \"Not yet saved\", and memory.write_approval is on, the setting behind it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "In the new chat, Hermes had to ask which accounting software Harbor Bakery uses, so the fact never helped.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    20,
+    19
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 1,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The row's title says Saved, but its text says \\\"Not yet saved\\\", and memory.write_approval is on, the setting behind it.\"},{\"event_id\":\"m5\",\"why\":\"In the new chat, Hermes had to ask which accounting software Harbor Bakery uses, so the fact never helped.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 13.14
+    }
+   ]
+  },
+  {
+   "run": 4,
+   "state": "ready",
+   "error": "",
+   "seconds": 7.02,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "The words \"memory.write_approval is on\" show the setting that made this save only a staged request, not a finished one.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "f-memory",
+     "why": "MEMORY.md stayed at 479 of 2,200 characters, so the Harbor Bakery fact never reached the file Hermes reads.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "file:memory",
+      "title": "MEMORY.md unchanged",
+      "text": "479 of 2,200 characters, as the check read it."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "In the new chat Hermes asked which software Harbor Bakery uses, so the fact never helped the later job.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    20,
+    18,
+    19
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 1,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The words \\\"memory.write_approval is on\\\" show the setting that made this save only a staged request, not a finished one.\"},{\"event_id\":\"f-memory\",\"why\":\"MEMORY.md stayed at 479 of 2,200 characters, so the Harbor Bakery fact never reached the file Hermes reads.\"},{\"event_id\":\"m5\",\"why\":\"In the new chat Hermes asked which software Harbor Bakery uses, so the fact never helped the later job.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 6.98
+    }
+   ]
+  },
+  {
+   "run": 5,
+   "state": "ready",
+   "error": "",
+   "seconds": 19.97,
+   "pins": [
+    {
+     "event_id": "f-memory",
+     "why": "MEMORY.md stayed at 479 of 2,200 characters, so the Harbor Bakery fact never reached the file Hermes reads.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "file:memory",
+      "title": "MEMORY.md unchanged",
+      "text": "479 of 2,200 characters, as the check read it."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "In the new chat Hermes asked which software Harbor Bakery uses, so the fact you gave never helped.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    }
+   ],
+   "on_bracket": 0,
+   "words": [
+    18,
+    18
+   ],
+   "trimmed": 0,
+   "dropped": 1,
+   "tries": 2,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The row's own words \\\"Staged\\\" and \\\"Not yet saved\\\" give it away, and memory.write_approval being on is the setting behind it.\"},{\"event_id\":\"f-memory\",\"why\":\"MEMORY.md stayed at 479 of 2,200 characters, so the Harbor Bakery fact never reached the file Hermes reads.\"},{\"event_id\":\"m5\",\"why\":\"In the new chat Hermes asked which software Harbor Bakery uses, so the fact you gave never helped.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 9.51
+    },
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The setting memory.write_approval is on, so Staged for approval and Not yet saved are the words that matter, not the title.\"},{\"event_id\":\"f-memory\",\"why\":\"MEMORY.md still shows 479 of 2,200 characters, so the Harbor Bakery fact never got into the file Hermes reads.\"},{\"event_id\":\"m5\",\"why\":\"In the new chat Hermes asked which software Harbor Bakery uses, so the fact you gave it was never used.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 10.41
+    }
+   ]
+  },
+  {
+   "run": 6,
+   "state": "ready",
+   "error": "",
+   "seconds": 24.46,
+   "pins": [
+    {
+     "event_id": "f-memory",
+     "why": "This file stayed at 479 of 2,200 characters, so the QuickBooks fact never reached the place Hermes reads from.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "file:memory",
+      "title": "MEMORY.md unchanged",
+      "text": "479 of 2,200 characters, as the check read it."
+     }
+    }
+   ],
+   "on_bracket": 0,
+   "words": [
+    19
+   ],
+   "trimmed": 0,
+   "dropped": 2,
+   "tries": 2,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The row's own words \\\"Staged\\\" and \\\"Not yet saved\\\" tell the truth, and memory.write_approval being on is the setting behind the green-looking title.\"},{\"event_id\":\"f-memory\",\"why\":\"This file stayed at 479 of 2,200 characters, so the QuickBooks fact never reached the place Hermes reads from.\"},{\"event_id\":\"m5\",\"why\":\"In the new chat Hermes asked which software Harbor Bakery uses, so the fact you wanted it to know was missing.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 11.32
+    },
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The words \\\"Staged for approval\\\" and \\\"Not yet saved\\\" in this row, plus memory.write_approval being on, show it never counted as a real save.\"},{\"event_id\":\"f-memory\",\"why\":\"MEMORY.md stayed at 479 of 2,200 characters, so the Harbor Bakery fact never reached the file Hermes reads.\"},{\"event_id\":\"m5\",\"why\":\"In the new chat Hermes had to ask which software Harbor Bakery uses, so the fact never reached this conversation.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 13.06
+    }
+   ]
+  },
+  {
+   "run": 7,
+   "state": "ready",
+   "error": "",
+   "seconds": 17.23,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "The words 'memory.write_approval is on' in this row are the setting behind the cheerful title.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "Next chat, Hermes asked which software Harbor Bakery uses, so the fact never reached the new conversation.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    15,
+    17
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 2,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The words \\\"Staged for approval\\\" and \\\"memory.write_approval is on\\\" show a setting, not a failure, turned this save into a staged one.\"},{\"event_id\":\"f-memory\",\"why\":\"MEMORY.md stayed at 479 of 2,200 characters, so nothing about Harbor Bakery's software was ever added to it.\"},{\"event_id\":\"m5\",\"why\":\"The new chat asked \\\"Which one does Harbor Bakery use?\\\", so the fact never reached later work.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 5.43
+    },
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The words 'memory.write_approval is on' in this row are the setting behind the cheerful title.\"},{\"event_id\":\"m5\",\"why\":\"Next chat, Hermes asked which software Harbor Bakery uses, so the fact never reached the new conversation.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 11.7
+    }
+   ]
+  },
+  {
+   "run": 8,
+   "state": "ready",
+   "error": "",
+   "seconds": 13.24,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "Its own words, \"Not yet saved\" and \"memory.write_approval is on\", show the setting that made this look like a save.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "The new chat had to ask which accounting software Harbor Bakery uses, so the fact never helped.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    20,
+    17
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 1,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"Its own words, \\\"Not yet saved\\\" and \\\"memory.write_approval is on\\\", show the setting that made this look like a save.\"},{\"event_id\":\"m5\",\"why\":\"The new chat had to ask which accounting software Harbor Bakery uses, so the fact never helped.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 13.17
+    }
+   ]
+  },
+  {
+   "run": 9,
+   "state": "ready",
+   "error": "",
+   "seconds": 26.28,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "The setting memory.write_approval is on, so the title Saved to memory hides the words \"Not yet saved\".",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "f-memory",
+     "why": "The memory file still holds 479 of 2,200 characters, the same as before you asked.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "file:memory",
+      "title": "MEMORY.md unchanged",
+      "text": "479 of 2,200 characters, as the check read it."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "In the new chat, Hermes had to ask which software Harbor Bakery uses, so the QuickBooks fact never helped.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    17,
+    15,
+    19
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 2,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The row's own words \\\"Staged for approval\\\" and \\\"memory.write_approval is on\\\" show the setting that turned the save into a staged request.\"},{\"event_id\":\"f-memory\",\"why\":\"MEMORY.md stayed at 479 of 2,200 characters, so the Harbor Bakery fact never reached the file Hermes reads.\"},{\"event_id\":\"m5\",\"why\":\"In the new chat Hermes asked which software Harbor Bakery uses, so the fact never helped the checklist.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 11.86
+    },
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The setting memory.write_approval is on, so the title Saved to memory hides the words \\\"Not yet saved\\\".\"},{\"event_id\":\"f-memory\",\"why\":\"The memory file still holds 479 of 2,200 characters, the same as before you asked.\"},{\"event_id\":\"m5\",\"why\":\"In the new chat, Hermes had to ask which software Harbor Bakery uses, so the QuickBooks fact never helped.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 14.32
+    }
+   ]
+  },
+  {
+   "run": 10,
+   "state": "ready",
+   "error": "",
+   "seconds": 17.6,
+   "pins": [
+    {
+     "event_id": "f-memory",
+     "why": "This file stayed at 479 of 2,200 characters, so the QuickBooks fact never reached the file Hermes reads.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "file:memory",
+      "title": "MEMORY.md unchanged",
+      "text": "479 of 2,200 characters, as the check read it."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "In the new chat Hermes asked which software Harbor Bakery uses, so the fact you gave it never helped.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    }
+   ],
+   "on_bracket": 0,
+   "words": [
+    18,
+    19
+   ],
+   "trimmed": 0,
+   "dropped": 1,
+   "tries": 2,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The words \\\"memory.write_approval is on\\\" are the setting that made the save look done, though the row itself says \\\"Not yet saved\\\".\"},{\"event_id\":\"f-memory\",\"why\":\"This file stayed at 479 of 2,200 characters, so the QuickBooks fact never reached the file Hermes reads.\"},{\"event_id\":\"m5\",\"why\":\"In the new chat Hermes asked which software Harbor Bakery uses, so the fact you gave it never helped.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 8.66
+    },
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"The words \\\"Staged for approval\\\" and \\\"Not yet saved\\\" appear because memory.write_approval is on, so the row only looked like a success.\"},{\"event_id\":\"f-memory\",\"why\":\"MEMORY.md stayed at 479 of 2,200 characters, so the Harbor Bakery fact never reached the file Hermes reads.\"},{\"event_id\":\"m5\",\"why\":\"The new chat asked which software Harbor Bakery uses, so the fact was never available to Hermes.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 8.89
+    }
+   ]
+  }
+ ]
+}

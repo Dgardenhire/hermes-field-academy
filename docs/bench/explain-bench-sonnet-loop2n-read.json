@@ -1,0 +1,131 @@
+{
+ "reader": "codex exec (read-only)",
+ "when": "2026-11-09 10:12 CST",
+ "items": 20,
+ "read": 20,
+ "contradictions": 0,
+ "give_aways": 0,
+ "verdicts": [
+  {
+   "id": "run1-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run1-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run2-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run2-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run3-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run3-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run4-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run4-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run5-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run5-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run6-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run6-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run7-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run7-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Saying 'memory' instead of 'memory files' creates no contradiction and does not reveal the cause."
+  },
+  {
+   "id": "run8-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run8-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run9-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run9-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Saying 'memory' instead of 'memory files' creates no contradiction and does not reveal the cause."
+  },
+  {
+   "id": "run10-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  },
+  {
+   "id": "run10-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "No check fact contradicts it; directing attention to the memory row does not name the cause."
+  }
+ ],
+ "raw_tail": ""
+}

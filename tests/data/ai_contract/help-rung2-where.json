@@ -1,0 +1,47 @@
+{
+ "response": {
+  "entry": {
+   "body": {
+    "at": "2026-10-03T09:00:00+00:00",
+    "kind": "where",
+    "mission": "f.memory",
+    "rung": 2,
+    "source": "course",
+    "step": "check"
+   },
+   "hash": "5697343070e7e30a785414cf1d063b6d35444cf53da0b6ff60d9bc2ca3a9558b",
+   "kind": "help"
+  },
+  "help": {
+   "all_helps": 3,
+   "hunt_helps": 3,
+   "key": "hints",
+   "used": [
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "ask",
+     "rung": null,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "where",
+     "rung": 2,
+     "step": "check"
+    }
+   ],
+   "words": "3 hints used"
+  },
+  "shown": {
+   "source": "course",
+   "text": "Go back to the chat where you asked Hermes to remember the fact. Open the memory row and read every line of it, not just its title."
+  }
+ },
+ "route": "POST /guide/{attempt_id}/help"
+}

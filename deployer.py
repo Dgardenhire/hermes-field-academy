@@ -1385,6 +1385,9 @@ def snapshot():
                             "words": {"awaiting_review": "Guide, awaiting review", "issued": "Field Record created", "ready": "Field Record ready to create"}.get(cert_status, "")},
         }
         version = current_version(conn)
+        from . import school
+
+        school.inject_all([track])  # the teaching missions sit in the Guide trail's camps
         return {
             "available": True,
             "track": track,

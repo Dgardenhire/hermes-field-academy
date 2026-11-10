@@ -26,9 +26,13 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+import struct
+import zlib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote
+
+from . import scrub
 
 ISO = re.compile(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?")
 MAX_TIMES = 2000
@@ -40,13 +44,8 @@ EPOCH_LOW, EPOCH_HIGH = 1_500_000_000, 2_500_000_000
 # Words that mark a failed run, in a status column or a log line.
 FAILED = re.compile(r"\b(?:fail(?:ed|ure)?|error|errored|exception|timeout|timed out|denied|unauthori[sz]ed|forbidden|revoked|rate[- ]?limit(?:ed)?|429|401|403)\b", re.I)
 
-# Secret shapes removed from any pasted excerpt before it is kept.
-SECRET_SHAPES = (
-    re.compile(r"\b(?:sk|pk|rk|ghp|gho|xox[abp])[-_][A-Za-z0-9_-]{16,}\b"),
-    re.compile(r"\bBearer\s+[A-Za-z0-9._~+/=-]{16,}", re.I),
-    re.compile(r"\b[A-Za-z0-9+/=_-]{40,}\b"),
-    re.compile(r"(?i)\b(?:api[_-]?key|token|secret|password)\s*[=:]\s*\S+"),
-)
+# Secret shapes removed from any pasted excerpt before it is kept. One list for the whole plugin, in scrub.py.
+SECRET_SHAPES = scrub.SHAPES_FOR_GUIDE
 
 
 def parse_ts(value) -> datetime | None:
@@ -89,10 +88,7 @@ def iso(moment: datetime) -> str:
 
 
 def redact(text: str, limit: int = 8000) -> str:
-    out = text or ""
-    for pattern in SECRET_SHAPES:
-        out = pattern.sub("[removed]", out)
-    return out[:limit]
+    return scrub.scrub(text, limit)
 
 
 # ---------------------------------------------------------------- judging --
@@ -236,19 +232,14 @@ def _ro_connect(path: Path):
     raise sqlite3.OperationalError("The run history could not be opened read-only.")
 
 
-def read_run_history(home, job_name: str, now: datetime) -> dict:
-    """Timestamps for one job from a Hermes run-history database, if there is one. Read only.
+# Hermes 0.22.4 cron/executions.py: executions(id, job_id, source, process_id, pid, process_started_at, status IN
+# ('claimed','running','completed','failed','unknown'), handoff_pending, handoff_started_at, claimed_at, started_at,
+# finished_at, error). Only a finished run counts: completed is a run, failed is a failed run, the rest are not done yet.
+EXECUTIONS_COLUMNS = {"job_id", "status", "claimed_at", "started_at", "finished_at"}
 
-    The database's layout was not verified. This reads every table it finds,
-    keeps rows that mention the job (by name, or by the job's id from jobs.json),
-    and keeps only the times in those rows and whether the row looks failed.
-    """
-    home = Path(home)
-    candidates = [home / "cron" / "executions.db", home / "cron" / "runs.db", home / "executions.db"]
-    db = next((p for p in candidates if p.is_file()), None)
-    out = {"source": "history", "found": False, "times": [], "failed": [], "tables": []}
-    if db is None:
-        return out
+
+def _job_ids(home: Path, job_name: str) -> set:
+    """The job's name and any id jobs.json gives a job of that name, lower case."""
     needles = {job_name.lower()}
     for rel in ("jobs.json", "cron/jobs.json"):
         path = home / rel
@@ -261,30 +252,81 @@ def read_run_history(home, job_name: str, now: datetime) -> dict:
             for job in items if isinstance(items, list) else []:
                 if isinstance(job, dict) and str(job.get("name", "")).lower() == job_name.lower() and job.get("id"):
                     needles.add(str(job["id"]).lower())
+    return needles
+
+
+def _read_executions(conn, needles, out) -> bool:
+    """Read Hermes's own executions table when it has the columns 0.22.4 writes. False when it doesn't."""
+    tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+    if "executions" not in tables:
+        return False
+    columns = {r[0] for r in conn.execute("SELECT name FROM pragma_table_info('executions')")}
+    if not EXECUTIONS_COLUMNS <= columns:
+        return False
+    rows = conn.execute(
+        f"SELECT job_id, status, claimed_at, started_at, finished_at FROM executions ORDER BY claimed_at LIMIT {MAX_ROWS}"
+    ).fetchall()
+    for job_id, status, claimed_at, started_at, finished_at in rows:
+        if str(job_id or "").lower() not in needles:
+            continue
+        moment = parse_ts(finished_at) or parse_ts(started_at) or parse_ts(claimed_at)
+        if moment is None:
+            continue
+        if status == "completed":
+            out["times"].append(moment)
+        elif status == "failed":
+            out["failed"].append(moment)
+    out["tables"].append("executions")
+    out["schema"] = "executions"
+    return True
+
+
+def _scan_tables(conn, needles, out) -> None:
+    """Any other layout: every table, rows that mention the job, the first time in each row."""
+    tables = [r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")]
+    out["schema"] = "scan"
+    for table in tables[:30]:
+        try:
+            quoted = '"' + str(table).replace('"', '""') + '"'  # a table name is data from the file: quoted, never trusted
+            rows = conn.execute(f"SELECT * FROM {quoted} LIMIT {int(MAX_ROWS)}").fetchall()  # nosec B608
+        except sqlite3.Error:
+            continue
+        kept = 0
+        for row in rows:
+            text = " ".join(str(v).lower() for v in row if isinstance(v, str))
+            if not any(n in text or any(str(v).lower() == n for v in row) for n in needles):
+                continue
+            stamps = [m for m in (parse_ts(v) for v in row) if m]
+            if not stamps:
+                continue
+            kept += 1
+            bucket = out["failed"] if FAILED.search(text) else out["times"]
+            bucket.extend(stamps[:1])
+        if kept:
+            out["tables"].append(table)
+
+
+def read_run_history(home, job_name: str, now: datetime) -> dict:
+    """Timestamps for one job from a Hermes run-history database, if there is one. Read only.
+
+    Hermes 0.22.4's ``executions`` table is read by its columns: the job's rows by id (from jobs.json) or name, a
+    completed run dated by when it finished, a failed one kept apart. Any other layout falls back to a scan of every
+    table for rows that mention the job. ``schema`` says which was used.
+    """
+    home = Path(home)
+    candidates = [home / "cron" / "executions.db", home / "cron" / "runs.db", home / "executions.db"]
+    db = next((p for p in candidates if p.is_file()), None)
+    out = {"source": "history", "found": False, "times": [], "failed": [], "tables": [], "schema": ""}
+    if db is None:
+        return out
+    needles = _job_ids(home, job_name)
     try:
         conn = _ro_connect(db)
     except sqlite3.Error:
         return out
     try:
-        tables = [r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")]
-        for table in tables[:30]:
-            try:
-                rows = conn.execute(f'SELECT * FROM "{table}" LIMIT {MAX_ROWS}').fetchall()
-            except sqlite3.Error:
-                continue
-            kept = 0
-            for row in rows:
-                text = " ".join(str(v).lower() for v in row if isinstance(v, str))
-                if not any(n in text or any(str(v).lower() == n for v in row) for n in needles):
-                    continue
-                stamps = [m for m in (parse_ts(v) for v in row) if m]
-                if not stamps:
-                    continue
-                kept += 1
-                bucket = out["failed"] if FAILED.search(text) else out["times"]
-                bucket.extend(stamps[:1])
-            if kept:
-                out["tables"].append(table)
+        if not _read_executions(conn, needles, out):
+            _scan_tables(conn, needles, out)
     except sqlite3.Error:
         pass
     finally:
@@ -388,12 +430,241 @@ def _stamp_version(stamp_path) -> str:
     return value.strip() if isinstance(value, str) and re.match(r"^\d+\.\d+", value.strip()) else ""
 
 
-def detect_version() -> tuple:
-    """The installed Hermes version, never by running Hermes. Returns (version, source) or ("", "").
+_RELEASE_TAG = re.compile(r"^v?(\d+\.\d+\.\d+)$")
+_SHA = re.compile(r"^[0-9a-f]{40}$")
+MAX_TAGS = 5000
+MAX_PEELS = 60
 
-    Hermes reports its version from install-stamp.json at the top of its checkout. The
-    package metadata can lag behind it (0.21.5 in metadata on a 0.22.0 install, October
-    2026), so the stamp comes first. find_spec locates the checkout without importing it.
+
+def _small_text(path: Path, limit: int = 65536) -> str:
+    try:
+        if not path.is_file() or path.stat().st_size > limit:
+            return ""
+        return path.read_text(encoding="utf-8-sig", errors="replace")
+    except OSError:
+        return ""
+
+
+def _git_dirs(root: Path):
+    """(git dir, common dir) of a checkout, following a worktree's ``gitdir:`` file. (None, None) when there is none."""
+    dot = root / ".git"
+    if dot.is_dir():
+        git = dot
+    elif dot.is_file():
+        line = _small_text(dot, 4096).strip()
+        if not line.startswith("gitdir:"):
+            return None, None
+        git = Path(line[len("gitdir:"):].strip())
+        if not git.is_absolute():
+            git = (root / git)
+        if not git.is_dir():
+            return None, None
+    else:
+        return None, None
+    common = git
+    pointer = _small_text(git / "commondir", 4096).strip()
+    if pointer:
+        candidate = Path(pointer) if Path(pointer).is_absolute() else git / pointer
+        if candidate.is_dir():
+            common = candidate
+    return git, common
+
+
+def _packed_refs(common: Path) -> dict:
+    """name -> (sha, peeled sha or "") from packed-refs."""
+    out = {}
+    last = None
+    for line in _small_text(common / "packed-refs", 8 * 1024 * 1024).splitlines():
+        if line.startswith("^") and last:
+            out[last] = (out[last][0], line[1:].strip())
+            continue
+        parts = line.split(" ", 1)
+        if len(parts) == 2 and _SHA.match(parts[0]):
+            last = parts[1].strip()
+            out[last] = (parts[0], "")
+        else:
+            last = None
+    return out
+
+
+def _resolve_ref(git: Path, common: Path, name: str, packed: dict) -> str:
+    for base in (git, common):
+        text = _small_text(base / name, 4096).strip()
+        if _SHA.match(text):
+            return text
+    return packed.get(name, ("", ""))[0]
+
+
+def _head_commit(git: Path, common: Path, packed: dict) -> str:
+    head = _small_text(git / "HEAD", 4096).strip()
+    if _SHA.match(head):
+        return head
+    if head.startswith("ref:"):
+        return _resolve_ref(git, common, head[4:].strip(), packed)
+    return ""
+
+
+def _loose_object(common: Path, sha: str):
+    path = common / "objects" / sha[:2] / sha[2:]
+    if not path.is_file() or path.stat().st_size > 1024 * 1024:
+        return None
+    try:
+        with open(path, "rb") as handle:
+            raw = zlib.decompress(handle.read())
+    except (OSError, zlib.error):
+        return None
+    header, _, body = raw.partition(b"\0")
+    kind = header.split(b" ", 1)[0].decode("ascii", "replace")
+    return kind, body
+
+
+def _packed_object(common: Path, sha: str):
+    """A commit or tag object from a pack, found through its version-2 index. Deltas are not followed."""
+    folder = common / "objects" / "pack"
+    if not folder.is_dir():
+        return None
+    want = bytes.fromhex(sha)
+    for index in sorted(folder.glob("*.idx"))[:40]:
+        try:
+            with open(index, "rb") as idx:
+                if idx.read(8) != b"\xfftOc\x00\x00\x00\x02":
+                    continue
+                fanout = struct.unpack(">256I", idx.read(1024))
+                count = fanout[255]
+                low = fanout[want[0] - 1] if want[0] else 0
+                high = fanout[want[0]]
+                position = -1
+                while low < high:
+                    mid = (low + high) // 2
+                    idx.seek(8 + 1024 + 20 * mid)
+                    here = idx.read(20)
+                    if here == want:
+                        position = mid
+                        break
+                    if here < want:
+                        low = mid + 1
+                    else:
+                        high = mid
+                if position < 0:
+                    continue
+                idx.seek(8 + 1024 + 24 * count + 4 * position)
+                offset = struct.unpack(">I", idx.read(4))[0]
+                if offset & 0x80000000:
+                    idx.seek(8 + 1024 + 28 * count + 8 * (offset & 0x7FFFFFFF))
+                    offset = struct.unpack(">Q", idx.read(8))[0]
+            with open(index.with_suffix(".pack"), "rb") as pack:
+                pack.seek(offset)
+                byte = pack.read(1)[0]
+                kind = (byte >> 4) & 7
+                size = byte & 15
+                shift = 4
+                while byte & 0x80:
+                    byte = pack.read(1)[0]
+                    size |= (byte & 0x7F) << shift
+                    shift += 7
+                if kind not in (1, 4) or size > 1024 * 1024:
+                    return None
+                inflater = zlib.decompressobj()
+                body = b""
+                while len(body) < size:
+                    chunk = pack.read(65536)
+                    if not chunk:
+                        break
+                    body += inflater.decompress(chunk, size - len(body))
+                    if inflater.eof:
+                        break
+            return ("commit" if kind == 1 else "tag"), body
+        except (OSError, struct.error, zlib.error, IndexError, ValueError):
+            continue
+    return None
+
+
+def _peel(common: Path, sha: str) -> str:
+    """The commit a tag points to: the object's own sha for a commit, the ``object`` line for an annotated tag."""
+    found = _loose_object(common, sha) or _packed_object(common, sha)
+    if not found:
+        return ""
+    kind, body = found
+    if kind == "commit":
+        return sha
+    if kind == "tag":
+        first = body.split(b"\n", 1)[0].decode("ascii", "replace")
+        if first.startswith("object "):
+            return first[7:].strip()
+    return ""
+
+
+def _release_tags(common: Path, packed: dict) -> dict:
+    """Release tags (vX.Y.Z only) -> (sha, peeled or ""). Canary and other tags never count."""
+    tags = {}
+    folder = common / "refs" / "tags"
+    if folder.is_dir():
+        for n, path in enumerate(folder.iterdir()):
+            if n >= MAX_TAGS:
+                break
+            match = _RELEASE_TAG.match(path.name)
+            text = _small_text(path, 4096).strip() if match else ""
+            if match and _SHA.match(text):
+                tags[match.group(1)] = (text, "")
+    for name, (sha, peeled) in packed.items():
+        if not name.startswith("refs/tags/"):
+            continue
+        match = _RELEASE_TAG.match(name[len("refs/tags/"):])
+        if match and match.group(1) not in tags:
+            tags[match.group(1)] = (sha, peeled)
+    return tags
+
+
+def _read_stamp(root: Path) -> dict:
+    try:
+        stamp = json.loads(_small_text(root / "install-stamp.json") or "{}")
+    except ValueError:
+        return {}
+    return stamp if isinstance(stamp, dict) else {}
+
+
+def version_from_checkout(root) -> dict:
+    """The Hermes version of a source checkout, by reading files only: ``{"value", "source", "exact"}``.
+
+    1. A release tag (vX.Y.Z) on the installed commit, read from the checkout's git refs and objects.
+    2. The install stamp's own ``tag``.
+    3. The install stamp's ``baseVersion``, marked inexact when the stamp says the checkout is commits past it. In
+       October 2026 a source install of v0.22.4 carried baseVersion 0.21.5, so this is a floor, not the version.
+    """
+    root = Path(root)
+    stamp = _read_stamp(root)
+    git, common = _git_dirs(root)
+    if git is not None:
+        packed = _packed_refs(common)
+        commit = str(stamp.get("commit") or "")
+        if not _SHA.match(commit):
+            commit = _head_commit(git, common, packed)
+        if commit:
+            tags = _release_tags(common, packed)
+            ordered = sorted(tags.items(), key=lambda item: parse_version(item[0]) or (0, 0, 0), reverse=True)
+            for version, (sha, peeled) in ordered:
+                if sha == commit or peeled == commit:
+                    return {"value": version, "source": "git tag", "exact": True}
+            for version, (sha, peeled) in ordered[:MAX_PEELS]:
+                if not peeled and _peel(common, sha) == commit:
+                    return {"value": version, "source": "git tag", "exact": True}
+    tag = _RELEASE_TAG.match(str(stamp.get("tag") or ""))
+    if tag:
+        return {"value": tag.group(1), "source": "install stamp tag", "exact": True}
+    base = _stamp_version(root / "install-stamp.json")
+    if base:
+        distance = stamp.get("distance")
+        if isinstance(distance, int) and distance > 0:
+            return {"value": base, "source": f"install stamp base version; the checkout is {distance} commits newer, so Hermes may be a later version", "exact": False}
+        return {"value": base, "source": "install stamp", "exact": True}
+    return {"value": "", "source": "", "exact": False}
+
+
+def detect_version_detail() -> dict:
+    """The installed Hermes version, never by running Hermes: ``{"value", "source", "exact"}``.
+
+    find_spec locates the checkout without importing it. Package metadata comes last: it said 0.0.0 on a 0.22.4
+    source install.
     """
     try:
         import importlib.util
@@ -402,16 +673,24 @@ def detect_version() -> tuple:
     except (ImportError, ValueError):
         spec = None
     if spec is not None and spec.origin:
-        found = _stamp_version(Path(spec.origin).resolve().parents[1] / "install-stamp.json")
-        if found:
-            return found, "install stamp"
+        found = version_from_checkout(Path(spec.origin).resolve().parents[1])
+        if found["value"]:
+            return found
     try:
         from importlib import metadata
     except ImportError:  # pragma: no cover
-        return "", ""
+        return {"value": "", "source": "", "exact": False}
     for name in ("hermes-agent", "hermes_agent", "hermes"):
         try:
-            return metadata.version(name), f"package {name}"
+            value = metadata.version(name)
         except metadata.PackageNotFoundError:
             continue
-    return "", ""
+        if parse_version(value) and parse_version(value) != (0, 0, 0):
+            return {"value": value, "source": f"package {name}", "exact": False}
+    return {"value": "", "source": "", "exact": False}
+
+
+def detect_version() -> tuple:
+    """(version, source) or ("", ""). See detect_version_detail for the order the sources are tried in."""
+    found = detect_version_detail()
+    return found["value"], found["source"]

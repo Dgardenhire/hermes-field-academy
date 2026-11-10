@@ -1,0 +1,44 @@
+{
+ "response": {
+  "entry": {
+   "body": {
+    "at": "2026-10-03T09:00:00+00:00",
+    "kind": "nudge",
+    "mission": "f.memory",
+    "rung": 1,
+    "source": "model",
+    "step": "check"
+   },
+   "hash": "392db9a28353565261a2a6188fe29cd8a374478a7a704edfa59c27ab4947e907",
+   "kind": "help"
+  },
+  "help": {
+   "all_helps": 1,
+   "hunt_helps": 1,
+   "key": "one_nudge",
+   "used": [
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check"
+    }
+   ],
+   "words": "One hint used"
+  },
+  "shown": {
+   "event_id": "m3",
+   "model": "fake-model-1",
+   "ms": 212,
+   "source": "model",
+   "state": "ready",
+   "text": "At 03:53 Hermes answered with a memory row. Open it and read every line.",
+   "tokens": {
+    "input": 120,
+    "output": 40,
+    "total": 160
+   }
+  }
+ },
+ "route": "POST /guide/{attempt_id}/help"
+}

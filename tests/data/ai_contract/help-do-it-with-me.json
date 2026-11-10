@@ -1,0 +1,79 @@
+{
+ "response": {
+  "entry": {
+   "body": {
+    "at": "2026-10-03T09:00:00+00:00",
+    "kind": "do_it_with_me",
+    "mission": "f.memory",
+    "step": "fix"
+   },
+   "hash": "5dcce58f5bb0b3a132e4f105de4fc95046a37cbefa0b839fe0b0b4763ca9cef1",
+   "kind": "help"
+  },
+  "help": {
+   "all_helps": 7,
+   "hunt_helps": 4,
+   "key": "shown",
+   "used": [
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "ask",
+     "rung": null,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "where",
+     "rung": 2,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "reveal",
+     "rung": 3,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "pins",
+     "rung": null,
+     "step": "compare"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "explain",
+     "rung": null,
+     "step": "compare"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "do_it_with_me",
+     "rung": null,
+     "step": "fix"
+    }
+   ],
+   "words": "The guide showed the answer"
+  },
+  "shown": {
+   "commands": [
+    "/memory pending",
+    "/memory approve 3a664c9f"
+   ],
+   "sends": false,
+   "why": {
+    "model": "fake-model-1",
+    "ms": 0,
+    "source": "model",
+    "state": "ready",
+    "text": "The save is held, so approving it by its id writes it into MEMORY.md."
+   }
+  }
+ },
+ "route": "POST /guide/{attempt_id}/help"
+}

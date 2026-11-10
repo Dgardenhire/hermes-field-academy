@@ -1,0 +1,10 @@
+{
+ "response": {
+  "fallback": "chat",
+  "message": "Your model didn't answer within a minute.",
+  "next_step": "Press Try again, or pick a faster model for Field Academy in Settings, Models.",
+  "state": "timeout",
+  "test_out": false
+ },
+ "route": "POST /ai/grade/{mission_id}/{step_id}"
+}

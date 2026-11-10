@@ -1,0 +1,23 @@
+{
+ "response": {
+  "add_next": "Add the memory meter as a fourth check.",
+  "answer": "First I would open the memory row in the chat and read every line, because a save can be staged for approval and not written yet. Then I would open MEMORY.md in the practice profile and look for the line. Last, I would start a fresh chat and ask about it without saying it again.",
+  "ladder": null,
+  "level": 3,
+  "level_words": "Level 3 of 4",
+  "missing": "Say how a full memory could cut it.",
+  "model": "fake-model-1",
+  "ms": 0,
+  "pass_level": 3,
+  "passed": true,
+  "quote": "a save can be staged for approval and not written yet",
+  "right": "You check the chat row before the file.",
+  "state": "ok",
+  "tokens": {
+   "input": 120,
+   "output": 40,
+   "total": 160
+  }
+ },
+ "route": "POST /ai/grade/{mission_id}/{step_id}"
+}

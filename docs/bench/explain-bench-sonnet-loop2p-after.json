@@ -1,0 +1,335 @@
+{
+ "summary": {
+  "when": "2026-11-09 11:35 CST",
+  "model": "sonnet",
+  "after_compare": true,
+  "outputs": 20,
+  "from_model": 20,
+  "course_words": 0,
+  "max_words_per_sentence": 16,
+  "over_20_words": 0,
+  "user_md_mentions": 0,
+  "second_sentence_places": [
+   "pending"
+  ],
+  "median_seconds_all_checks": 5.52,
+  "places": [
+   {
+    "name": "what the memory row in your chat at 03:53 says came back",
+    "match": [
+     "03:53",
+     "memory row"
+    ]
+   },
+   {
+    "name": "the pending folder in the practice profile",
+    "match": [
+     "pending"
+    ]
+   }
+  ],
+  "facts": "The check facts (all true): the memory row in the chat is titled Saved to memory but its result says the save was staged for approval and not yet saved; a held save sits in the profile's pending/memory folder; MEMORY.md is unchanged (479 of 2,200 characters, no line holds the fact); the new chat did NOT use the fact (it asked which software Harbor Bakery uses); the fact the learner wanted saved is 'Harbor Bakery uses QuickBooks Online; the other five use Xero'."
+ },
+ "rows": [
+  {
+   "run": 1,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact was held back from memory.",
+    "Look at the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    15,
+    15
+   ],
+   "seconds_all_checks": 4.65
+  },
+  {
+   "run": 1,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made memory saves wait for approval, so your fact never reached memory.",
+    "Open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    14,
+    14
+   ],
+   "seconds_all_checks": 4.65
+  },
+  {
+   "run": 2,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made memory saves wait for approval, so your fact is held back.",
+    "Look in the pending folder in the practice profile for a waiting save."
+   ],
+   "words": [
+    14,
+    13
+   ],
+   "seconds_all_checks": 5.46
+  },
+  {
+   "run": 2,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made memory saves wait for approval, so your fact stayed waiting.",
+    "Open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    13,
+    14
+   ],
+   "seconds_all_checks": 5.46
+  },
+  {
+   "run": 3,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact is held back instead of saved.",
+    "Look in the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    16,
+    15
+   ],
+   "seconds_all_checks": 5.08
+  },
+  {
+   "run": 3,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact stayed waiting and never reached memory.",
+    "Next, open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    16,
+    15
+   ],
+   "seconds_all_checks": 5.08
+  },
+  {
+   "run": 4,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact was held back before memory.",
+    "Open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    15,
+    14
+   ],
+   "seconds_all_checks": 5.13
+  },
+  {
+   "run": 4,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact sat waiting instead of being saved.",
+    "Open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    16,
+    14
+   ],
+   "seconds_all_checks": 5.13
+  },
+  {
+   "run": 5,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact is held back for now.",
+    "Open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    15,
+    14
+   ],
+   "seconds_all_checks": 5.88
+  },
+  {
+   "run": 5,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact was held back.",
+    "Open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    13,
+    14
+   ],
+   "seconds_all_checks": 5.88
+  },
+  {
+   "run": 6,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact is held back, not saved.",
+    "Open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    15,
+    14
+   ],
+   "seconds_all_checks": 4.88
+  },
+  {
+   "run": 6,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact stayed pending in memory.",
+    "Open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    14,
+    14
+   ],
+   "seconds_all_checks": 4.88
+  },
+  {
+   "run": 7,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact is still waiting.",
+    "Open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    13,
+    14
+   ],
+   "seconds_all_checks": 5.52
+  },
+  {
+   "run": 7,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact stayed waiting in line.",
+    "Open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    14,
+    14
+   ],
+   "seconds_all_checks": 5.52
+  },
+  {
+   "run": 8,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact is held back for now.",
+    "Open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    15,
+    14
+   ],
+   "seconds_all_checks": 6.26
+  },
+  {
+   "run": 8,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made memory saves wait for approval, so your fact stayed waiting.",
+    "Open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    13,
+    14
+   ],
+   "seconds_all_checks": 6.26
+  },
+  {
+   "run": 9,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact was held back from memory.",
+    "Look in the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    15,
+    15
+   ],
+   "seconds_all_checks": 6.05
+  },
+  {
+   "run": 9,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact stayed waiting and never reached memory.",
+    "Next, open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    16,
+    15
+   ],
+   "seconds_all_checks": 6.05
+  },
+  {
+   "run": 10,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact was held back from memory.",
+    "Open the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    15,
+    14
+   ],
+   "seconds_all_checks": 6.71
+  },
+  {
+   "run": 10,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Field Academy made saves wait for approval, so your fact was held back instead of saved.",
+    "Look at the pending folder in the practice profile and read what is waiting there."
+   ],
+   "words": [
+    16,
+    15
+   ],
+   "seconds_all_checks": 6.71
+  }
+ ]
+}

@@ -1,0 +1,11 @@
+{
+ "response": {
+  "draft_for_practice_chat": "",
+  "message": "Your model didn't answer within a minute.",
+  "next_step": "Press Try again, or pick a faster model for Field Academy in Settings, Models.",
+  "not_in_sources": false,
+  "sentences": [],
+  "state": "timeout"
+ },
+ "route": "POST /guide/{attempt_id}/ask"
+}

@@ -3,15 +3,15 @@
 
 
 // desktop/src/plugin.js
-import { useEffect as useEffect3, useRef as useRef3, useState as useState5 } from "react";
-import { jsx as jsx7, jsxs as jsxs6 } from "react/jsx-runtime";
+import { useEffect as useEffect7, useRef as useRef6, useState as useState9 } from "react";
+import { jsx as jsx11, jsxs as jsxs10 } from "react/jsx-runtime";
 import {
-  Button as Button3,
-  Codicon as Codicon4,
-  Input as Input2,
+  Button as Button7,
+  Codicon as Codicon6,
+  Input as Input6,
   TRANSCRIPT_DIRECTIVE_AREA,
-  Textarea as Textarea2,
-  host as host2,
+  Textarea as Textarea5,
+  host as host5,
   queryClient
 } from "@hermes/plugin-sdk";
 
@@ -423,6 +423,9 @@ function Notice({ tone = "info", icon, title, children, action, live }) {
 function BadgeIcon({ name, tone = "info", size = 16, pulse }) {
   return jsx("span", { className: cx("hk-badge-icon", pulse && "hk-pulse"), "data-tone": tone, children: jsx(Codicon, { name, size }) });
 }
+function Spinner() {
+  return jsx("span", { className: "hk-spinner", "aria-hidden": "true" });
+}
 
 // ../hermes-ui-kit/src/states.js
 import { jsx as jsx2, jsxs as jsxs2 } from "react/jsx-runtime";
@@ -663,8 +666,29 @@ function waypointStatus(status) {
   if (status === "not_started" || !status) return "waiting";
   return "started";
 }
-function trailModel(track) {
+function withPlaced(track) {
   const t = obj(track);
+  const placed = arr(t.placed).filter((m) => m && typeof m === "object" && str(m.id));
+  if (!placed.length) return track;
+  const own = arr(t.missions);
+  const missions = [...own, ...placed.filter((m) => !own.some((o) => o && o.id === m.id))];
+  const byId = new Map(missions.filter((m) => m && typeof m === "object").map((m) => [m.id, m]));
+  let found = false;
+  const levels = arr(t.levels).map((level) => {
+    const l = obj(level);
+    const ids = [...arr(l.missions), ...placed.filter((m) => m.level === l.id && !arr(l.missions).includes(m.id)).map((m) => m.id)];
+    const statuses = ids.map((id) => obj(byId.get(id)).status);
+    const passed = statuses.filter((s) => s === "verified").length;
+    const status = statuses.length && passed === statuses.length ? "passed" : statuses.some((s) => s && s !== "not_started") ? "started" : "not_started";
+    const current = !found && status !== "passed";
+    found = found || current;
+    return { ...l, missions: ids, passed, total: ids.length, status, current };
+  });
+  const here = str(t.here) && obj(byId.get(t.here)).status !== "verified" ? t.here : levels.flatMap((l) => l.missions).find((id) => obj(byId.get(id)).status !== "verified") || "";
+  return { ...t, missions, levels, here, verified_missions: missions.filter((m) => obj(m).status === "verified").length };
+}
+function trailModel(track) {
+  const t = obj(withPlaced(track));
   const missions = arr(t.missions).filter((m) => m && typeof m === "object" && str(m.id));
   const byId = new Map(missions.map((m) => [m.id, m]));
   const placed = /* @__PURE__ */ new Set();
@@ -902,7 +926,8 @@ var FIELD_CSS = `
   --fa-ground-far:color-mix(in srgb,var(--hk-ink) 4%,transparent);
   font-family:var(--dt-font-sans,inherit);
 }
-.fa-sc{font-variant-caps:all-small-caps;letter-spacing:.07em;font-weight:600;font-size:var(--hk-fs);line-height:1.2}
+/* Real capitals at 12px, not small caps: small caps at 13px draw letters the height of 9px type. */
+.fa-sc{text-transform:uppercase;letter-spacing:.06em;font-weight:600;font-size:12px;line-height:1.25}
 .fa-sc-blaze{color:var(--fa-blaze-ink)}
 .fa-num{font-weight:200;font-variant-numeric:lining-nums tabular-nums;letter-spacing:-.03em;line-height:1}
 .fa-num-xl{font-size:34px}
@@ -917,6 +942,7 @@ var FIELD_CSS = `
 .fa-where{grid-template-columns:auto minmax(0,1fr);column-gap:18px;align-items:center}
 .fa-where-lines{display:grid;gap:5px;min-width:0}
 .fa-next{border-left:3px solid var(--fa-blaze)}
+.fa-next-quiet{border-left-color:var(--hk-stroke)}
 .fa-next-meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--hk-fs-sm)}
 .fa-next-meta span{display:inline-flex;gap:5px;align-items:center}
 .fa-next-meta .codicon{color:var(--fa-blaze-ink)}
@@ -937,6 +963,10 @@ var FIELD_CSS = `
 .fa-map-grid{position:relative;display:grid;grid-template-columns:var(--fa-label) minmax(0,1fr)}
 .fa-map-head{grid-column:2;position:relative;height:34px;border-bottom:1px dashed var(--hk-stroke)}
 .fa-map-head span{position:absolute;top:12px;transform:translateX(-50%);white-space:nowrap;font-size:var(--hk-fs-sm)}
+.fa-map-head[data-lines]{height:66px}
+.fa-map-head .fa-map-col{display:grid;gap:3px;justify-items:center;text-align:center;white-space:normal}
+.fa-map-head .fa-map-col>span{position:static;transform:none}
+.fa-map-line{display:block;font-size:12px;line-height:1.3;font-weight:400;letter-spacing:0;text-transform:none;opacity:.85}
 .fa-map-corner{grid-column:1;height:34px;border-bottom:1px dashed var(--hk-stroke);padding:12px 0 0 16px;font-size:var(--hk-fs-sm)}
 .fa-trail-label{grid-column:1;display:grid;align-content:center;gap:3px;padding:8px 14px 8px 16px;border:0;border-right:1px dashed var(--hk-stroke);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-width:0;
   transition:background-color var(--hk-dur) var(--hk-ease)}
@@ -949,7 +979,7 @@ var FIELD_CSS = `
 .fa-trail-cert{font-size:var(--hk-fs-sm);display:inline-flex;gap:5px;align-items:center}
 .fa-trail-cert .codicon{color:var(--fa-blaze-ink)}
 .fa-map-svg{grid-column:2;display:block;overflow:visible}
-@container (max-width:760px){.fa-map{--fa-label:170px}.fa-map .fa-trail-promise,.fa-map .fa-trail-cert{display:none}.fa-map-head span{font-size:11px;letter-spacing:.04em}}
+@container (max-width:760px){.fa-map{--fa-label:170px}.fa-map .fa-trail-promise,.fa-map .fa-trail-cert{display:none}.fa-map-head span{font-size:12px;letter-spacing:.04em}}
 .fa-map-foot{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px dashed var(--hk-stroke);position:relative}
 
 /* trail marks (SVG) */
@@ -1238,7 +1268,7 @@ function trailCertWords(model) {
   const unit = model.unit === "parts" ? model.summit.remaining === 1 ? "part" : "parts" : model.summit.remaining === 1 ? "mission" : "missions";
   return `${model.summit.remaining} ${unit} to the Field Record`;
 }
-function TrailMap({ models, list, onOpenTrack, onOpenMission, foot }) {
+function TrailMap({ models, list, onOpenTrack, onOpenMission, foot, lines = null, summitLine = "" }) {
   const [ref, width] = useWidth();
   const camps = models[0] ? models[0].camps : [];
   const height = models.length * ROW;
@@ -1249,12 +1279,20 @@ function TrailMap({ models, list, onOpenTrack, onOpenMission, foot }) {
     jsx3(Contours, { width: box, height: height + 34 + 52, seed: models.length }),
     jsxs3("div", { className: "fa-map-grid", children: [
       jsx3("div", { className: "fa-map-corner fa-sc", children: "Trail" }),
-      jsx3("div", { className: "fa-map-head", ref, children: columns ? [
+      jsx3("div", { className: "fa-map-head", ref, "data-lines": lines ? "" : void 0, children: columns ? [
         ...camps.map((camp, i) => {
           const col = columns.camps[Math.min(i, columns.camps.length - 1)];
-          return jsx3("span", { className: "fa-sc", style: { left: (col.x0 + col.x1) / 2 }, children: col.x1 - col.x0 < 150 ? camp.short || camp.name : `${camp.short || camp.name} camp` }, camp.id);
+          const name = col.x1 - col.x0 < 150 ? camp.short || camp.name : `${camp.short || camp.name} camp`;
+          const line = lines && lines[camp.id];
+          return line ? jsxs3("span", { className: "fa-map-col", style: { left: (col.x0 + col.x1) / 2, width: Math.max(80, col.x1 - col.x0 - 10) }, children: [
+            jsx3("span", { className: "fa-sc", children: name }),
+            jsx3("small", { className: "fa-map-line", children: line })
+          ] }, camp.id) : jsx3("span", { className: "fa-sc", style: { left: (col.x0 + col.x1) / 2 }, children: name }, camp.id);
         }),
-        jsx3("span", { className: "fa-sc", style: { left: "auto", right: 8, transform: "none" }, children: "Summit" }, "summit")
+        summitLine ? jsxs3("span", { className: "fa-map-col", style: { left: "auto", right: 4, transform: "none", width: 64, justifyItems: "end", textAlign: "right" }, children: [
+          jsx3("span", { className: "fa-sc", children: "Summit" }),
+          jsx3("small", { className: "fa-map-line", children: summitLine })
+        ] }, "summit") : jsx3("span", { className: "fa-sc", style: { left: "auto", right: 8, transform: "none" }, children: "Summit" }, "summit")
       ] : null }),
       ...models.map((model, i) => jsxs3("button", {
         type: "button",
@@ -1538,8 +1576,8 @@ function folderUrl(path) {
   if (!clean) return "";
   const slashed = clean.replace(/\\/g, "/");
   if (/^\/\/[^/]/.test(slashed)) {
-    const [host3, ...rest] = slashed.slice(2).split("/");
-    return `file://${encodeURIComponent(host3)}/${rest.map(encodeURIComponent).join("/")}`;
+    const [host6, ...rest] = slashed.slice(2).split("/");
+    return `file://${encodeURIComponent(host6)}/${rest.map(encodeURIComponent).join("/")}`;
   }
   const encode = (part, index) => index === 0 && /^[A-Za-z]:$/.test(part) ? part : encodeURIComponent(part);
   const parts = (slashed.startsWith("/") ? slashed.slice(1) : slashed).split("/");
@@ -1714,9 +1752,16 @@ function createDeployerViews(ui) {
     ] }) });
   }
   function DeployerPath({ data, go }) {
-    const track = data.track;
+    const track = withPlaced(data.track);
     const model = trailModel(track);
-    const itemById = Object.fromEntries(data.items.map((item) => [item.id, item]));
+    const placed = (data.track.placed || []).map((m) => ({
+      id: m.id,
+      title: m.title,
+      minutes: m.minutes,
+      detail: "Practice mission",
+      state: m.status === "verified" ? "verified" : m.status === "not_started" ? "not_started" : "in_progress"
+    }));
+    const itemById = Object.fromEntries([...data.items, ...placed].map((item) => [item.id, item]));
     const rows = track.levels.flatMap((level) => level.missions);
     const list = useListKeys({ count: rows.length, onOpen: (i) => rows[i] && go(partFor(rows[i])) });
     return jsx4(Frame2, { width: "narrow", up: () => go({ name: "map" }), onKey: list.keyProps.onKeyDown, children: [
@@ -1733,7 +1778,7 @@ function createDeployerViews(ui) {
         onOpenMission: (id) => go(partFor(id)),
         onOpenSummit: () => scrollToId2("fa-dp-route"),
         children: [
-          jsx4("p", { children: `${track.verified_missions} of ${track.missions.length} parts passed. ${data.certificate.label}.` }, "where"),
+          jsx4("p", { children: `${data.track.verified_missions} of ${data.track.missions.length} parts passed. ${data.certificate.label}.` }, "where"),
           jsx4(Legend, {}, "legend")
         ]
       }, "profile"),
@@ -2333,6 +2378,8 @@ import { jsx as jsx5, jsxs as jsxs5 } from "react/jsx-runtime";
 var W = 1200;
 var H = 320;
 var SKY = 40;
+var EXTEND = 3e3;
+var extend = (d) => d.replace(/^M0 (\d+)/, `M${-EXTEND} $1 L0 $1`).replace(/L0 320 Z$/, `L${-EXTEND} 320 Z`);
 var BANNER_RIDGES = {
   far: "M0 214 L80 186 L150 198 L240 156 L320 174 L420 128 L500 154 L580 116 L660 144 L760 96 L840 124 L930 86 L1010 110 L1100 74 L1200 98 L1200 320 L0 320 Z",
   main: "M0 262 L120 238 L220 252 L330 208 L430 228 L540 172 L640 196 L740 142 L820 162 L880 118 L918 102 L944 84 L962 90 L982 66 L1000 58 L1012 70 L1026 64 L1038 74 L1058 88 L1090 112 L1150 132 L1200 126 L1200 320 L0 320 Z",
@@ -2405,7 +2452,7 @@ function Flag({ x, y, done, label, summit = false }) {
   ] });
 }
 function BannerArt({ camps = [], summitDone = false }) {
-  return jsxs5("svg", { className: "fa-bn-art", viewBox: `0 ${-SKY} ${W} ${H + SKY}`, preserveAspectRatio: "xMaxYMax slice", "aria-hidden": "true", focusable: "false", children: [
+  return jsxs5("svg", { className: "fa-bn-art", viewBox: `0 ${-SKY} ${W} ${H + SKY}`, preserveAspectRatio: "xMaxYMid meet", "aria-hidden": "true", focusable: "false", children: [
     jsxs5("defs", { children: [
       jsxs5("linearGradient", { id: "fa-bn-sky", x1: 0, y1: 0, x2: 0, y2: 1, children: [
         jsx5("stop", { offset: "0", className: "fa-bn-sky-top" }),
@@ -2414,11 +2461,12 @@ function BannerArt({ camps = [], summitDone = false }) {
       ] }),
       jsx5("clipPath", { id: "fa-bn-main-clip", children: jsx5("path", { d: BANNER_RIDGES.main }) })
     ] }),
-    jsx5("rect", { y: -SKY, width: W, height: H + SKY, fill: "url(#fa-bn-sky)" }),
+    // The art is fitted whole (meet), never cropped; the sky and the ridges run on to the left so a wide banner has no bare edge.
+    jsx5("rect", { x: -EXTEND, y: -SKY, width: W + EXTEND, height: H + SKY, fill: "url(#fa-bn-sky)" }),
     jsx5("circle", { className: "fa-bn-sun-halo", cx: 1112, cy: 70, r: 62 }),
     jsx5("circle", { className: "fa-bn-sun", cx: 1112, cy: 70, r: 32 }),
-    jsx5("path", { className: "fa-bn-ridge", "data-layer": "far", d: BANNER_RIDGES.far }),
-    jsx5("path", { className: "fa-bn-ridge", "data-layer": "main", d: BANNER_RIDGES.main }),
+    jsx5("path", { className: "fa-bn-ridge", "data-layer": "far", d: extend(BANNER_RIDGES.far) }),
+    jsx5("path", { className: "fa-bn-ridge", "data-layer": "main", d: extend(BANNER_RIDGES.main) }),
     jsx5("g", { className: "fa-bn-contours", clipPath: "url(#fa-bn-main-clip)", children: RINGS.map((ring, i) => jsx5("path", { d: ring.d, "data-index": ring.index ? "" : void 0 }, i)) }),
     jsx5("path", { className: "fa-bn-crest", d: crest(BANNER_RIDGES.main) }),
     jsx5("g", { className: "fa-bn-clouds", children: BANNER_CLOUDS.map((d, i) => jsx5("path", { d }, i)) }),
@@ -2426,12 +2474,12 @@ function BannerArt({ camps = [], summitDone = false }) {
     ...BANNER_CAMPS.map((at, i) => jsx5(Flag, { x: at.x, y: at.y, done: camps[i]?.done, label: camps[i]?.label }, `camp-${i}`)),
     jsx5(Caduceus, { x: BANNER_SUMMIT.x, y: BANNER_SUMMIT.y, done: summitDone }, "summit"),
     jsx5("text", { className: "fa-bn-label fa-bn-summit-label", x: BANNER_SUMMIT.x + 30, y: BANNER_SUMMIT.y - 18, children: "Olympus" }),
-    jsx5("path", { className: "fa-bn-ridge", "data-layer": "near", d: BANNER_RIDGES.near }),
+    jsx5("path", { className: "fa-bn-ridge", "data-layer": "near", d: extend(BANNER_RIDGES.near) }),
     jsx5("path", { className: "fa-bn-crest", "data-layer": "near", d: crest(BANNER_RIDGES.near) })
   ] });
 }
-function Banner({ eyebrow, promise, facts = [], camps = [], summitDone = false }) {
-  return jsxs5("header", { className: "fa-bn hk-enter", children: [
+function Banner({ eyebrow, promise, facts = [], camps = [], summitDone = false, compact = false }) {
+  return jsxs5("header", { className: "fa-bn hk-enter", "data-compact": compact ? "" : void 0, children: [
     jsx5(BannerArt, { camps, summitDone }, "art"),
     jsx5("span", { className: "fa-bn-scrim", "aria-hidden": "true" }, "scrim"),
     jsxs5("div", { className: "fa-bn-copy", children: [
@@ -2477,6 +2525,9 @@ var BANNER_CSS = `
 .fa-bn-label{fill:var(--hk-ink);font-size:13px;font-weight:600;letter-spacing:.08em;font-variant-caps:all-small-caps;paint-order:stroke;stroke:var(--hk-bg);stroke-width:4px;stroke-linejoin:round}
 .fa-bn-scrim{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,var(--hk-bg) 0%,color-mix(in srgb,var(--hk-bg) 92%,transparent) 30%,color-mix(in srgb,var(--hk-bg) 35%,transparent) 44%,transparent 54%)}
 .fa-bn-copy{display:grid;gap:9px;padding:28px 30px;max-width:480px;color:var(--hk-ink)}
+.fa-bn[data-compact]{min-height:200px}
+.fa-bn[data-compact] .fa-bn-copy{padding:16px 24px;gap:6px}
+.fa-bn[data-compact] .fa-bn-mark{font-size:24px}
 .fa-bn-mark{display:flex;align-items:center;gap:12px;margin:0;font-size:30px;line-height:1.05;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
 .fa-bn-rule{display:block;width:22px;height:2px;background:var(--fa-blaze);flex:none}
 .fa-bn-promise{font-size:14px;line-height:1.5;max-width:44ch}
@@ -2485,6 +2536,7 @@ var BANNER_CSS = `
 @container (max-width:640px){
   .fa-bn{flex-direction:column;align-items:stretch;min-height:0}
   .fa-bn-art{position:relative;inset:auto;height:150px;order:-1;border-bottom:1px solid var(--hk-stroke)}
+  .fa-bn[data-compact] .fa-bn-art{height:120px}
   .fa-bn-scrim{display:none}
   .fa-bn-copy{padding:16px 18px 18px;max-width:none}
   .fa-bn-mark{font-size:24px;letter-spacing:.12em}
@@ -2555,9 +2607,3746 @@ function Prose({ text, className = "" }) {
   return jsx6("div", { className: `fa-prose ${className}`.trim(), children: blocks.map((block, index) => block.kind === "p" ? jsx6("p", { className: "fa-prose-line", children: block.items[0] }, index) : jsx6(block.kind, { children: block.items.map((item, i) => jsx6("li", { children: item }, i)) }, index)) });
 }
 
-// desktop/src/learn.js
-var str3 = (value) => typeof value === "string" ? value : "";
+// desktop/src/foundations.js
+import { useEffect as useEffect6, useRef as useRef5, useState as useState8 } from "react";
+import { jsx as jsx10, jsxs as jsxs9 } from "react/jsx-runtime";
+import { Button as Button6, Codicon as Codicon5, Input as Input5, Textarea as Textarea4, host as host4 } from "@hermes/plugin-sdk";
+
+// desktop/src/foundations_a.js
+import { useEffect as useEffect3, useState as useState5 } from "react";
+import { jsx as jsx7, jsxs as jsxs6 } from "react/jsx-runtime";
+import { Button as Button3, Input as Input2, Textarea as Textarea2 } from "@hermes/plugin-sdk";
+
+// desktop/src/loop.js
+var arr3 = (value) => Array.isArray(value) ? value : [];
 var obj2 = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : {};
+var str3 = (value) => typeof value === "string" ? value : "";
+var STEPS = [
+  { id: "recall", title: "Recall", line: "Three minutes, from memory" },
+  { id: "claim", title: "Your claim", line: "What you will prove" },
+  { id: "predict", title: "Your guess", line: "Before you start" },
+  { id: "setup", title: "Practice", line: "Set up and try it" },
+  { id: "idea", title: "The idea", line: "How it works" },
+  { id: "expert", title: "Watch it done", line: "An expert run" },
+  { id: "lab", title: "Your turn", line: "Do the work" },
+  { id: "evidence", title: "Did it work?", line: "Before any result" },
+  { id: "check", title: "Check", line: "Field Academy reads it" },
+  { id: "compare", title: "Compare", line: "Your guess beside the result" },
+  { id: "fix", title: "Fix it", line: "Then once more" },
+  { id: "record", title: "Record", line: "Add it to your record" }
+];
+function latest(view, kind, test) {
+  const found = arr3(obj2(view).entries).filter((e) => e && e.kind === kind && (!test || test(obj2(e.body))));
+  return found.length ? obj2(found[found.length - 1].body) : null;
+}
+function practiceReady(view, listing) {
+  const attempt = obj2(obj2(view).attempt);
+  const needed = arr3(obj2(obj2(view).lab).profiles);
+  const live = arr3(listing).filter((p) => ["ready", "in_use"].includes(p.status));
+  const main = live.find((p) => p.which === "a" && p.name === attempt.profile);
+  return Boolean(attempt.frozen_at && main && main.set_up && needed.every((w) => live.some((p) => p.which === w)));
+}
+function stepStates(view, listing) {
+  const v = obj2(view);
+  const runs = obj2(v.runs);
+  const has = (kind) => latest(v, kind) !== null;
+  const read = (step) => arr3(v.entries).some((e) => e && e.kind === "read" && obj2(e.body).step === step);
+  const ready = practiceReady(v, listing);
+  const firstNote = latest(v, "lab_note", (b) => b.for !== "transfer") !== null;
+  const testOut = obj2(v.test_out).on === true;
+  const testedOut = testOut && obj2(v.test_out).passed === true;
+  const firstFlight = obj2(v.first_flight).on === true;
+  const done = {
+    recall: has("recall") || testOut || firstFlight,
+    claim: has("claim") && has("standard") || firstFlight,
+    predict: has("prediction"),
+    setup: ready,
+    idea: read("idea"),
+    expert: read("expert"),
+    lab: firstNote,
+    evidence: has("self_score"),
+    check: Boolean(runs.first),
+    compare: has("gap_note"),
+    fix: Boolean(runs.after_fix) && Boolean(runs.transfer),
+    record: obj2(v.attempt).status === "done"
+  };
+  const gate = {
+    recall: true,
+    claim: done.recall,
+    predict: done.claim,
+    setup: done.predict,
+    idea: done.predict,
+    expert: done.predict,
+    lab: done.setup,
+    evidence: done.lab,
+    check: done.evidence,
+    compare: done.check,
+    fix: done.compare,
+    record: done.fix || testedOut && done.check
+  };
+  const skipped = (id) => id === "recall" && (testOut || firstFlight) && !has("recall") || id === "claim" && firstFlight && !has("claim");
+  return STEPS.map((s) => ({ ...s, status: skipped(s.id) ? "skipped" : done[s.id] ? "done" : gate[s.id] ? "open" : "locked" }));
+}
+function currentStep(states) {
+  const list = arr3(states);
+  let furthest = -1;
+  list.forEach((s, i) => {
+    if (s.status === "done") furthest = i;
+  });
+  const ahead = list.find((s, i) => i > furthest && s.status === "open");
+  if (ahead) return ahead.id;
+  const open = list.find((s) => s.status === "open");
+  if (open) return open.id;
+  const done = list.filter((s) => s.status === "done");
+  return done.length ? done[done.length - 1].id : "recall";
+}
+function showsMemory(mission) {
+  return obj2(obj2(mission).lab).memory_view === true;
+}
+function recallLead(fromList) {
+  const missed = arr3(fromList).filter((m) => m && m.done === false);
+  if (!missed.length) return "";
+  const names = missed.map((m) => Number.isInteger(m.order) ? `mission ${m.order} (${str3(m.title)})` : str3(m.title));
+  const list = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}`;
+  return `You haven't done ${list} in Field Academy yet, so these may be new to you. Answer from your own use of Hermes, or write your best guess. A guess before the lesson helps it stick too.`;
+}
+function earlierPracticeLeft(listing, attempt) {
+  const mine = str3(obj2(attempt).profile);
+  return arr3(listing).some((p) => p && ["ready", "in_use", "planned", "removing"].includes(p.status) && (!mine || p.name !== mine));
+}
+function freezeMissing(view) {
+  const names = { recall: "your recall", claim: "your claim", standard: "the checks", prediction: "your guess" };
+  const testOut = obj2(obj2(view).test_out).on === true;
+  const firstFlight = obj2(obj2(view).first_flight).on === true;
+  return Object.keys(names).filter((k) => latest(view, k) === null && !(k === "recall" && (testOut || firstFlight)) && !(k === "claim" && firstFlight)).map((k) => names[k]);
+}
+function canTestOut(mission) {
+  const m = obj2(mission);
+  if (m.kind === "review" || m.id === "f.review") return false;
+  const attempts = arr3(m.attempts);
+  if (attempts.some((a) => a && a.status === "done")) return false;
+  const last = attempts[attempts.length - 1];
+  return !last || !(["open", "lab"].includes(last.status) && (last.frozen_at || last.test_out));
+}
+function missionWords(mission) {
+  const attempts = arr3(obj2(mission).attempts);
+  const last = attempts[attempts.length - 1];
+  if (!last) return { word: "Not started", tone: "idle", button: "Start" };
+  if (last.status === "done") return last.tested_out ? { word: "Tested out", tone: "good", button: "Open" } : { word: "In your record", tone: "good", button: "Open" };
+  if (last.test_out) return { word: last.frozen_at ? "Testing out, in practice" : "Testing out", tone: "info", button: "Continue" };
+  return { word: last.frozen_at ? "In practice" : "Started", tone: "info", button: "Continue" };
+}
+function recallProblems(answers, prompts) {
+  const list = arr3(answers);
+  const empty = arr3(prompts).map((_, i) => i).filter((i) => !str3(list[i]).trim());
+  return empty.length ? [`Write something for ${empty.length === 1 ? "the last prompt" : "every prompt"}, even a guess.`] : [];
+}
+function predictionProblems(form, ids) {
+  const f = obj2(form);
+  const checks = obj2(f.checks);
+  const out = [];
+  for (const id of arr3(ids)) {
+    const c = obj2(checks[id]);
+    if (typeof c.expect_pass !== "boolean") out.push(`Say pass or fail for check ${id.replace(/^s/, "")}.`);
+    const n = Number(c.confidence);
+    if (!Number.isInteger(n) || n < 50 || n > 100) out.push(`Confidence for check ${id.replace(/^s/, "")} is from 50 to 100.`);
+  }
+  if (str3(f.where_wrong).trim().length < 10) out.push("Say where you think you will slip, in a few words.");
+  return out;
+}
+function selfScoreProblems(form, ids) {
+  const checks = obj2(obj2(form).checks);
+  return arr3(ids).filter((id) => typeof obj2(checks[id]).pass !== "boolean").map((id) => `Score yourself on check ${id.replace(/^s/, "")}.`);
+}
+function labNoteProblems(form, transfer = false) {
+  const f = obj2(form);
+  const out = [];
+  const fact = str3(f.fact).trim();
+  if (fact.length < 8) out.push(transfer ? "Write the fact about you that you asked Hermes to save." : "Write the fact you asked Hermes to save.");
+  if (fact.length > 300) out.push("Keep the fact to one line, under 300 characters.");
+  if (!str3(f.key_term).trim()) out.push("Name the key word of the fact, the one a new chat would have to use.");
+  if (transfer) {
+    if (str3(f.one_off).trim().length < 4) out.push("Write the one-off detail you weighed up.");
+    if (typeof f.one_off_saved !== "boolean") out.push("Say whether you saved the one-off detail or left it out.");
+    if (str3(f.one_off_why).trim().length < 10) out.push("Say in one sentence why it does or doesn't earn a line.");
+  }
+  const why = str3(f.removed_ok).trim();
+  if (why && why.length < 10) out.push("If you say a note was cut, say which one and why that was all right.");
+  return out;
+}
+var STOP = new Set("a an and are as at be but by for from has have i in into is it its me my of on or our so that the their them they this to was we were when which who will with you your uses use used save saved memory remember please every each always never".split(" "));
+function guessKeyTerm(fact) {
+  const words = str3(fact).match(/[A-Za-z0-9][A-Za-z0-9'+-]*/g) || [];
+  const named = words.slice(1).filter((w) => /^[A-Z0-9]/.test(w) && !STOP.has(w.toLowerCase()) && w.length >= 3);
+  if (named.length) return named.sort((a, b) => b.length - a.length)[0];
+  const plain = words.filter((w) => !STOP.has(w.toLowerCase()) && w.length >= 4);
+  return plain.sort((a, b) => b.length - a.length)[0] || "";
+}
+function memoryMath(tokens, full = 800, perNote = 45) {
+  const n = Number(tokens);
+  if (!Number.isFinite(n) || n < 0 || String(tokens).trim() === "") return null;
+  const room = Math.max(0, Math.round(full - n));
+  return { tokens: Math.round(n), full, room, notes: Math.floor(room / perNote) };
+}
+function passWord(value) {
+  return value === true ? "Pass" : value === false ? "Fail" : "Not yet";
+}
+function gridRow(row) {
+  const r = obj2(row);
+  const guess = typeof r.expect_pass === "boolean" ? `${passWord(r.expect_pass)}, ${r.confidence}% sure` : "No guess";
+  const mine = typeof r.self_pass === "boolean" ? passWord(r.self_pass) : "Not scored";
+  let check = passWord(r.passed);
+  if (r.proves_by === "rubric" && r.level) check = `${passWord(r.passed)}, level ${r.level} of 4`;
+  const after = typeof r.passed_after_fix === "boolean" && r.passed_after_fix !== r.passed ? passWord(r.passed_after_fix) : "";
+  const off = typeof r.self_pass === "boolean" && typeof r.passed === "boolean" && r.self_pass !== r.passed;
+  return { id: r.id, text: str3(r.text), guess, mine, check, after, off };
+}
+function percent(value) {
+  return typeof value === "number" && Number.isFinite(value) ? `${Math.round(value * 100)}%` : "—";
+}
+var PLANTS = {
+  write_approval: {
+    title: "Saves waited for your approval",
+    what: "Memory approvals were on in academy-practice. A save from a chat was staged, and the app still showed Saved to memory with a check. Expanding the row said it was staged and not saved yet."
+  },
+  memory_full: {
+    title: "Memory was nearly full",
+    what: "MEMORY.md was filled close to its limit. Hermes's first save came back over the limit, then it made room by cutting or shortening other notes. The risk was losing a note the practice jobs rely on."
+  },
+  wrong_profile: {
+    title: "A second profile looked the same",
+    what: "academy-practice-b had the same notes as academy-practice, so a chat there answered the same way. Work saved there never reached academy-practice."
+  }
+};
+function plantPill(plant) {
+  const p = obj2(plant);
+  if (p.caught === true) return "You caught it";
+  if (p.caught === false) return p.fired ? "You ran into it, not caught yet" : "Not caught yet";
+  return p.fired ? "You ran into it" : "You didn't run into it";
+}
+function plantWords(kind) {
+  return PLANTS[kind] || { title: "Something in the setup", what: "" };
+}
+function timerWords(seconds) {
+  const s = Math.max(0, Math.round(Number(seconds) || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+function calibrationTable(rows) {
+  const n = (value) => typeof value === "number" && Number.isFinite(value) ? String(value) : "";
+  return arr3(rows).map((r) => {
+    const row = obj2(r);
+    const empty = !row.in_record;
+    return {
+      id: str3(row.mission),
+      title: str3(row.title),
+      empty,
+      checks: empty ? "" : n(row.checks),
+      predicted: empty ? "" : n(row.predicted),
+      selfScored: empty ? "" : n(row.self_scored),
+      passed: empty ? "" : n(row.passed_first)
+    };
+  });
+}
+var WORD = /[A-Za-z0-9][A-Za-z0-9'’.-]*/g;
+function recordProblems(form) {
+  const f = obj2(form);
+  const out = [];
+  if (!str3(f.holder).trim()) out.push("Type the name you want on your Field Record.");
+  if (str3(f.limits).trim().length < 20) out.push("Write two or three lines on what this record doesn't show, in your own words.");
+  if (str3(f.limits).length > 800) out.push("Keep what the record doesn't show under 800 characters.");
+  if ((str3(f.caseText).match(WORD) || []).length > 300) out.push("Keep the case under 300 words.");
+  return out;
+}
+function toggleWithhold(list, id, keepOut) {
+  const ids = new Set(arr3(list).filter((x) => Number.isInteger(x)));
+  if (keepOut) ids.add(id);
+  else ids.delete(id);
+  return [...ids].sort((a, b) => a - b);
+}
+function hoursWords(hours) {
+  const h = obj2(hours);
+  const minutes = Number(h.active_minutes);
+  if (!Number.isFinite(minutes) || minutes <= 0) return "Less than a minute of active time";
+  if (minutes < 60) return `${minutes} ${minutes === 1 ? "minute" : "minutes"} of active time`;
+  return `${Number(h.hours).toFixed(1)} hours of active time`;
+}
+function checkedByWords(tag) {
+  const s = str3(tag);
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+}
+function hostSupport(host6) {
+  const h = obj2(host6);
+  return {
+    newChat: typeof h.newChat === "function",
+    deleteProfile: typeof h.deleteProfile === "function",
+    requestProfile: typeof h.requestProfile === "function",
+    request: typeof h.request === "function"
+  };
+}
+function practiceRoute(routes, name) {
+  const want = String(name || "").trim().toLowerCase();
+  const route = arr3(routes).find((r) => r && r.mode === "local" && typeof r.connectionId === "string" && r.connectionId.trim() && String(r.targetProfile || "").trim().toLowerCase() === want && String(r.profile || "").trim());
+  return route ? { connectionId: route.connectionId, mode: route.mode, profile: route.profile, targetProfile: route.targetProfile } : name;
+}
+function practiceRows(listing, needed) {
+  const live = arr3(listing).filter((p) => !["removed"].includes(p.status));
+  return arr3(needed).map((which) => {
+    const found = live.filter((p) => p.which === which);
+    return { which, profile: found.length ? found[found.length - 1] : null };
+  });
+}
+function statusWord(profile) {
+  const s = obj2(profile).status;
+  return { planned: "Planned", ready: "Ready", in_use: "In use", removing: "Removing", removed: "Removed" }[s] || "Not made yet";
+}
+function mdBlocks(text) {
+  const lines = str3(text).replace(/\r\n/g, "\n").split("\n");
+  const out = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    const t = line.trim();
+    if (!t) {
+      i++;
+      continue;
+    }
+    if (t.startsWith("```")) {
+      const pad = line.length - line.trimStart().length;
+      const body = [];
+      i++;
+      while (i < lines.length && !lines[i].trim().startsWith("```")) {
+        body.push(lines[i].slice(Math.min(pad, lines[i].length - lines[i].trimStart().length)));
+        i++;
+      }
+      i++;
+      out.push({ kind: "code", text: body.join("\n") });
+      continue;
+    }
+    const head = t.match(/^(#{1,4})\s+(.*)$/);
+    if (head) {
+      out.push({ kind: head[1].length <= 2 ? "h2" : "h3", text: head[2].trim() });
+      i++;
+      continue;
+    }
+    if (t.startsWith("|")) {
+      const rows = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        const cells = lines[i].trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+        if (!cells.every((c) => /^:?-{2,}:?$/.test(c))) rows.push(cells);
+        i++;
+      }
+      out.push({ kind: "table", head: rows[0] || [], rows: rows.slice(1) });
+      continue;
+    }
+    if (t.startsWith(">")) {
+      const paras = [[]];
+      while (i < lines.length && lines[i].trim().startsWith(">")) {
+        const inner = lines[i].trim().replace(/^>\s?/, "");
+        if (!inner.trim()) paras.push([]);
+        else paras[paras.length - 1].push(inner.trim());
+        i++;
+      }
+      out.push({ kind: "quote", items: paras.filter((p) => p.length).map((p) => p.join(" ")) });
+      continue;
+    }
+    const listKind = /^- /.test(t) ? "ul" : /^\d+\.\s/.test(t) ? "ol" : "";
+    if (listKind) {
+      const items = [];
+      while (i < lines.length) {
+        const l = lines[i].trim();
+        const isItem = listKind === "ul" ? /^- /.test(l) : /^\d+\.\s/.test(l);
+        if (isItem) items.push(l.replace(listKind === "ul" ? /^- / : /^\d+\.\s+/, ""));
+        else if (l.startsWith("```")) break;
+        else if (l && items.length && /^\s+\S/.test(lines[i])) items[items.length - 1] += " " + l;
+        else break;
+        i++;
+      }
+      const start = listKind === "ol" ? Number((t.match(/^(\d+)\./) || [])[1] || 1) : 1;
+      out.push(start > 1 ? { kind: listKind, items, start } : { kind: listKind, items });
+      continue;
+    }
+    const para = [];
+    while (i < lines.length && lines[i].trim() && !/^(#{1,4}\s|>|\||- |\d+\.\s)/.test(lines[i].trim())) {
+      para.push(lines[i].trim());
+      i++;
+    }
+    out.push({ kind: "p", text: para.join(" ") });
+  }
+  return out;
+}
+function revealBlocks(blocks) {
+  const list = arr3(blocks);
+  const out = [];
+  let inside = false;
+  for (let i = 0; i < list.length; i++) {
+    const b = list[i];
+    if (b.kind === "h2") inside = /^check yourself\b/i.test(str3(b.text).trim());
+    const next = list[i + 1];
+    const bold = b.kind === "p" && /^\*\*[\s\S]+\*\*$/.test(str3(b.text).trim()) && !/\*\*[\s\S]*\*\*[\s\S]*\*\*/.test(str3(b.text).trim().slice(2, -2));
+    if (inside && bold && next && next.kind === "quote") {
+      out.push({ kind: "qa", question: str3(b.text).trim().slice(2, -2).trim(), answer: arr3(next.items) });
+      i++;
+      continue;
+    }
+    out.push(b);
+  }
+  return out;
+}
+function canReveal(answer) {
+  return str3(answer).trim().length >= 2;
+}
+function inlineSpans(text) {
+  const s = str3(text);
+  const codes = [];
+  const masked = s.replace(/`([^`]+)`/g, (_, code) => `${codes.push(code) - 1}`);
+  return emphasis(masked, codes);
+}
+var PLACEHOLDER = /\uE000(\d+)\uE001/g;
+function unmask(text, codes) {
+  return text.replace(PLACEHOLDER, (_, i) => codes[Number(i)]);
+}
+function plainSpans(text, codes) {
+  const out = [];
+  const re = /\uE000(\d+)\uE001|\b([Aa]s of Hermes \d+\.\d+(?:\.\d+)?)/g;
+  let last = 0;
+  let m;
+  while (m = re.exec(text)) {
+    if (m.index > last) out.push({ kind: "text", text: text.slice(last, m.index) });
+    out.push(m[1] !== void 0 ? { kind: "code", text: codes[Number(m[1])] } : { kind: "asof", text: m[2] });
+    last = re.lastIndex;
+  }
+  if (last < text.length) out.push({ kind: "text", text: text.slice(last) });
+  return out;
+}
+function emphasis(text, codes) {
+  const out = [];
+  const re = /\*\*(.+?)\*\*|\*(?![\s*])([^*]*?[^\s*])\*/g;
+  let last = 0;
+  let m;
+  while (m = re.exec(text)) {
+    if (m.index > last) out.push(...plainSpans(text.slice(last, m.index), codes));
+    const inner = m[1] !== void 0 ? m[1] : m[2];
+    const children = emphasis(inner, codes);
+    out.push({ kind: m[1] !== void 0 ? "strong" : "em", text: unmask(inner, codes).replace(/\*/g, ""), children });
+    last = re.lastIndex;
+  }
+  if (last < text.length) out.push(...plainSpans(text.slice(last), codes));
+  return out;
+}
+var PRACTICE_PROFILE = /^academy-practice(?:-b)?(?:-[0-9]{1,2})?$/;
+function isPracticeProfile(name) {
+  return PRACTICE_PROFILE.test(str3(name).trim().toLowerCase());
+}
+function homeAction(active, home2, canEnsure, fromPage) {
+  if (!isPracticeProfile(active)) return "call";
+  if (fromPage && home2 && !isPracticeProfile(obj2(home2).profile) && canEnsure) return "repin";
+  return "wait";
+}
+
+// desktop/src/loop_a.js
+function fieldProblems(fields, form) {
+  const out = [];
+  for (const f of fields || []) {
+    const v = form[f.id];
+    const empty = v === void 0 || v === null || typeof v === "string" && !v.trim();
+    if (empty) {
+      if (f.required !== false) out.push(`${f.label}: this is needed.`);
+      continue;
+    }
+    if (f.kind === "int" && !/^\d[\d,]*$/.test(String(v).trim())) out.push(`${f.label}: a whole number.`);
+    if (["text", "textarea", "lines"].includes(f.kind || "text") && String(v).trim().length < (f.min || 1)) out.push(`${f.label} is too short.`);
+  }
+  return out;
+}
+function cutWords(description) {
+  const text = String(description || "").trim().split(/\s+/).join(" ");
+  if (text.length <= 60) return text;
+  const head = text.slice(0, 58);
+  const boundary = head.search(/\s\S*$/);
+  if (boundary <= 0) return `${text.slice(0, 57)}...`;
+  return `${head.slice(0, boundary).replace(/[\s.,;:\-\u2013\u2014(/]+$/, "")}...`;
+}
+
+// desktop/src/foundations_a.js
+var MISSIONS_A = ["f.loop", "f.cost", "f.new-chats", "f.skills", "f.profiles"];
+var PLANTS_A = {
+  output_locked: { title: "The output file was an old, locked copy", what: `summary.md already existed with last week's figures and was locked, so a save failed and "it exists" proved nothing.` },
+  input_empty: { title: "One input sheet was empty", what: "One of the three sheets was a header row and nothing else. The right output names it instead of filling the gap." },
+  rows_short: { title: "Fewer jobs than the request said", what: "The card asked for every one of the jobs it counted, and the sheets held two fewer. The right output says how many there really are." },
+  extra_connector: { title: "A connector the job never used was on", what: "The reference filesystem connector was switched on. Its tool descriptions rode along on every trip, and the job never called one." },
+  unused_skills: { title: "Skills for other work were on", what: "Twelve skills for a kind of work this profile never does were installed and switched on. Each one's name and description rode along on every trip, and the job never opened one." },
+  soul_wrong_profile: { title: "A second practice profile sat beside the first", what: "academy-practice-b sat next to academy-practice in the profile row. Editing its SOUL.md changes nothing in academy-practice's chats." },
+  steps_in_memory: { title: "A job's steps were saved in memory", what: "A three-step procedure sat in MEMORY.md as one line. Steps belong in a skill; two copies drift apart." },
+  greedy_neighbor: { title: "A catch-all skill matched almost anything", what: 'academy-report-helper said "Use when asked for any report, summary or list," so it could win over a skill with a weaker line.' },
+  cloned_memory: { title: "B was cloned from A", what: "academy-practice-b was made with Clone from academy-practice, and A's client line came with it." },
+  decoy_in_b: { title: "Another client's fact sat in B", what: "A line about another client was saved in academy-practice-b's memory, as if by mistake." }
+};
+Object.assign(PLANTS, PLANTS_A);
+function createPartAViews(deps) {
+  const { Markdown, PathLine, Toggle, Problem, Problems, MemoryFile, openPracticeChat, post, ctxRest: ctxRest2, copyText: copyText2, useAction, latest: latest2 } = deps;
+  const owns = (id) => MISSIONS_A.includes(id);
+  function useData(path, deps2) {
+    const [state, setState] = useState5({ data: null, error: "" });
+    const load = async () => {
+      try {
+        setState({ data: await ctxRest2(path), error: "" });
+      } catch (e) {
+        setState({ data: null, error: String(e?.message || e) });
+      }
+    };
+    useEffect3(() => {
+      load();
+    }, deps2 || [path]);
+    return { ...state, load };
+  }
+  function useMissionPublic(id) {
+    return useData(`/foundations/mission/${encodeURIComponent(id)}`, [id]).data;
+  }
+  function Card2({ card }) {
+    return jsxs6("div", { className: "fa-f-predict", children: [
+      jsx7("strong", { children: card.label }),
+      jsx7("pre", { className: "fa-f-excerpt", children: card.text }),
+      jsx7("div", { className: "hk-actions", children: jsx7(Button3, { variant: "secondary", onClick: () => copyText2(card.text, "Copied the request."), children: "Copy the request" }) })
+    ] });
+  }
+  function Field2({ f, value, set, rules }) {
+    const id = `fa-a-${f.id}`;
+    if (f.kind === "bool") {
+      return jsxs6("div", { className: "fa-f-row", children: [
+        jsx7("span", { children: f.label }),
+        jsx7(Toggle, { label: f.label, value, onChange: set, yes: "Yes", no: "No" })
+      ] });
+    }
+    if (f.kind === "choice") {
+      return jsxs6("div", { className: "fa-field", children: [
+        jsx7("label", { htmlFor: id, children: f.label }),
+        jsx7("div", { className: "hk-stack", style: { gap: 6 }, children: (rules || []).map((r) => jsxs6("label", { className: "fa-f-withhold", children: [
+          jsx7("input", { type: "radio", name: id, checked: value === r.id, onChange: () => set(r.id) }),
+          jsxs6("span", { children: [jsx7("strong", { children: `${r.label}. ` }), jsx7("code", { className: "fa-f-code", children: r.text })] })
+        ] }, r.id)) })
+      ] });
+    }
+    const big = f.kind === "textarea" || f.kind === "lines";
+    return jsxs6("div", { className: "fa-field", children: [
+      jsx7("label", { htmlFor: id, children: f.label }),
+      big ? jsx7(Textarea2, { id, rows: f.kind === "lines" ? 5 : 3, value: Array.isArray(value) ? value.join("\n") : value ?? "", onChange: (e) => set(e.target.value) }) : jsx7(Input2, { id, inputMode: f.kind === "int" ? "numeric" : void 0, value: value ?? "", onChange: (e) => set(f.kind === "int" ? e.target.value.replace(/[^0-9,]/g, "") : e.target.value) }),
+      f.id === "better" && value ? jsx7("span", { className: "hk-small", children: `${String(value).length} characters. Hermes would show: ${cutWords(value)}` }) : null
+    ] });
+  }
+  function NoteFieldsA({ view, save, action, transfer = false, which: whichIn, reloadAll }) {
+    const mission = useMissionPublic(view.attempt.mission_id);
+    const which = whichIn || (transfer ? "transfer" : "first");
+    const kind = which === "try" ? "try_note" : "lab_note";
+    const saved = which === "try" ? latest2(view, "try_note") : latest2(view, "lab_note", (b) => (b.for || "first") === which);
+    const [form, setForm] = useState5(() => saved || {});
+    const [shown, setShown] = useState5([]);
+    const own = useAction(reloadAll);
+    const act = action || own;
+    if (!mission) return null;
+    const fields = mission.lab?.note_fields_a?.[which] || [];
+    if (!fields.length) return null;
+    const send = () => {
+      const problems = fieldProblems(fields, form);
+      setShown(problems);
+      if (problems.length) return;
+      const body = Object.fromEntries(fields.map((f) => [f.id, f.kind === "int" && form[f.id] !== void 0 && form[f.id] !== "" ? Number(String(form[f.id]).replace(/,/g, "")) : form[f.id]]));
+      if (which !== "try") body.for = which;
+      const name = `a-${which}`;
+      if (save && which !== "try") save(name, kind, body);
+      else act.run(name, () => post(`/foundations/attempt/${view.attempt.id}/entry`, { kind, body }));
+    };
+    return jsxs6("div", { className: "hk-stack", children: [
+      ...fields.map((f) => jsx7(Field2, { f, value: form[f.id], rules: mission.lab?.rules_a, set: (v) => setForm((x) => ({ ...x, [f.id]: v })) }, f.id)),
+      jsx7(Problems, { items: shown }),
+      jsx7(Problem, { text: act.error }),
+      jsx7("div", { className: "hk-actions", children: jsx7(Button3, {
+        variant: which === "try" ? "secondary" : "primary",
+        loading: act.busy === `a-${which}`,
+        onClick: send,
+        children: saved ? "Save again" : which === "try" ? "Save my numbers" : "Save what I did"
+      }) })
+    ] });
+  }
+  function Paths({ paths }) {
+    return (paths || []).map((p) => jsxs6("div", { className: "hk-stack", style: { gap: 4 }, children: [
+      jsx7("strong", { children: p.label }),
+      jsx7(PathLine, { path: p.path, shown: p.shown, label: p.label, folder: !p.file })
+    ] }, p.path));
+  }
+  function ProfileButtons({ info }) {
+    if (!info?.profiles) return null;
+    return jsx7("div", { className: "hk-stack", children: info.profiles.map((p) => jsxs6("div", { className: "fa-f-profile", children: [
+      jsxs6("div", { className: "hk-stack", style: { gap: 2 }, children: [jsx7("strong", { children: p.name }), jsx7("span", { className: "hk-small", children: p.which === "a" ? "Client A" : "Client B" })] }),
+      jsxs6("div", { className: "hk-stack", children: [
+        jsx7("div", { className: "hk-actions", children: jsx7(Button3, { variant: p.which === "a" ? "primary" : "secondary", onClick: () => openPracticeChat(p.name), children: p.button }) }),
+        jsx7(MemoryFile, { name: p.name })
+      ] })
+    ] }, p.name)) });
+  }
+  function FirstTrips({ attemptId }) {
+    const d = useData(`/foundations/a/${attemptId}/first_trips`, [attemptId]);
+    const chats = d.data?.chats || [];
+    return jsx7(Section, { title: "Your one-word chats", children: jsxs6("div", { className: "hk-stack", children: [
+      chats.length ? jsx7(Facts, { rows: chats.map((c, i) => ({
+        label: `Hello ${i + 1}${c.title ? `: ${c.title}` : ""}`,
+        value: c.tokens != null ? `${c.tokens.toLocaleString()} tokens on its first trip${c.cost != null ? `, about $${Number(c.cost).toFixed(4)}` : ""}` : `Field Academy couldn't read this one: ${c.how}. Read Context Usage for that chat yourself.`
+      })) }) : jsx7("p", { className: "hk-small", style: { margin: 0 }, children: "No one-word practice chat yet. Send hello in a new practice chat." }),
+      jsx7("div", { className: "hk-actions", children: jsx7(Button3, { variant: "secondary", onClick: d.load, children: "Read them again" }) }),
+      jsx7("span", { className: "fa-f-tag", children: "Field Academy read it from the practice profile's chat records" })
+    ] }) });
+  }
+  function SkillsSeen({ attemptId }) {
+    const d = useData(`/foundations/a/${attemptId}/skills`, [attemptId]);
+    const skills = d.data?.skills || [];
+    return jsx7(Section, { title: "Skills as Hermes sees them", count: skills.length, children: jsxs6("div", { className: "hk-stack", children: [
+      ...skills.map((s) => jsxs6("div", { className: "fa-f-predict", children: [
+        jsx7("strong", { children: s.name }),
+        jsx7("code", { className: "fa-f-code", children: s.seen }),
+        jsx7("span", { className: "hk-small", children: `${s.chars} characters${s.cut ? ", cut short" : ""}. ${s.made_by}.` })
+      ] }, s.name)),
+      jsx7("div", { className: "hk-actions", children: jsx7(Button3, { variant: "secondary", onClick: d.load, children: "Read them again" }) }),
+      jsx7("span", { className: "fa-f-tag", children: "Field Academy read it" })
+    ] }) });
+  }
+  function Lists({ lists }) {
+    return (lists || []).map((l) => jsxs6("div", { className: "fa-f-predict", children: [
+      jsx7("strong", { children: l.label }),
+      jsx7("pre", { className: "fa-f-excerpt", children: l.text }),
+      jsx7("div", { className: "hk-actions", children: jsx7(Button3, { variant: "secondary", onClick: () => copyText2(l.text, "Copied the list."), children: "Copy the list" }) })
+    ] }, l.label));
+  }
+  function TryPanel({ view, reloadAll }) {
+    const info = useData(`/foundations/a/${view.attempt.id}/info`, [view.attempt.id, view.attempt.status]).data;
+    if (!info) return null;
+    return jsxs6("div", { className: "hk-stack", children: [
+      info.warm_prompt ? jsx7(Card2, { card: { label: "The warm-up question", text: info.warm_prompt } }) : null,
+      info.mission === "f.loop" ? jsx7(Paths, { paths: info.paths }) : null,
+      info.mission === "f.cost" ? jsx7(FirstTrips, { attemptId: view.attempt.id }) : null,
+      info.mission === "f.skills" ? jsx7(Lists, { lists: info.lists }) : null,
+      info.mission === "f.skills" ? jsx7(SkillsSeen, { attemptId: view.attempt.id }) : null,
+      info.mission === "f.profiles" ? jsx7(Paths, { paths: info.paths }) : null,
+      info.mission === "f.profiles" ? jsx7(ProfileButtons, { info }) : null,
+      jsx7(NoteFieldsA, { view, which: "try", reloadAll })
+    ] });
+  }
+  function LabPanel({ view }) {
+    const info = useData(`/foundations/a/${view.attempt.id}/info`, [view.attempt.id]).data;
+    const [snap, setSnap] = useState5(null);
+    useEffect3(() => {
+      if (view.attempt.mission_id !== "f.skills") return;
+      ctxRest2(`/foundations/a/${view.attempt.id}/snapshot`, { method: "POST", body: {} }).then(setSnap).catch(() => setSnap(null));
+    }, [view.attempt.id]);
+    if (!info) return null;
+    return jsxs6("div", { className: "hk-stack", children: [
+      ...(info.cards || []).filter((c) => c.label !== "Do it again, differently").map((c) => jsx7(Card2, { card: c }, c.label)),
+      info.mission === "f.cost" ? jsx7(Paths, { paths: info.paths }) : null,
+      info.mission === "f.cost" ? jsx7(FirstTrips, { attemptId: view.attempt.id }) : null,
+      info.mission === "f.profiles" ? jsx7(ProfileButtons, { info }) : null,
+      info.mission === "f.skills" ? jsx7(SkillsSeen, { attemptId: view.attempt.id }) : null,
+      info.mission === "f.skills" && snap?.skills_before?.length ? jsx7(Notice, { tone: "info", children: `Already here when Your turn opened, so they don't count for the checks: ${snap.skills_before.join(", ")}.` }) : null
+    ] });
+  }
+  function TransferCard({ view }) {
+    const info = useData(`/foundations/a/${view.attempt.id}/info`, [view.attempt.id]).data;
+    const card = (info?.cards || []).find((c) => c.label === "Do it again, differently");
+    return card ? jsx7(Card2, { card }) : null;
+  }
+  function NoteForm(props) {
+    return jsxs6("div", { className: "hk-stack", children: [props.transfer ? jsx7(TransferCard, { view: props.view }) : null, jsx7(NoteFieldsA, props)] });
+  }
+  return { owns, TryPanel, LabPanel, NoteForm, NoteFieldsA };
+}
+
+// desktop/src/foundations_b.js
+import { useEffect as useEffect4, useRef as useRef3, useState as useState6 } from "react";
+import { jsx as jsx8, jsxs as jsxs7 } from "react/jsx-runtime";
+import { Button as Button4, Input as Input3, Textarea as Textarea3, host as host2 } from "@hermes/plugin-sdk";
+
+// desktop/src/loop_b.js
+var str4 = (v) => v === null || v === void 0 ? "" : String(v);
+var arr4 = (v) => Array.isArray(v) ? v : [];
+function phaseFields(mission, transfer = false) {
+  const want = transfer ? "transfer" : "first";
+  return arr4(mission?.lab?.note_fields).filter((f) => (f.for || "first") === want);
+}
+function tryFormKind(mission) {
+  const lab = mission?.lab || {};
+  if (arr4(lab.try_fields).length) return "fields";
+  if (arr4(lab.note_fields_a?.try).length) return "a";
+  if (arr4(lab.note_fields).length) return "none";
+  return "memory";
+}
+function tryFields(mission) {
+  return arr4(mission?.lab?.try_fields);
+}
+function tryBody(fields, form) {
+  const body = noteBody(fields, form);
+  delete body.for;
+  return body;
+}
+function noteFieldProblems(fields, form) {
+  const out = [];
+  for (const f of arr4(fields)) {
+    const raw = form?.[f.id];
+    const empty = raw === void 0 || raw === null || typeof raw === "string" && !raw.trim();
+    if (empty) {
+      if (f.required) out.push(`${f.label}: this one is needed.`);
+      continue;
+    }
+    if (f.kind === "choice") {
+      if (!arr4(f.choices).some((c) => c.value === raw)) out.push(`${f.label}: pick one of the choices.`);
+    } else if (f.kind === "number") {
+      if (!/^\d{1,6}$/.test(str4(raw).trim())) out.push(`${f.label}: a whole number.`);
+    } else {
+      const text = f.kind === "long" ? str4(raw).trim() : str4(raw).split(/\s+/).join(" ").trim();
+      const max = Number(f.max || (f.kind === "long" ? 4e3 : 300));
+      if (text.length > max) out.push(`${f.label}: at most ${max} characters.`);
+      if (text.length < Number(f.min || 1)) out.push(`${f.label}: a little more, please.`);
+    }
+  }
+  return out;
+}
+function noteBody(fields, form, transfer = false) {
+  const body = { for: transfer ? "transfer" : "first" };
+  for (const f of arr4(fields)) {
+    const raw = form?.[f.id];
+    if (raw === void 0 || raw === null || typeof raw === "string" && !raw.trim()) continue;
+    body[f.id] = f.kind === "number" ? Number(str4(raw).trim()) : raw;
+  }
+  return body;
+}
+var HIDDEN = "[hidden on screen]";
+var SECRET_NAME = /(token|secret|passw(?:or)?d|passwd|^pwd$|api[_-]?key|apikey|access[_-]?key|authorization|^auth$|bearer|cookie|credential|signature|^sig$|private[_-]?key)/i;
+function screenSafe(text) {
+  let out = str4(text);
+  out = out.replace(/\b([a-z][a-z0-9+.-]*:\/\/)([^\s\/@"'<>]+)@/gi, (_, scheme) => `${scheme}${HIDDEN}@`);
+  out = out.replace(/([?&;])([^=&#\s"']+)=([^&#\s"']*)/g, (m, sep, name, value) => SECRET_NAME.test(name) && value ? `${sep}${name}=${HIDDEN}` : m);
+  out = out.replace(/("([^"\\]*)"\s*:\s*)"((?:[^"\\]|\\.)*)"/g, (m, lead, name, value) => SECRET_NAME.test(name) && value ? `${lead}"${HIDDEN}"` : m);
+  out = out.replace(/\b(Bearer|Basic|Token)\s+[A-Za-z0-9._~+\/=-]{8,}/g, (_, word) => `${word} ${HIDDEN}`);
+  out = out.replace(/\b(?:sk-[A-Za-z0-9_-]{16,}|(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{16,}|github_pat_[A-Za-z0-9_]{16,}|xox[abprs]-[A-Za-z0-9-]{10,}|hf_[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{30,}|AKIA[0-9A-Z]{16})/g, HIDDEN);
+  return out;
+}
+function scheduledLine(liveProfile, practice) {
+  const live = str4(liveProfile);
+  if (!practice) return { state: "idle", title: "Scheduled jobs", text: "" };
+  if (!live) {
+    return {
+      state: "unknown",
+      title: "Field Academy couldn't read which profile Scheduled jobs works on",
+      text: `Check it yourself: send a message in a practice chat, then open Scheduled jobs and look for jobs named academy-. Those belong to ${practice}.`
+    };
+  }
+  if (live === practice) return { state: "pass", title: `Scheduled jobs works on ${practice}`, text: "New jobs you make there land in the practice profile." };
+  return { state: "fail", title: `Scheduled jobs works on ${live}`, text: `Press Open practice chat and send a message there. Scheduled jobs then works on ${practice}. Check here again before you press New cron.` };
+}
+function watchWords(w) {
+  if (!w || !w.ready) return { tone: "idle", title: "Waiting for your job's name", text: "Save your job's name below, and Field Academy watches its run history." };
+  if (!w.found) return { tone: "warn", title: `No job called ${w.job} in academy-practice`, text: "Check the name as it shows in Scheduled jobs." };
+  const late = w.late ? ` ${w.late} of them late.` : "";
+  if (w.landed) {
+    return { tone: "good", title: "Two scheduled runs have landed", text: `${w.runs} runs the schedule fired.${late}${w.still_on ? " The job is still on: pause or delete it now, or it keeps costing you every hour, then put your sleep setting back." : " The job is stopped."}` };
+  }
+  return { tone: "info", title: `${w.runs} of 2 scheduled runs so far`, text: `Field Academy checks again each time you open this page. The wait doesn't count toward your record's hours.${late}` };
+}
+function jobCalls(job) {
+  const add = { action: "add", name: job.name, schedule: job.schedule, prompt: job.prompt };
+  if (job.deliver) add.deliver = job.deliver;
+  return { add, pause: Boolean(job.pause) };
+}
+function addedJobId(result) {
+  const r = result && typeof result === "object" && "result" in result ? result.result : result;
+  return str4(r?.job_id || r?.job?.job_id || r?.job?.id || r?.id);
+}
+function jobStopWords(kind, job, profile, why = "") {
+  const where = profile ? ` in ${profile}` : "";
+  if (kind === "on") {
+    return `${job} is on${where} and Field Academy couldn't pause it, so it stopped there. It runs every hour on your AI provider until you stop it. Open Scheduled jobs${where}, pause or delete ${job}, then press Try again.`;
+  }
+  if (kind === "removed") return `Hermes made ${job}, but Field Academy couldn't pause it, so it deleted it. Nothing from it runs. Press Try again.`;
+  if (kind === "unread") {
+    return `Field Academy couldn't read the job list to confirm ${job} is paused${why ? ` (${why})` : ""}, so it stopped there. Open Scheduled jobs${where}: if ${job} is there and on, pause or delete it. Then press Try again.`;
+  }
+  return `Hermes didn't confirm it made ${job}${why ? ` (${why})` : ""}, so Field Academy stopped there. Open Scheduled jobs${where}: if ${job} is there and on, pause or delete it. Then press Try again.`;
+}
+var quiet = async (p) => {
+  try {
+    return await p();
+  } catch (e) {
+    return null;
+  }
+};
+var stillOn = (state, job) => arr4(state?.still_on).some((s) => s?.name === job);
+var recorded = (state, job) => arr4(state?.made).includes(job);
+async function stopStillOn(state, call, report) {
+  let now = state;
+  const tried = [];
+  for (const action of ["pause", "remove"]) {
+    const on = arr4(now?.still_on);
+    if (!on.length) break;
+    for (const j of on) {
+      await quiet(() => call({ action, name: str4(j.id) || str4(j.name) }));
+      if (action === "remove") tried.push(str4(j.name));
+    }
+    now = await report();
+  }
+  return { state: now, removed: tried.filter((n) => !stillOn(now, n)) };
+}
+async function makeJobs(todo, { call, report, profile = "", errorText: errorText2 = (e) => str4(e?.message || e) }) {
+  let state = todo;
+  if (arr4(state?.still_on).length) {
+    const done = await stopStillOn(state, call, report);
+    state = done.state;
+    const left2 = arr4(state?.still_on)[0];
+    if (left2) return { ok: false, state, message: jobStopWords("on", left2.name, profile) };
+    if (done.removed.length) return { ok: false, state, message: jobStopWords("removed", done.removed[0], profile) };
+  }
+  for (const job of arr4(todo?.jobs)) {
+    const calls = jobCalls(job);
+    let out = null;
+    let failed = null;
+    try {
+      out = await call(calls.add);
+    } catch (e) {
+      failed = e;
+    }
+    if (!calls.pause) {
+      if (failed) {
+        await quiet(report);
+        throw failed;
+      }
+      continue;
+    }
+    const id = failed ? "" : addedJobId(out);
+    if (id) await quiet(() => call({ action: "pause", name: id }));
+    try {
+      state = await report();
+    } catch (e) {
+      await quiet(() => call({ action: "pause", name: id || job.name }));
+      return { ok: false, state, message: jobStopWords("unread", job.name, profile, errorText2(e)) };
+    }
+    const done = await stopStillOn(state, call, report);
+    state = done.state;
+    if (stillOn(state, job.name)) return { ok: false, state, message: jobStopWords("on", job.name, profile) };
+    if (done.removed.includes(job.name)) return { ok: false, state, message: jobStopWords("removed", job.name, profile) };
+    if (!recorded(state, job.name)) {
+      await quiet(() => call({ action: "pause", name: job.name }));
+      return { ok: false, state, message: jobStopWords("missing", job.name, profile, failed ? errorText2(failed) : "") };
+    }
+  }
+  state = await report();
+  const left = arr4(state?.still_on)[0];
+  if (left) return { ok: false, state, message: jobStopWords("on", left.name, profile) };
+  return { ok: true, state, message: "" };
+}
+function rollbackSample(out) {
+  const r = out && typeof out === "object" && "result" in out ? out.result : out;
+  const list = arr4(r?.checkpoints).slice(0, 30).map((c) => ({ message: str4(c?.message).slice(0, 200), timestamp: str4(c?.timestamp).slice(0, 40) }));
+  return { source: "rollback.list", enabled: Boolean(r?.enabled), checkpoints: list };
+}
+function exampleBlock(example) {
+  if (!example) return "";
+  return JSON.stringify({ mcpServers: { notes: example } }, null, 2);
+}
+function panelsFor(mission) {
+  return arr4(mission?.lab?.panels);
+}
+var GRID_CELLS = {
+  "Terminal, before": "tb",
+  "Terminal, after": "ta",
+  "File edits, before": "fb",
+  "File edits, after": "fa",
+  "Connected tools, before": "cb",
+  "Connected tools, after": "ca"
+};
+function factWords(fact, mission) {
+  const value = str4(fact?.value);
+  const cell = GRID_CELLS[str4(fact?.label)];
+  const old = cell ? value.match(/^you: (\S+); the profile: (\S+)$/) : null;
+  if (!old) return value;
+  const field = arr4(mission?.lab?.note_fields).find((f) => f.id === cell && f.kind === "choice");
+  const say = (v) => arr4(field?.choices).find((c) => c.value === v)?.label || v.replace(/_/g, " ");
+  return `You: ${say(old[1])}. The profile: ${say(old[2])}.`;
+}
+
+// desktop/src/foundations_b.js
+function createFoundationsPanelsB(ui, kit) {
+  const { ctxRest: ctxRest2, copyText: copyText2, longDate: longDate2, plural: plural3 } = ui;
+  const { Markdown, PathLine, Problem, Problems, Next, post, support, requestPractice } = kit;
+  const enc = encodeURIComponent;
+  function useLoad(path, deps = []) {
+    const [data, setData] = useState6(null);
+    const [error, setError] = useState6("");
+    const load = async () => {
+      if (!path) return;
+      try {
+        setData(await ctxRest2(path));
+        setError("");
+      } catch (e) {
+        setError(ui.errorText(e));
+      }
+    };
+    useEffect4(() => {
+      load();
+    }, deps);
+    return { data, error, load };
+  }
+  function Choice({ field, value, onChange }) {
+    return jsx8("div", { className: "fa-f-toggle", role: "group", "aria-label": field.label, children: (field.choices || []).map((c) => jsx8("button", { type: "button", "aria-pressed": value === c.value, onClick: () => onChange(c.value), children: c.label || c.value }, c.value)) });
+  }
+  function FieldNoteForm({ mission, view, save, action, transfer = false }) {
+    const fields = phaseFields(mission, transfer);
+    const saved = (view.entries || []).filter((e) => e.kind === "lab_note" && (transfer ? e.body.for === "transfer" : e.body.for !== "transfer")).map((e) => e.body).pop();
+    const [form, setForm] = useState6(() => ({ ...saved || {} }));
+    const [shown, setShown] = useState6([]);
+    const set = (id, value) => setForm({ ...form, [id]: value });
+    const example = transfer ? mission.transfer?.example : null;
+    return jsxs7("div", { className: "fa-f-form", children: [
+      example ? jsxs7("div", { className: "hk-stack", style: { gap: 4 }, children: [
+        jsx8("strong", { children: "The settings block to read" }),
+        jsx8("pre", { className: "fa-f-excerpt", children: exampleBlock(example) })
+      ] }) : null,
+      ...fields.map((f) => {
+        const id = `fa-b-${transfer ? "t" : "f"}-${f.id}`;
+        const input = f.kind === "choice" ? jsx8(Choice, { field: f, value: form[f.id], onChange: (v) => set(f.id, v) }) : f.kind === "long" ? jsx8(Textarea3, { id, rows: 3, value: form[f.id] ?? "", onChange: (e) => set(f.id, e.target.value) }) : jsx8(Input3, { id, type: f.kind === "number" ? "number" : "text", value: form[f.id] ?? "", placeholder: f.placeholder || "", onChange: (e) => set(f.id, e.target.value) });
+        return jsxs7("div", { className: "fa-field", children: [
+          jsx8("label", { htmlFor: f.kind === "choice" ? void 0 : id, children: `${f.label}${f.required ? "" : " (optional)"}` }),
+          input
+        ] }, f.id);
+      }),
+      jsx8(Problems, { items: shown }),
+      jsx8(Problem, { text: action.error }),
+      jsx8(Next, { label: saved ? "Save again" : "Save what I did", busy: action.busy === `note-${transfer}`, onClick: () => {
+        const problems = noteFieldProblems(fields, form);
+        setShown(problems);
+        if (!problems.length) save(`note-${transfer}`, "lab_note", noteBody(fields, form, transfer));
+      } })
+    ] });
+  }
+  function TryForm({ mission, view, reloadAll }) {
+    const fields = tryFields(mission);
+    const saved = (view.entries || []).filter((e) => e.kind === "try_note").map((e) => e.body).pop();
+    const [form, setForm] = useState6(() => ({ ...saved || {} }));
+    const [shown, setShown] = useState6([]);
+    const [busy, setBusy] = useState6(false);
+    const [error, setError] = useState6("");
+    if (!fields.length) return null;
+    const set = (id, value) => setForm({ ...form, [id]: value });
+    const send = async () => {
+      const problems = noteFieldProblems(fields, form);
+      setShown(problems);
+      if (problems.length || busy) return;
+      setBusy(true);
+      setError("");
+      try {
+        await post(`/foundations/attempt/${view.attempt.id}/entry`, { kind: "try_note", body: tryBody(fields, form) });
+        if (reloadAll) await reloadAll();
+      } catch (e) {
+        setError(ui.errorText(e));
+      } finally {
+        setBusy(false);
+      }
+    };
+    return jsxs7("div", { className: "fa-f-form", children: [
+      jsx8("strong", { children: "Your guesses, and what you saw" }),
+      ...fields.map((f) => {
+        const id = `fa-try-${f.id}`;
+        const input = f.kind === "choice" ? jsx8(Choice, { field: f, value: form[f.id], onChange: (v) => set(f.id, v) }) : f.kind === "long" ? jsx8(Textarea3, { id, rows: 3, value: form[f.id] ?? "", onChange: (e) => set(f.id, e.target.value) }) : jsx8(Input3, { id, type: f.kind === "number" ? "number" : "text", value: form[f.id] ?? "", placeholder: f.placeholder || "", onChange: (e) => set(f.id, e.target.value) });
+        return jsxs7("div", { className: "fa-field", children: [
+          jsx8("label", { htmlFor: f.kind === "choice" ? void 0 : id, children: `${f.label}${f.required ? "" : " (after you try it)"}` }),
+          input
+        ] }, f.id);
+      }),
+      jsx8(Problems, { items: shown }),
+      jsx8(Problem, { text: error }),
+      jsx8("div", { className: "hk-actions", children: jsx8(Button4, { variant: "secondary", loading: busy, onClick: send, children: saved ? "Save again" : "Save my guesses" }) })
+    ] });
+  }
+  function FolderPanel({ name }) {
+    const { data } = useLoad(`/foundations/practice/${enc(name)}/folder`, [name]);
+    if (!data?.expected) return null;
+    return jsxs7("div", { className: "hk-stack", style: { gap: 4 }, children: [
+      jsx8("strong", { children: "The practice folder" }),
+      jsx8(PathLine, { path: data.expected, shown: data.expected_shown, label: "Practice folder full path" })
+    ] });
+  }
+  function ConnectorTextPanel({ name }) {
+    const { data, error, load } = useLoad(`/foundations/practice/${enc(name)}/connector-text`, [name]);
+    return jsx8(Section, { title: "The connector settings text", children: jsxs7("div", { className: "hk-stack", children: [
+      jsx8("p", { style: { margin: 0 }, children: "Read fresh from the practice profile: every connector it has, unchanged, with trust and an empty allow list added to files. In Capabilities, Connectors, open files, then Advanced. Click in the settings box, press Ctrl+A (Cmd+A on a Mac), paste, and press Save." }),
+      data?.ok ? jsx8("pre", { className: "fa-f-excerpt", "aria-label": "Settings text", children: screenSafe(data.text) }) : null,
+      data?.ok && screenSafe(data.text) !== data.text ? jsx8("span", { className: "hk-small", children: "Passwords and tokens in these settings are hidden on screen. The copy button copies the full text, so the paste still works." }) : null,
+      data && !data.ok ? jsx8(Notice, { tone: "warn", title: "Field Academy couldn't build the full text", children: `${data.why} In the files entry, add "trust": "untrusted" and "tools": { "include": [] }, then Save.` }) : null,
+      jsx8(Problem, { text: error }),
+      jsxs7("div", { className: "hk-actions", children: [
+        data?.ok ? jsx8(Button4, { onClick: () => copyText2(data.text, "Copied the settings text."), children: "Copy the settings text" }) : null,
+        jsx8(Button4, { variant: "secondary", onClick: load, children: "Refresh" })
+      ] }),
+      data?.package ? jsx8("span", { className: "hk-small", children: `Connector version pinned for this mission: ${data.package}.` }) : null
+    ] }) });
+  }
+  function JobsPanel({ name }) {
+    const { data, load } = useLoad(`/foundations/practice/${enc(name)}/jobs`, [name]);
+    const [busy, setBusy] = useState6(false);
+    const [error, setError] = useState6("");
+    const tried = useRef3(false);
+    const pending = data ? (data.jobs?.length || 0) + (data.still_on?.length || 0) : 0;
+    const make = async () => {
+      if (!pending || busy) return;
+      if (!support().requestProfile) {
+        setError("This Hermes app can't make a job in another profile from a plugin. Update Hermes Desktop, then come back.");
+        return;
+      }
+      setBusy(true);
+      setError("");
+      try {
+        const out = await makeJobs(data, {
+          call: (params) => requestPractice(name, "cron.manage", params),
+          report: () => post(`/foundations/practice/${enc(name)}/jobs-made`),
+          profile: name,
+          errorText: ui.errorText
+        });
+        if (!out.ok) setError(out.message);
+      } catch (e) {
+        setError(`Hermes didn't make the practice job: ${ui.errorText(e)}`);
+      } finally {
+        setBusy(false);
+        await load();
+      }
+    };
+    useEffect4(() => {
+      if (pending && !tried.current) {
+        tried.current = true;
+        make();
+      }
+    }, [pending]);
+    if (!data) return null;
+    if (!pending) return data.made?.length ? jsx8("span", { className: "hk-small", children: `Practice ${plural3(data.made.length, "job is", "jobs are")} set up in ${name}.` }) : null;
+    return jsxs7("div", { className: "hk-stack", children: [
+      jsx8(Notice, { tone: "info", title: "Setting up the practice job", children: "Field Academy asks Hermes to make it in the practice profile, the same way Scheduled jobs would." }),
+      jsx8(Problem, { text: error }),
+      jsx8("div", { className: "hk-actions", children: jsx8(Button4, { loading: busy, onClick: make, children: "Try again" }) })
+    ] });
+  }
+  function ScheduledPanel({ name }) {
+    const read = () => {
+      try {
+        return host2.state?.profile?.get?.() || "";
+      } catch (e) {
+        return "";
+      }
+    };
+    const [live, setLive] = useState6(read);
+    const line = scheduledLine(live, name);
+    return jsx8(Notice, {
+      tone: { pass: "good", fail: "warn", unknown: "info" }[line.state] || "info",
+      title: line.title,
+      action: jsx8(Button4, { variant: "secondary", onClick: () => setLive(read()), children: "Check again" }),
+      children: line.text
+    });
+  }
+  function WatchPanel({ attemptId }) {
+    const { data, load } = useLoad(attemptId ? `/foundations/attempt/${attemptId}/watch` : "", [attemptId]);
+    useEffect4(() => {
+      const t = setInterval(load, 6e4);
+      return () => clearInterval(t);
+    }, [attemptId]);
+    const words = watchWords(data);
+    return jsx8(Notice, { tone: words.tone, title: words.title, live: true, children: data?.last ? `${words.text} Last run ${longDate2(data.last)}.` : words.text });
+  }
+  function OpsPanel({ name }) {
+    const { data, load } = useLoad(`/foundations/practice/${enc(name)}/ops`, [name]);
+    if (!data) return null;
+    const direct = typeof host2.runDoctor === "function" && typeof host2.runBackup === "function";
+    const run = async (what) => {
+      try {
+        await (what === "doctor" ? host2.runDoctor({ profile: name }) : host2.runBackup({ profile: name }));
+        host2.notify({ kind: "success", message: what === "doctor" ? "The doctor is running on the practice profile." : "Backup started in the practice profile." });
+        await load();
+      } catch (e) {
+        host2.notify({ kind: "error", message: ui.errorText(e) });
+      }
+    };
+    return jsx8(Section, { title: "The practice profile's tools", children: jsxs7("div", { className: "hk-stack", children: [
+      jsx8("strong", { children: "Its logs folder" }),
+      jsx8(PathLine, { path: data.logs, shown: data.logs_shown, label: "Practice profile logs folder" }),
+      direct ? jsxs7("div", { className: "hk-actions", children: [
+        jsx8(Button4, { onClick: () => run("doctor"), children: "Run doctor on the practice profile" }),
+        jsx8(Button4, { variant: "secondary", onClick: () => run("backup"), children: "Create backup" })
+      ] }) : jsxs7("div", { className: "hk-stack", children: [
+        jsx8("p", { style: { margin: 0 }, children: "This Hermes app runs the doctor and backups only on the profile it has selected, so use a terminal for the practice profile. Copy a command, paste it in a terminal, press Enter." }),
+        jsx8("strong", { children: "The doctor, for the practice profile" }),
+        jsx8(PathLine, { path: data.doctor, label: "The doctor command for the practice profile", folder: false }),
+        jsx8("strong", { children: "A backup of the practice profile" }),
+        jsx8(PathLine, { path: data.backup, label: "The backup command for the practice profile", folder: false })
+      ] }),
+      data.backups?.length ? jsx8(Facts, { rows: data.backups.map((b) => ({ label: b.kind, value: `${b.name}, ${longDate2(new Date(b.mtime * 1e3).toISOString())}` })) }) : null
+    ] }) });
+  }
+  function BaselinePanel({ name }) {
+    const { data } = useLoad(`/foundations/practice/${enc(name)}/baseline`, [name]);
+    if (!data?.ready) return null;
+    const list = (title, items) => jsxs7("div", { className: "fa-f-mem", children: [
+      jsx8("strong", { children: `${title} (${items.length})` }),
+      items.length ? jsx8("ol", { children: items.map((t, i) => jsx8("li", { children: t }, i)) }) : jsx8("span", { className: "hk-small", children: "Empty." })
+    ] });
+    return jsx8(Card, { children: jsxs7("div", { className: "hk-stack", children: [
+      jsx8("strong", { children: `What Field Academy recorded at Start, ${longDate2(data.taken_at)}` }),
+      list("MEMORY.md", data.memory),
+      list("USER.md", data.user),
+      list("Skills", data.skills),
+      list("Waiting for approval", data.pending)
+    ] }) });
+  }
+  function CanClaimPanel() {
+    const { data } = useLoad("/foundations/record", []);
+    const claims = data?.body?.can_claim;
+    if (!claims) return null;
+    return jsx8(Details, { label: "What you can now claim, from your record", children: jsxs7("div", { className: "hk-stack", children: [
+      jsx8("ol", { className: "fa-f-claims", children: claims.passed.map((c) => jsxs7("li", { children: [
+        jsx8("strong", { children: c.claim }),
+        jsx8("span", { className: "fa-f-tag", children: `${c.title}, ${longDate2(c.date)}${c.after_fix ? ", after a fix" : ""}. Field Academy read it.` })
+      ] }, c.mission)) }),
+      claims.not_yet.length ? jsxs7("div", { children: [
+        jsx8("strong", { children: "Not yet" }),
+        jsx8("ul", { className: "fa-bullets", children: claims.not_yet.map((c) => jsx8("li", { children: `${c.title}: ${c.why}` }, c.mission)) })
+      ] }) : null
+    ] }) });
+  }
+  function LabPanels({ mission, view }) {
+    const name = view.attempt.profile;
+    if (!name) return null;
+    const map = {
+      folder: () => jsx8(FolderPanel, { name }),
+      connector_text: () => jsx8(ConnectorTextPanel, { name }),
+      jobs: () => jsx8(JobsPanel, { name }),
+      scheduled_page: () => jsx8(ScheduledPanel, { name }),
+      watch: () => jsx8(WatchPanel, { attemptId: view.attempt.id }),
+      ops: () => jsx8(OpsPanel, { name }),
+      baseline: () => jsx8(BaselinePanel, { name }),
+      can_claim: () => jsx8(CanClaimPanel, {})
+    };
+    return jsxs7("div", { className: "hk-stack", children: panelsFor(mission).filter((p) => map[p]).map((p) => jsx8("div", { children: map[p]() }, p)) });
+  }
+  function CheckNotices({ mission, view }) {
+    return panelsFor(mission).includes("watch") ? jsx8(WatchPanel, { attemptId: view.attempt.id }) : null;
+  }
+  async function sample(mission, profile) {
+    if (!panelsFor(mission).includes("rollback_sample") || !support().requestProfile || !profile) return null;
+    try {
+      const listed = await requestPractice(profile, "session.list", {});
+      const raw = listed && typeof listed === "object" && "result" in listed ? listed.result : listed;
+      const sessions = Array.isArray(raw) ? raw : Array.isArray(raw?.sessions) ? raw.sessions : [];
+      const id = sessions.map((s) => s?.id || s?.session_id).find(Boolean);
+      if (!id) return null;
+      return rollbackSample(await requestPractice(profile, "rollback.list", { session_id: id }));
+    } catch (e) {
+      return null;
+    }
+  }
+  return { FieldNoteForm, TryForm, FolderPanel, LabPanels, CheckNotices, sample };
+}
+
+// desktop/src/desk.js
+import { useEffect as useEffect5, useRef as useRef4, useState as useState7 } from "react";
+import { jsx as jsx9, jsxs as jsxs8 } from "react/jsx-runtime";
+import { Button as Button5, Codicon as Codicon4, Input as Input4, host as host3 } from "@hermes/plugin-sdk";
+
+// desktop/src/desk_logic.js
+var arr5 = (value) => Array.isArray(value) ? value : [];
+var obj3 = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : {};
+var str5 = (value) => typeof value === "string" ? value : "";
+var PHASES = [
+  { id: "before", title: "Get ready", steps: ["recall", "claim", "predict", "setup"], opens: "" },
+  { id: "learn", title: "Learn", steps: ["idea", "expert"], opens: "Opens after your guess" },
+  { id: "do", title: "Do", steps: ["lab", "evidence"], opens: "Opens after Practice" },
+  { id: "prove", title: "See what happened", steps: ["check", "compare", "fix", "record"], opens: "Opens after Did it work?" }
+];
+function phaseRows(states, at) {
+  const byId = Object.fromEntries(arr5(states).map((s) => [s.id, s]));
+  return PHASES.map((p) => {
+    const steps = p.steps.map((id) => byId[id]).filter(Boolean);
+    const locked = steps.length > 0 && steps.every((s) => s.status === "locked");
+    const done = steps.length > 0 && steps.every((s) => ["done", "skipped"].includes(s.status));
+    return { ...p, steps, locked, done, current: steps.some((s) => s.id === at), lockLine: locked ? p.opens || "Locked for now" : "" };
+  });
+}
+function phaseBarWords(states, at) {
+  const list = arr5(states);
+  const index = list.findIndex((s) => s.id === at);
+  if (index < 0) return "";
+  const phase = PHASES.find((p) => p.steps.includes(at));
+  return `${phase ? phase.title : ""}: ${list[index].title}`;
+}
+function clockWords(at) {
+  const n = Number(at);
+  if (!Number.isFinite(n) || n <= 0) return "";
+  const when = new Date(n * 1e3);
+  if (Number.isNaN(when.getTime())) return "";
+  return when.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+function replayRows(replay) {
+  const r = obj3(replay);
+  const events = arr5(r.events).filter((e) => e && e.event_id && !(e.kind === "assistant" && /^\(called /.test(str5(e.text)))).slice().sort((a, b) => (Number(a.at) || 0) - (Number(b.at) || 0));
+  const rows = [];
+  for (const e of events) {
+    const at = Math.round(Number(e.at) || 0);
+    let row = rows[rows.length - 1];
+    if (!row || row.at !== at) {
+      row = { at, clock: clockWords(at), chat: [], files: [] };
+      rows.push(row);
+    }
+    ;
+    (e.lane === "files" ? row.files : row.chat).push(e);
+  }
+  const bracket = obj3(r.bracket);
+  for (const row of rows) {
+    row.bracket = Boolean(bracket.from && bracket.to && row.chat.some((e) => e.event_id === bracket.from) && row.files.some((e) => e.event_id === bracket.to));
+  }
+  return rows;
+}
+function bracketAt(rows) {
+  const list = arr5(rows);
+  const i = list.findIndex((r) => r.bracket);
+  if (i < 0) return -1;
+  return list.length > 1 ? i / (list.length - 1) : 0;
+}
+function guideFetching(view) {
+  const v = obj3(view);
+  const ladder = obj3(v.ladder);
+  if (obj3(ladder.nudge).state === "fetching") return true;
+  if (arr5(v.explain).some((e) => obj3(e).state === "fetching")) return true;
+  if (obj3(obj3(v.do_it_with_me).why).state === "fetching") return true;
+  return false;
+}
+function fetchingWords(startedAt, now) {
+  const n = Number(startedAt);
+  const t = Number(now);
+  if (!Number.isFinite(n) || n <= 0 || !Number.isFinite(t)) return "Fetching";
+  return `Fetching, ${Math.max(0, Math.round(t - n))} s`;
+}
+function usedRungs(view) {
+  const used = arr5(obj3(obj3(view).help).used);
+  return {
+    nudge: used.some((u) => u.kind === "nudge"),
+    where: used.some((u) => u.kind === "where"),
+    reveal: used.some((u) => u.kind === "reveal"),
+    explain: used.some((u) => u.kind === "explain")
+  };
+}
+function quoteParts(answer, quote) {
+  const a = str5(answer);
+  const q = str5(quote);
+  const i = q ? a.indexOf(q) : -1;
+  if (i < 0) return [{ text: a, mark: false }];
+  return [{ text: a.slice(0, i), mark: false }, { text: q, mark: true }, { text: a.slice(i + q.length), mark: false }].filter((p) => p.text);
+}
+function sourceWords(id) {
+  const s = str5(id);
+  if (/^m\d+$/.test(s) || /^c\d+$/.test(s)) return "Your chat";
+  if (/^f-/.test(s)) return "Your files";
+  if (/^idea-/.test(s)) return "The idea";
+  if (/^expert-/.test(s)) return "Watch it done";
+  if (/^asof-/.test(s)) return "Hermes facts";
+  if (/^entry-|^e\d+/.test(s)) return "Your notes";
+  return "This lesson";
+}
+var sentence = (t) => {
+  const s = str5(t).trim();
+  return !s ? "" : /[.!?]$/.test(s) ? s : `${s}.`;
+};
+function runHeadline(replay, checks, whose = "your") {
+  const r = obj3(replay);
+  const events = r.state === "ready" ? arr5(r.events) : [];
+  const from = events.find((e) => e.event_id === obj3(r.bracket).from);
+  const tool = from || events.find((e) => str5(e.kind).startsWith("tool:memory"));
+  const pending = events.find((e) => e.kind === "file:pending");
+  const removed = events.find((e) => e.kind === "file:removed");
+  const mem = events.find((e) => e.kind === "file:memory");
+  const clock = tool ? clockWords(tool.at) : "";
+  const list = arr5(checks);
+  const missed = list.filter((c) => c && c.passed === false);
+  const said = tool ? `Hermes said it saved ${whose} note${clock ? ` at ${clock}` : ""}.` : "";
+  if (tool && tool.staged && pending) {
+    return { headline: `${said} It didn't: the note is still waiting for ${whose === "your" ? "your" : "their"} approval.`, detail: "" };
+  }
+  if (tool && removed) {
+    return { headline: `${said} It did, but to make room it deleted a note the practice jobs rely on.`, detail: "" };
+  }
+  if (tool && mem && obj3(mem.meter).changed === false) {
+    return { headline: `${said} It didn't: MEMORY.md never changed.`, detail: "" };
+  }
+  if (list.length && !missed.length) return { headline: "Hermes did what you thought it did. Every check passed.", detail: "" };
+  if (missed.length) {
+    return { headline: missed.slice(0, 2).map((c) => sentence(c.title)).join(" "), detail: "" };
+  }
+  return { headline: "", detail: "" };
+}
+function scoreSentence(compare, who = "You") {
+  const c = obj3(compare);
+  const grid = arr5(c.grid);
+  const of = Number.isFinite(c.of) ? c.of : grid.length;
+  const said = Number.isFinite(c.said) ? c.said : grid.filter((g) => g.self_pass === true).length;
+  const shows = Number.isFinite(c.shows) ? c.shows : grid.filter((g) => g.passed === true).length;
+  if (!of) return "";
+  const marked = said === of ? "every check" : said === 0 ? "no check" : `${said} ${said === 1 ? "check" : "checks"}`;
+  const held = shows === 0 ? "none of them has passed yet" : shows >= said ? "they all passed" : `only ${shows} ${shows === 1 ? "has" : "have"} passed`;
+  const waitText = "";
+  return said === 0 ? `${who} didn't mark any check as passed.${waitText}` : `${who} marked ${marked} as passed before looking; ${held}.${waitText}`;
+}
+function checkHeadline(run) {
+  const checks = arr5(obj3(run).checks);
+  const missed = checks.filter((c) => c && c.passed === false);
+  if (!checks.length) return "";
+  if (!missed.length) return "Every check passed.";
+  return missed.slice(0, 2).map((c) => sentence(c.title)).join(" ");
+}
+function bracketWords(replay) {
+  const r = obj3(replay);
+  const events = arr5(r.events);
+  const b = obj3(r.bracket);
+  const from = events.find((e) => e.event_id === b.from);
+  const to = events.find((e) => e.event_id === b.to);
+  if (!from || !to) return "";
+  if (to.kind === "file:removed") return `${clockWords(from.at)}: the chat showed ${from.title || "a save"}, and the same moment Hermes deleted a note from MEMORY.md.`;
+  const folder = str5(to.path).includes("/") ? `${str5(to.path).split("/").slice(0, -1).join("/")}/` : str5(to.path);
+  return `${clockWords(from.at)}: the chat showed ${from.title || "a save"}, but the note went to ${folder ? `the approval queue (${folder})` : "the approval queue"}, not MEMORY.md.`;
+}
+function fixChanges(first, after) {
+  const before = Object.fromEntries(arr5(obj3(first).checks).map((c) => [c.id, c]));
+  return arr5(obj3(after).checks).filter((c) => c && c.passed && before[c.id] && before[c.id].passed === false).map((c) => {
+    const was = arr5(before[c.id].facts)[0];
+    const now = arr5(c.facts).find((f) => was && f.label === was.label) || arr5(c.facts)[0];
+    return { id: c.id, title: c.title, was: was ? `${was.label}: ${was.value}` : "", now: was && now ? `${now.label}: ${now.value}` : str5(c.detail) };
+  });
+}
+function heldCommands(path) {
+  const m = /(?:^|\/)pending\/memory\/([0-9a-f]{8})\.json$/.exec(str5(path));
+  return m ? ["/memory pending", `/memory approve ${m[1]}`] : [];
+}
+function huntStarted(guideView, explain) {
+  if (!guideView || guideView.enabled === false) return true;
+  const help = obj3(obj3(guideView).help);
+  const r = usedRungs(guideView);
+  const e = obj3(explain);
+  return Boolean(r.nudge || r.where || r.reveal || r.explain || (help.hunt_helps || 0) > 0 || str5(e.answer).trim() || e.submitted || e.level);
+}
+function explainShown(sentences) {
+  const all = arr5(sentences).map(str5).filter(Boolean);
+  const kept = all.filter((t) => !/\b\d{1,2}:\d{2}\b/.test(t));
+  return kept.length ? kept : all.slice(0, 1);
+}
+function explainMerged(items) {
+  const words = (t) => new Set(str5(t).toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter((w) => w.length > 2));
+  const close = (a, b) => {
+    const x = words(a), y = words(b);
+    const both = [...x].filter((w) => y.has(w)).length;
+    return both * 2 >= Math.min(x.size, y.size);
+  };
+  const out = [];
+  const firsts = [];
+  const causeOnly = (t) => {
+    const m = /^(.{12,}?), so\b.*$/i.exec(t);
+    return m ? `${m[1]}.` : t;
+  };
+  for (const i of arr5(items)) {
+    const ss = arr5(obj3(i).sentences).map(str5).filter(Boolean).map((t, n) => n === 0 ? causeOnly(t) : t);
+    if (!ss.length || firsts.some((f) => close(f, ss[0]))) continue;
+    firsts.push(ss[0]);
+    for (const t of ss) if (!out.some((o) => close(o, t))) out.push(t);
+  }
+  return out;
+}
+var HELD_VERB = { add: "add to memory", patch: "change a note in memory", replace: "change a note in memory", remove: "remove from memory" };
+function heldSentence(text) {
+  let t = str5(text).trim();
+  const batch = /^apply \d+ op\(s\) to [a-z ]+:\s*/i;
+  if (batch.test(t)) {
+    const ops = t.replace(batch, "").split(/\n|\s+(?=-\s*(?:add|patch|remove|replace)\b)/i).map((s) => s.trim()).filter(Boolean);
+    const found = ops.map((o) => /^-\s*(add|patch|remove|replace)[^:]*:\s*(.*)$/i.exec(o));
+    const verbs = new Set(found.map((m2) => m2 && m2[1].toLowerCase()));
+    t = found.length && found.every(Boolean) && verbs.size === 1 ? `${found[0][1].toLowerCase()} ${found.map((m2) => m2[2].trim().replace(/[.;]+$/, "")).join("; ")}` : t.replace(batch, "").replace(/^-\s*/, "");
+  }
+  const m = /^(add|patch|remove|replace)\s+([\s\S]*)$/i.exec(t);
+  const verb = m ? m[1].toLowerCase() : "add";
+  const note = (m ? m[2] : t).trim();
+  if (!note) return { note: "", sentence: "Hermes is holding a save. Nothing is in memory until you approve it." };
+  const quoted = /[.!?]$/.test(note) ? note : `${note}.`;
+  return { note, sentence: `Hermes is holding this note to ${HELD_VERB[verb]}, not saved yet: “${quoted}”` };
+}
+function resumeWords(mission) {
+  const attempts = arr5(obj3(mission).attempts);
+  const last = obj3(attempts[attempts.length - 1]);
+  if (!attempts.length || last.status === "done") return null;
+  const where = {
+    guess: "You were making your guess before the practice.",
+    practice: "Your practice copy is set up. Next is the job in the practice chat.",
+    checked: "You checked your work. Next is finding out why and fixing it.",
+    fixed: "You checked your fix. Next is saving it to your record."
+  }[str5(last.stage)] || "Pick up at the step you reached.";
+  return { title: "Your practice is waiting", where, button: "Continue the practice" };
+}
+function replayStatus(replay) {
+  const r = obj3(replay);
+  if (r.data) return { state: "ready" };
+  if (r.error) return { state: "error", title: "Your run didn't load", words: "Field Academy asked Hermes for your run, and it didn't come back. Your checks and answers are saved." };
+  return { state: "loading", words: "Loading your run." };
+}
+var PREVIEW_RUN = {
+  state: "ready",
+  sample: true,
+  fallback: true,
+  lanes: [{ id: "chat", label: "In your chat" }, { id: "files", label: "In Hermes's files" }],
+  bracket: {
+    from: "m5",
+    to: "f-removed-1",
+    words: "The chat showed Saved to memory, but to make room Hermes deleted a note the practice jobs rely on."
+  },
+  events: [
+    { event_id: "m1", lane: "chat", at: 1792400011, kind: "user", title: "You asked", text: "Save to memory: Harbor Bakery uses QuickBooks Online; the other five use Xero" },
+    { event_id: "m5", lane: "chat", at: 1792400015, kind: "tool:memory", title: "Saved to memory", text: "Saved. Memory is 97% — 2,140/2,200 chars.", staged: false, failed: false },
+    { event_id: "f-removed-1", lane: "files", at: 1792400015, kind: "file:removed", title: "A note was deleted", text: "Refunds over 250 dollars need the owner's yes before they are sent.", path: "memories/MEMORY.md" },
+    { event_id: "m6", lane: "chat", at: 1792400016, kind: "assistant", title: "Hermes answered", text: "Memory was full, so I cleared some older notes and saved it. Saved to memory." }
+  ],
+  started_at: 1792400011,
+  ended_at: 1792400016
+};
+function homePreview(sample) {
+  const s = obj3(sample);
+  return s.state === "ready" && arr5(s.events).length ? s : PREVIEW_RUN;
+}
+
+// desktop/src/desk.js
+var DESK_CSS = `
+.fa-root kbd[data-slot=kbd]{font-size:12px}
+.fa-desk{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);align-items:start;padding:16px 20px 40px;width:100%;max-width:1500px;margin:0 auto}
+.fa-desk-head{display:grid;gap:6px}
+.fa-desk-rail{display:none}
+.fa-desk-bar{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:var(--hk-fs)}
+.fa-desk-bar strong{font-weight:600}
+.fa-desk-bar ol{display:flex;gap:4px;margin:0;padding:0;list-style:none}
+.fa-desk-bar li{width:44px;height:4px;border-radius:2px;background:var(--hk-stroke)}
+.fa-desk-bar li[data-state=done]{background:var(--hk-good-fill)}
+.fa-desk-bar li[data-state=now]{background:var(--hk-accent)}
+.fa-desk-work{display:grid;gap:14px;min-width:0}
+.fa-desk-guide{min-width:0}
+@container (min-width:860px){
+  .fa-desk{grid-template-columns:minmax(0,1fr) 300px}
+  .fa-desk-head{grid-column:1/-1}
+  .fa-desk-guide{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+}
+@container (min-width:1180px){
+  .fa-desk{grid-template-columns:200px minmax(0,1fr) 320px}
+  .fa-desk[data-norail]{grid-template-columns:minmax(0,1fr) 320px}
+  .fa-desk-rail{display:grid;position:sticky;top:12px}
+  .fa-desk-bar{display:none}
+}
+@container (max-width:859px){
+  .fa-desk{min-height:calc(100vh - 64px);grid-template-rows:auto 1fr auto}
+  .fa-desk-guide{position:sticky;bottom:0;z-index:2;margin:0 -20px -40px;align-self:end}
+}
+.fa-rail{display:grid;gap:14px;margin:0;padding:0;list-style:none}
+.fa-rail h3{margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.fa-rail ol{margin:0;padding:0;list-style:none;display:grid;gap:2px}
+.fa-rail button{display:flex;gap:8px;align-items:center;width:100%;text-align:left;font:inherit;color:inherit;background:none;border:0;border-radius:2px;padding:4px 8px;cursor:pointer}
+.fa-rail button:hover{background:var(--hk-hover)}
+.fa-rail button[aria-current=step]{background:var(--hk-active);font-weight:600}
+.fa-rail button:focus-visible{outline:2px solid var(--hk-accent);outline-offset:-2px}
+.fa-rail [data-status=done] .codicon{color:var(--hk-good)}
+.fa-rail-lock{display:flex;gap:6px;align-items:center;padding:2px 8px;font-size:var(--hk-fs-sm)}
+.fa-rail-step-locked{display:flex;gap:8px;align-items:center;padding:4px 8px}
+.fa-guide{display:grid;gap:12px;padding:14px;border:1px solid var(--hk-stroke);border-radius:2px;background:var(--hk-surface)}
+.fa-guide h2{margin:0;font-size:15px;font-weight:600;display:flex;gap:8px;align-items:center}
+.fa-guide h3{margin:0;font-size:13px;font-weight:600}
+.fa-guide-sec{display:grid;gap:8px;padding-top:10px;border-top:1px solid var(--hk-stroke)}
+.fa-guide-buttons{display:grid;gap:6px}
+.fa-guide-buttons button{justify-content:flex-start}
+.fa-guide-said{display:grid;gap:4px;padding:8px 10px;border-radius:2px;background:var(--hk-sunken);border-left:3px solid var(--hk-accent)}
+.fa-guide-said p{margin:0}
+.fa-guide-from{font-size:var(--hk-fs-sm)}
+.fa-guide-wait{display:flex;gap:8px;align-items:center;font-size:var(--hk-fs-sm);font-variant-numeric:tabular-nums}
+.fa-guide-chips{display:flex;flex-wrap:wrap;gap:6px}
+.fa-guide-chip{font:inherit;font-size:var(--hk-fs-sm);color:inherit;background:var(--hk-sunken);border:1px solid var(--hk-stroke);border-radius:2px;padding:3px 8px;cursor:pointer;text-align:left}
+.fa-guide-chip:hover{border-color:var(--hk-accent)}
+.fa-guide-src{display:inline-flex;font-size:12px;font-weight:600;padding:0 5px;margin-left:4px;border:1px solid var(--hk-stroke);border-radius:2px}
+.fa-guide-cmd{display:grid;gap:4px;margin:0;padding:0;list-style:none}
+.fa-guide-cmd code{display:block;font-family:var(--hk-mono);font-size:var(--hk-fs-sm);padding:6px 8px;border-radius:2px;background:var(--hk-sunken)}
+.fa-guide-foot{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between;font-size:var(--hk-fs-sm);padding-top:8px;border-top:1px solid var(--hk-stroke)}
+.fa-guide-tab{display:none}
+@container (max-width:859px){
+  .fa-guide{border-radius:2px 2px 0 0;max-height:60vh;overflow:auto;box-shadow:0 -6px 18px color-mix(in srgb,var(--hk-ink) 14%,transparent)}
+  .fa-guide-tab{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;background:var(--hk-surface);border:1px solid var(--hk-stroke);border-bottom:0;border-radius:2px 2px 0 0;padding:6px 20px}
+  .fa-guide-tab-toggle{display:flex;gap:8px;align-items:center;flex:1;font:inherit;font-weight:600;color:inherit;background:none;border:0;padding:4px 0;cursor:pointer;text-align:left}
+  .fa-desk-guide[data-open=false] .fa-guide{display:none}
+  .fa-guide>h2{display:none}
+}
+.fa-hero{display:grid;gap:6px}
+.fa-hero-line{margin:0;font-size:38px;line-height:1.15;font-weight:600;letter-spacing:-.005em;max-width:30ch}
+@container (max-width:859px){.fa-hero-line{font-size:30px}}
+@container (max-width:600px){.fa-hero-line{font-size:26px}}
+.fa-hero-sub{font-size:15px;margin:0}
+.fa-check-head{display:grid;gap:4px;padding:4px 0 8px}
+.fa-check-line{margin:0;font-size:32px;line-height:1.1;font-weight:600}
+.fa-check-head[data-pass] .fa-check-line{color:var(--hk-good)}
+.fa-check-line{max-width:32ch}
+.fa-next{display:grid;gap:8px;padding:12px 14px;border-radius:2px;border:1px solid var(--hk-stroke);border-left:3px solid var(--hk-accent);background:var(--hk-surface)}
+.fa-next h3{margin:0;font-size:15px;font-weight:600}
+.fa-explain-box{border:1px solid var(--hk-stroke);border-radius:2px;background:var(--hk-surface);padding:0 14px}
+.fa-explain-box>summary{cursor:pointer;padding:12px 0;font-weight:600}
+.fa-explain-box[open]{padding-bottom:14px}
+.fa-fixed{display:grid;gap:8px}
+.fa-fixed .fa-check-line{font-size:30px}
+.fa-fixed-row{display:grid;gap:4px;padding:10px 12px;border-radius:2px;border:1px solid var(--hk-stroke);border-left:3px solid var(--hk-good-fill);background:var(--hk-surface)}
+.fa-fixed-row>span{display:flex;flex-wrap:wrap;gap:4px 16px}
+.fa-was{text-decoration:line-through;text-decoration-color:var(--hk-idle-fill)}
+.fa-sample-tag{display:inline-flex;gap:6px;align-items:center;justify-self:start;font-size:var(--hk-fs-sm);font-weight:600;padding:2px 8px;border-radius:2px;border:1px solid var(--hk-stroke);background:var(--hk-sunken)}
+.fa-replay{display:grid;gap:10px}
+.fa-replay-head{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.fa-replay-head h3{margin:0;font-size:15px;font-weight:600}
+.fa-strip{position:relative;height:64px;border-radius:2px;background:var(--hk-sunken);border:1px solid var(--hk-stroke)}
+.fa-strip-lane{position:absolute;left:12px;right:12px;height:1px;background:var(--hk-stroke)}
+.fa-strip-lane[data-lane=chat]{top:20px}
+.fa-strip-lane[data-lane=files]{top:44px}
+.fa-strip-dot{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;border:2px solid var(--hk-surface);background:var(--hk-idle-fill);padding:0;cursor:pointer}
+.fa-strip-dot[data-lane=chat]{top:20px}
+.fa-strip-dot[data-lane=files]{top:44px}
+.fa-strip-dot[data-bracket]{background:var(--hk-warn-fill)}
+.fa-strip-dot:focus-visible{outline:2px solid var(--hk-accent);outline-offset:2px}
+.fa-strip-bracket{position:absolute;top:14px;height:36px;width:0;border-left:3px solid var(--hk-warn-fill)}
+.fa-strip-label{position:absolute;left:8px;font-size:12px;font-weight:600;line-height:1;padding:0 4px;background:var(--hk-sunken)}
+.fa-strip-label[data-lane=chat]{top:14px}
+.fa-strip-label[data-lane=files]{top:38px}
+.fa-replay-detail{display:grid;gap:6px;padding:10px 12px;border-radius:2px;border:1px solid var(--hk-accent);background:var(--hk-surface)}
+.fa-replay-detail code{font-family:var(--hk-mono);font-size:12px;overflow-wrap:anywhere}
+.fa-replay-excerpt{margin:0;font-family:var(--hk-mono);font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;padding:7px 9px;border-radius:2px;background:var(--hk-sunken)}
+.fa-replay-excerpt mark{background:color-mix(in srgb,var(--hk-warn-fill) 30%,transparent);color:inherit}
+.fa-strip-head{position:absolute;top:4px;bottom:4px;width:2px;margin-left:-1px;background:var(--hk-accent);transition:left 600ms var(--hk-ease)}
+.fa-replay-grid{display:grid;grid-template-columns:4.5rem minmax(0,1fr) minmax(0,1fr);gap:0 12px}
+.fa-replay-grid>.fa-replay-lanes{display:contents}
+.fa-replay-lane-title{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid var(--hk-stroke)}
+.fa-replay-row{display:contents}
+.fa-replay-time{font-size:var(--hk-fs-sm);font-variant-numeric:tabular-nums;padding:10px 0}
+.fa-replay-cell{display:grid;gap:6px;align-content:start;padding:8px 0;border-bottom:1px solid var(--hk-stroke);min-width:0}
+.fa-ev{display:grid;gap:3px;padding:8px 10px;border-radius:2px;border:1px solid var(--hk-stroke);background:var(--hk-surface);min-width:0}
+.fa-ev strong{font-weight:600}
+.fa-ev p{margin:0;overflow-wrap:anywhere}
+.fa-ev-note{display:inline-flex;gap:6px;align-items:center;font-size:var(--hk-fs-sm);font-weight:600}
+.fa-ev:not([data-bracket])>p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.fa-replay-row .fa-ev:not([data-bracket]){padding:6px 10px}
+.fa-ev code{font-family:var(--hk-mono);font-size:12px;overflow-wrap:anywhere}
+.fa-ev[data-bracket]{border:2px solid var(--hk-warn-fill);background:color-mix(in srgb,var(--hk-warn-fill) 10%,var(--hk-surface))}
+.fa-ev[data-picked]{outline:2px solid var(--hk-accent);outline-offset:1px}
+.fa-ev-deep{font-family:var(--hk-mono);font-size:12px;padding:4px 6px;border-radius:2px;background:var(--hk-sunken)}
+.fa-ev-pin{display:grid;gap:4px;padding:6px 8px;border-radius:2px;border-left:3px solid var(--hk-accent);background:var(--hk-sunken)}
+.fa-ev-pin p{margin:0}
+.fa-meter{display:grid;gap:3px}
+.fa-meter-bar{height:6px;border-radius:2px;background:var(--hk-sunken);overflow:hidden}
+.fa-meter-bar span{display:block;height:100%;background:var(--hk-idle-fill)}
+.fa-bracket-words{grid-column:2/-1;display:flex;gap:8px;align-items:center;padding:6px 10px;margin:4px 0 2px;border-radius:2px;background:color-mix(in srgb,var(--hk-warn-fill) 16%,transparent);font-weight:600}
+@container (max-width:600px){
+  .fa-replay-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .fa-replay-time{grid-column:1/-1;padding:8px 0 0}
+  .fa-replay-lanes>.fa-replay-spacer{display:none}
+  .fa-bracket-words{grid-column:1/-1}
+}
+.fa-ff{display:grid;gap:18px;grid-template-columns:minmax(0,1fr);padding:20px;border:1px solid var(--hk-stroke);border-radius:2px;background:var(--hk-surface)}
+@container (min-width:860px){.fa-ff{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:center}}
+.fa-ff h2{margin:0;font-size:28px;line-height:1.15;font-weight:600}
+.fa-ff-copy>p{margin:0;font-size:15px;max-width:52ch}
+.fa-ff-still{pointer-events:none}
+.fa-still-cards{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.fa-ff-still .fa-ev{padding:6px 8px}
+.fa-top{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);align-items:start}
+@container (min-width:1000px){.fa-top{grid-template-columns:minmax(0,1fr) 340px}}
+.fa-top-map,.fa-top-start{min-width:0}
+.fa-top-map{container-type:inline-size}
+@container (max-width:700px){.fa-map-head span{font-size:12px;letter-spacing:0}}
+@container (max-width:520px){.fa-map-head span{font-size:0}.fa-map-head span::first-letter{font-size:12px}}
+.fa-ff-compact{grid-template-columns:minmax(0,1fr)!important;gap:14px;padding:16px}
+.fa-ff-compact h2{font-size:20px}
+.fa-ff-compact .fa-ff-copy>p{font-size:14px}
+.fa-ff-actions{display:flex;flex-wrap:wrap;gap:8px}
+.fa-guess{display:grid;gap:14px}
+.fa-guess{max-width:720px}
+.fa-guess h3{margin:0;font-size:26px;line-height:1.2;font-weight:600}
+.fa-choices{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))}
+.fa-choice{display:flex;gap:10px;align-items:center;text-align:left;font:inherit;font-size:15px;color:inherit;padding:16px 16px;border-radius:2px;border:1px solid var(--hk-stroke);background:var(--hk-surface);cursor:pointer}
+.fa-choice:hover{border-color:var(--hk-accent)}
+.fa-choice[aria-pressed=true]{border:2px solid var(--hk-accent);background:var(--hk-active);font-weight:600;padding:15px 15px}
+.fa-choice:focus-visible{outline:2px solid var(--hk-accent);outline-offset:2px}
+.fa-choice:disabled{cursor:default}
+.fa-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.fa-chip-btn{font:inherit;color:inherit;padding:5px 12px;border-radius:2px;border:1px solid var(--hk-stroke);background:var(--hk-surface);cursor:pointer}
+.fa-chip-btn[aria-pressed=true]{border-color:var(--hk-accent);background:var(--hk-active);font-weight:600}
+.fa-chip-btn:focus-visible{outline:2px solid var(--hk-accent);outline-offset:2px}
+.fa-toggles{display:grid;gap:8px}
+.fa-tog{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 12px;border-radius:2px;border:1px solid var(--hk-stroke);background:var(--hk-surface)}
+.fa-tog-pair{display:inline-flex;border:1px solid var(--hk-stroke);border-radius:2px;overflow:hidden}
+.fa-tog-pair button{font:inherit;color:inherit;padding:4px 12px;border:0;background:var(--hk-surface);cursor:pointer;min-width:5.5rem}
+.fa-tog-pair button+button{border-left:1px solid var(--hk-stroke)}
+.fa-tog-pair button[aria-pressed=true]{background:var(--hk-accent);color:var(--dt-primary-foreground,var(--hk-surface));font-weight:600}
+.fa-tog-pair button:disabled{cursor:default}
+.fa-tog-pair button:focus-visible{outline:2px solid var(--hk-accent);outline-offset:-2px}
+.fa-progress{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.fa-progress li{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:8px;align-items:center}
+.fa-progress [data-state=done] .codicon{color:var(--hk-good)}
+.fa-progress span:last-child{font-variant-numeric:tabular-nums;font-size:var(--hk-fs-sm)}
+.fa-grade{display:grid;gap:10px;padding:12px 14px;border-radius:2px;border:1px solid var(--hk-stroke);background:var(--hk-surface)}
+.fa-grade-level{font-size:22px;font-weight:600}
+.fa-grade dl{display:grid;grid-template-columns:7rem minmax(0,1fr);gap:6px 12px;margin:0}
+.fa-grade dt{font-weight:600}
+.fa-grade dd{margin:0}
+.fa-grade blockquote{margin:0;padding:8px 10px;border-radius:2px;background:var(--hk-sunken)}
+.fa-grade mark{background:color-mix(in srgb,var(--hk-warn-fill) 34%,transparent);color:inherit;padding:0 2px;border-radius:2px}
+.fa-explain{display:grid;gap:4px;padding:8px 10px;border-radius:2px;border-left:3px solid var(--hk-accent);background:var(--hk-sunken)}
+.fa-explain p{margin:0}
+.fa-result-split{display:grid;gap:10px}
+@container (min-width:1000px){.fa-result-split{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}}
+.fa-cover{display:grid;gap:10px;padding:16px 18px;border-radius:2px;border:1px solid var(--hk-stroke);border-left:4px solid var(--hk-accent);background:var(--hk-surface)}
+.fa-cover-line{font-size:32px;line-height:1.15;font-weight:600;margin:0}
+`;
+function createDeskViews(ui) {
+  const { ctxRest: ctxRest2, post, errorText: errorText2, copyText: copyText2, openPracticeChat, draftInPractice, Problem } = ui;
+  function PhaseRail({ states, at, onPick }) {
+    const rows = phaseRows(states, at);
+    return jsx9("nav", { className: "fa-desk-rail", "aria-label": "Mission steps", children: jsx9("ol", { className: "fa-rail", children: rows.map((p) => jsxs8("li", { children: [
+      jsx9("h3", { children: p.title }, "h"),
+      p.locked ? jsxs8("div", { className: "fa-rail-lock", children: [jsx9(Codicon4, { name: "lock", size: 12 }), p.lockLine] }, "lock") : jsx9("ol", { children: p.steps.filter((s) => s.status !== "skipped").map((s) => jsx9("li", { "data-status": s.status, children: s.status === "locked" ? jsxs8("span", { className: "fa-rail-step-locked", children: [jsx9(Codicon4, { name: "circle-small", size: 14 }), s.title] }) : jsxs8("button", { type: "button", "aria-current": s.id === at ? "step" : void 0, onClick: () => onPick(s.id), children: [
+        jsx9(Codicon4, { name: s.status === "done" ? "pass-filled" : s.status === "skipped" ? "dash" : s.id === at ? "circle-filled" : "circle-large-outline", size: 14 }),
+        p.id === "learn" && s.status === "open" ? `${s.title} (optional)` : s.title
+      ] }) }, s.id)) }, "steps")
+    ] }, p.id)) }) });
+  }
+  function PhaseBar({ states, at }) {
+    return jsxs8("div", { className: "fa-desk-bar", children: [
+      jsx9("strong", { children: phaseBarWords(states, at) }),
+      jsx9("ol", { "aria-hidden": "true", children: phaseRows(states, at).map((p) => jsx9("li", { "data-state": p.current ? "now" : p.done ? "done" : "later" }, p.id)) })
+    ] });
+  }
+  function useGuide(attemptId, step, runsKey) {
+    const [state, setState] = useState7({ view: null, error: "" });
+    const [now, setNow] = useState7(() => Date.now() / 1e3);
+    const load = async () => {
+      if (!attemptId) return null;
+      try {
+        const view = await ctxRest2(`/guide/${attemptId}?step=${encodeURIComponent(step || "")}&active=own`);
+        setState({ view, error: "" });
+        return view;
+      } catch (e) {
+        setState((s) => ({ ...s, error: errorText2(e) }));
+        return null;
+      }
+    };
+    useEffect5(() => {
+      load();
+    }, [attemptId, step, runsKey]);
+    const fetching = guideFetching(state.view);
+    useEffect5(() => {
+      if (!fetching) return void 0;
+      const t = setInterval(() => {
+        setNow(Date.now() / 1e3);
+        load();
+      }, 1500);
+      return () => clearInterval(t);
+    }, [fetching, attemptId, step]);
+    return { ...state, now, reload: load, setView: (view) => setState((s) => ({ ...s, view })) };
+  }
+  function Fetching({ startedAt, now, what }) {
+    return jsxs8("div", { className: "fa-guide-wait", role: "status", children: [jsx9(Spinner, {}), `${what}. ${fetchingWords(startedAt, now)}`] });
+  }
+  function Said({ text, from }) {
+    if (!text) return null;
+    return jsxs8("div", { className: "fa-guide-said", children: [jsx9("p", { children: text }), from ? jsx9("span", { className: "fa-guide-from", children: from }) : null] });
+  }
+  function failureOf(part) {
+    const p = part || {};
+    return ["no_model", "timeout", "bad_json", "provider_error", "too_long"].includes(p.state) ? p : null;
+  }
+  function Failure2({ part, onRetry }) {
+    const f = failureOf(part);
+    if (!f) return null;
+    return jsxs8("div", { className: "hk-stack", style: { gap: 6 }, children: [
+      jsx9(Notice, { tone: f.state === "bad_json" ? "info" : "warn", title: f.message || "Your model didn't answer.", children: f.next_step || "" }),
+      jsxs8("div", { className: "hk-actions", children: [
+        f.state === "no_model" ? jsx9(Button5, { onClick: () => {
+          try {
+            host3.navigate("/settings?tab=config:model");
+          } catch (e) {
+          }
+        }, children: "Open model settings" }, "models") : null,
+        onRetry ? jsx9(Button5, { variant: "secondary", onClick: onRetry, children: "Try again" }, "retry") : null
+      ] })
+    ] });
+  }
+  function FieldGuide({ guide, attemptId, step, missed, onOpenCompare, practiceName, onTurnOn, onTurnOff, onScoreAnswer, noRun = false, fixed = false }) {
+    const [open, setOpen] = useState7(false);
+    const [shown, setShown] = useState7({});
+    const [busy, setBusy] = useState7("");
+    const [error, setError] = useState7("");
+    const v = guide.view;
+    const help = async (body2, key) => {
+      setBusy(key);
+      setError("");
+      try {
+        const out = await post(`/guide/${attemptId}/help`, { ...body2, step });
+        setShown((s) => ({ ...s, [key]: out?.shown || {} }));
+        await guide.reload();
+        return out;
+      } catch (e) {
+        setError(errorText2(e));
+        return null;
+      } finally {
+        setBusy("");
+      }
+    };
+    const used = usedRungs(v);
+    const nudge = v?.ladder?.nudge || {};
+    const nudgeText = nudge.text || shown.nudge?.text || "";
+    const whereText = v?.ladder?.where?.text || shown.where?.text || "";
+    const body = [];
+    if (!v) {
+      body.push(guide.error ? jsx9("p", { children: "The Field guide couldn't load just now. Your checks still work." }, "e") : jsx9("p", { children: "Opening your guide." }, "l"));
+    } else if (!v.enabled) {
+      body.push(jsx9("p", { children: v.off_words || "The guide is off for this step." }, "off"));
+      if (v.off_reason === "switch" && onTurnOn) body.push(jsx9("div", { className: "hk-actions", children: jsx9(Button5, { variant: "secondary", onClick: onTurnOn, children: "Turn on AI help" }) }, "on"));
+    } else {
+      if (step === "check" && missed) {
+        body.push(jsxs8("section", { className: "fa-guide-sec", "aria-label": "Find out why", children: [
+          jsx9("h3", { children: "Find out why" }),
+          jsx9("p", { children: "Try to find the cause in your practice chat first." }),
+          jsxs8("div", { className: "fa-guide-buttons", children: [
+            jsx9(Button5, { variant: used.nudge ? "secondary" : void 0, loading: busy === "nudge", onClick: () => help({ rung: 1 }, "nudge"), children: "Give me a hint" }, "n"),
+            jsx9(Button5, { variant: "secondary", loading: busy === "where", onClick: () => help({ rung: 2 }, "where"), children: "Show me where to look" }, "w"),
+            jsx9(Button5, { variant: "secondary", loading: busy === "reveal", onClick: async () => {
+              const out = await help({ rung: 3 }, "reveal");
+              if (out && onOpenCompare) onOpenCompare();
+            }, children: "Show me the answer" }, "r")
+          ] }),
+          nudge.state === "fetching" && (used.nudge || busy === "nudge") ? jsx9(Fetching, { startedAt: nudge.started_at, now: guide.now, what: "Your model is reading your chat" }) : null,
+          failureOf(nudge) ? jsx9(Failure2, { part: nudge, onRetry: () => help({ rung: 1, regenerate: true }, "nudge") }) : null,
+          used.nudge && nudgeText ? jsx9(Said, { text: nudgeText, from: nudge.source === "model" ? "Hint, written by your model from your own chat" : "Hint, from the course" }) : null,
+          used.where && whereText ? jsx9(Said, { text: whereText, from: "Where to look, from the course" }) : null
+        ] }, "hunt"));
+      }
+      if (step === "check" && !missed) {
+        body.push(jsx9("p", { children: v.ladder?.nudge?.state === "not_started" ? "Run the check. If one misses, the guide helps you hunt for why." : "Every check met. Ask about anything in this mission." }, "idle"));
+      }
+      if (step === "compare") body.push(jsx9(WhyMissed, { v, attemptId, guide }, "why"));
+      if (step === "compare") body.push(jsx9(PinsPanel, { v, attemptId, guide, noRun }, "pins"));
+      if (step === "fix" && fixed) body.push(jsx9("section", { className: "fa-guide-sec", children: jsx9("p", { children: "Your fix worked. Next, do the job once more, a little differently, in the main column." }) }, "fixed"));
+      else if (step === "fix" && v.do_it_with_me) body.push(jsx9(DoItWithMe, { d: v.do_it_with_me, guide }, "diwm"));
+      body.push(jsx9(AskPanel, { v, attemptId, step, guide, practiceName }, "ask"));
+    }
+    if (error) body.push(jsx9(Problem, { text: error }, "err"));
+    const words = v?.help?.words;
+    return jsxs8("aside", { className: "fa-desk-guide", "data-open": open ? "true" : "false", "aria-label": "Field guide", children: [
+      jsxs8("div", { className: "fa-guide-tab", children: [
+        jsxs8("button", { type: "button", className: "fa-guide-tab-toggle", "aria-expanded": open, onClick: () => setOpen(!open), children: [
+          jsx9(Codicon4, { name: "compass", size: 16 }),
+          `Field guide${v && v.enabled === false ? "" : step === "check" && missed ? ": find out why" : step === "compare" ? ": notes on your run" : step === "fix" && v?.do_it_with_me && !fixed ? ": the fix, step by step" : ""}`,
+          jsx9(Codicon4, { name: open ? "chevron-down" : "chevron-up", size: 16 })
+        ] }),
+        v && v.enabled !== false && step === "check" && missed && !open && !used.nudge ? jsx9(Button5, { onClick: async () => {
+          setOpen(true);
+          await help({ rung: 1 }, "nudge");
+        }, children: "Give me a hint" }) : null
+      ] }),
+      jsxs8("div", { className: "fa-guide", children: [
+        jsxs8("h2", { children: [jsx9(Codicon4, { name: "compass", size: 16 }), "Field guide"] }),
+        ...body,
+        v && v.enabled !== false ? jsxs8("div", { className: "fa-guide-foot", children: [
+          words ? jsx9("p", { children: `${words} so far.` }, "w") : null,
+          onTurnOff ? jsx9(Button5, { variant: "ghost", onClick: onTurnOff, children: "Turn off AI help" }, "off") : null
+        ] }, "foot") : null
+      ] })
+    ] });
+  }
+  function PinsPanel({ v, attemptId, guide, noRun = false }) {
+    const [busy, setBusy] = useState7(false);
+    const [made, setMade] = useState7(null);
+    const pins = v.pins?.length ? v.pins : made?.pins || [];
+    const make = async () => {
+      setBusy(true);
+      try {
+        setMade(await post(`/guide/${attemptId}/pins`, { make: true, step: "compare" }));
+        await guide.reload();
+      } catch (e) {
+        setMade({ state: "provider_error", message: errorText2(e) });
+      } finally {
+        setBusy(false);
+      }
+    };
+    const mark = async (id, keep) => {
+      await post(`/guide/${attemptId}/pins`, keep ? { keep: [id] } : { dismiss: [id] }).catch(() => null);
+      await guide.reload();
+    };
+    return jsxs8("section", { className: "fa-guide-sec", "aria-label": "Notes on your run", children: [
+      jsx9("h3", { children: "Notes on your run" }),
+      pins.length ? jsx9("ol", { className: "hk-stack", style: { gap: 8, margin: 0, padding: 0, listStyle: "none" }, children: pins.filter((p) => p.kept !== false).map((p, i) => jsxs8("li", { className: "fa-guide-said", children: [
+        jsx9("p", { children: [jsx9("strong", { children: `${i + 1}. ` }, "n"), p.why] }),
+        jsxs8("div", { className: "fa-chips", children: [
+          p.kept ? jsx9("span", { className: "fa-guide-from", children: "Kept in your record" }) : jsx9(Button5, { variant: "secondary", onClick: () => mark(p.event_id, true), children: "Keep" }),
+          jsx9(Button5, { variant: "ghost", onClick: () => mark(p.event_id, false), children: "Dismiss" })
+        ] })
+      ] }, p.event_id)) }) : null,
+      !pins.length && noRun ? jsx9("p", { children: "Notes come once there is a chat to replay." }) : null,
+      !pins.length && !noRun && !failureOf(made) ? jsxs8("div", { className: "hk-stack", style: { gap: 6 }, children: [
+        jsx9("p", { children: "Your model can point out the moments in your run that explain the result." }),
+        jsx9("div", { className: "hk-actions", children: jsx9(Button5, { variant: "secondary", loading: busy, onClick: make, children: "Point out the key moments" }) })
+      ] }) : null,
+      failureOf(made) ? jsx9(Failure2, { part: made, onRetry: make }) : null,
+      pins.length ? jsx9("span", { className: "fa-guide-from", children: "Written by your model from your own run." }) : null
+    ] });
+  }
+  function DoItWithMe({ d, guide }) {
+    const why = d.why || {};
+    return jsxs8("section", { className: "fa-guide-sec", "aria-label": "Why this fixes it", children: [
+      jsx9("h3", { children: "Why this fixes it" }),
+      why.state === "fetching" ? jsx9(Fetching, { startedAt: why.started_at, now: guide.now, what: "Your model is writing why" }) : null,
+      why.state === "ready" && why.text ? jsx9(Said, { text: why.text, from: why.source === "model" ? "From your model" : "From the course" }) : null
+    ] });
+  }
+  function FixCommands({ commands, attemptId, practiceName }) {
+    const [drafted, setDrafted] = useState7("");
+    const text = commands.join("\n");
+    return jsxs8("div", { className: "hk-stack", style: { gap: 8 }, children: [
+      jsx9("ol", { className: "fa-guide-cmd", children: commands.map((c) => jsx9("li", { children: jsx9("code", { children: c }) }, c)) }),
+      jsxs8("div", { className: "fa-f-row", children: [
+        jsx9(Button5, { variant: "secondary", onClick: async () => {
+          const ok = draftInPractice ? await draftInPractice(practiceName, commands[0] || "") : false;
+          setDrafted(ok ? "The first command is in the practice chat, not sent. Press Enter there, then send the second." : "Copied. Paste them in the practice chat and press Enter after each.");
+          if (!ok) copyText2(text, "Copied the commands.");
+          post(`/guide/${attemptId}/help`, { action: "do_it_with_me", step: "fix" }).catch(() => null);
+        }, children: "Put it in the practice chat" }),
+        jsx9(Button5, { variant: "secondary", onClick: () => copyText2(text, "Copied the commands."), children: "Copy the commands" })
+      ] }),
+      drafted ? jsx9("p", { className: "hk-small", role: "status", style: { margin: 0 }, children: drafted }) : null
+    ] });
+  }
+  function AskPanel({ v, attemptId, step, guide, practiceName }) {
+    const [q, setQ] = useState7("");
+    const [busy, setBusy] = useState7(false);
+    const [answer, setAnswer] = useState7(null);
+    const ask = async (question) => {
+      const text = (question || q).trim();
+      if (!text) return;
+      setQ(text);
+      setBusy(true);
+      setAnswer(null);
+      try {
+        setAnswer(await post(`/guide/${attemptId}/ask`, { question: text, step }));
+        guide.reload();
+      } catch (e) {
+        setAnswer({ state: "provider_error", message: errorText2(e) });
+      } finally {
+        setBusy(false);
+      }
+    };
+    return jsxs8("section", { className: "fa-guide-sec", "aria-label": "Ask", children: [
+      jsx9("h3", { children: "Ask" }),
+      jsxs8("form", { className: "hk-stack", style: { gap: 6 }, onSubmit: (e) => {
+        e.preventDefault();
+        ask();
+      }, children: [
+        jsx9(Input4, { value: q, onChange: (e) => setQ(e.target.value), placeholder: "Ask about this mission", "aria-label": "Ask the field guide" }),
+        jsx9("div", { className: "hk-actions", children: jsx9(Button5, { type: "submit", loading: busy, disabled: !q.trim(), children: "Ask" }) })
+      ] }),
+      !answer && (v.starters || []).length ? jsx9("div", { className: "fa-guide-chips", children: v.starters.map((s) => jsx9("button", { type: "button", className: "fa-guide-chip", onClick: () => ask(s), children: s }, s)) }) : null,
+      answer && answer.state === "ok" && answer.sentences?.length ? jsx9("div", { className: "fa-guide-said", children: answer.sentences.map((s, i) => jsxs8("p", { children: [
+        s.text,
+        ...[...new Set((s.source_ids || []).map(sourceWords))].slice(0, 3).map((w) => jsx9("span", { className: "fa-guide-src", title: "Where this comes from", children: w }, w))
+      ] }, i)) }) : null,
+      answer && answer.state === "ok" && answer.not_in_sources ? jsxs8("div", { className: "hk-stack", style: { gap: 6 }, children: [
+        jsx9("p", { children: "This lesson doesn't cover that." }),
+        jsx9("div", { className: "hk-actions", children: jsx9(Button5, { variant: "secondary", onClick: async () => {
+          const ok = draftInPractice ? await draftInPractice(practiceName, answer.draft_for_practice_chat || q) : false;
+          if (!ok) copyText2(answer.draft_for_practice_chat || q, "Copied the question. Paste it in the practice chat.");
+        }, children: "Ask it in the practice chat" }) })
+      ] }) : null,
+      answer && answer.held_back ? jsx9("p", { className: "fa-guide-from", children: "Part of the answer would give the snag away, so the guide kept to a hint." }) : null,
+      failureOf(answer) ? jsx9(Failure2, { part: answer, onRetry: () => ask() }) : null
+    ] });
+  }
+  function WhyMissed({ v, attemptId, guide }) {
+    const [busy, setBusy] = useState7(false);
+    const items = v && v.explain || [];
+    if (!items.length) return null;
+    const used = usedRungs(v).explain;
+    const ready = items.filter((i) => i.sentences && i.sentences.length);
+    const fetching = items.find((i) => i.state === "fetching");
+    return jsxs8("section", { className: "fa-guide-sec", "aria-label": "Why did this miss?", children: [
+      used && ready.length ? jsx9("h3", { children: "Why did this miss?" }) : null,
+      used && ready.length ? jsxs8("div", { className: "fa-explain", children: [
+        ...explainMerged(ready).map((t, n) => jsx9("p", { children: t }, n)),
+        jsx9("span", { className: "fa-guide-from", children: ready.every((i) => i.source === "model") ? "From your model" : "From the course" }, "f")
+      ] }) : jsx9("div", { className: "hk-actions", children: jsx9(Button5, { variant: "secondary", loading: busy, onClick: async () => {
+        setBusy(true);
+        try {
+          await post(`/guide/${attemptId}/help`, { action: "explain", step: "compare" });
+          await guide.reload();
+        } finally {
+          setBusy(false);
+        }
+      }, children: "Why did this miss?" }) }),
+      used && fetching ? jsx9(Fetching, { startedAt: fetching.started_at, now: guide.now, what: "Your model is reading the run" }) : null
+    ] });
+  }
+  function ExplainMiss({ guide, attemptId, checkId }) {
+    const [busy, setBusy] = useState7(false);
+    const [asked, setAsked] = useState7(false);
+    const v = guide.view;
+    if (!v || !v.enabled) return null;
+    const item = (v.explain || []).find((e) => e.check_id === checkId) || {};
+    const used = usedRungs(v).explain;
+    const show = (asked || used) && item.sentences?.length;
+    if (failureOf(item) && !asked) return null;
+    return jsxs8("div", { className: "hk-stack", style: { gap: 6 }, children: [
+      show ? jsxs8("div", { className: "fa-explain", children: [...explainShown(item.sentences).map((s, i) => jsx9("p", { children: s }, i)), jsx9("span", { className: "fa-guide-from", children: item.source === "model" ? "Field guide, from your model" : "Field guide, from the course" }, "f")] }) : jsx9("div", { className: "hk-actions", children: jsx9(Button5, { variant: "secondary", loading: busy, onClick: async () => {
+        setBusy(true);
+        try {
+          await post(`/guide/${attemptId}/help`, { action: "explain", step: "check" });
+          setAsked(true);
+          await guide.reload();
+        } finally {
+          setBusy(false);
+        }
+      }, children: "Why did this miss?" }) }),
+      (asked || used) && item.state === "fetching" ? jsx9(Fetching, { startedAt: item.started_at, now: guide.now, what: "Your model is reading the check" }) : null,
+      failureOf(item) ? jsx9(Notice, { tone: "warn", children: item.message || "Your model didn't answer. The Field guide says what to try." }) : null
+    ] });
+  }
+  const REPLAY_WAIT_MS = 2e4;
+  function useReplay(attemptId, step, sample) {
+    const [state, setState] = useState7({ data: sample || null, error: "" });
+    const [tries, setTries] = useState7(0);
+    useEffect5(() => {
+      let live = true;
+      if (sample) {
+        setState({ data: sample, error: "" });
+        return void 0;
+      }
+      if (!attemptId) return void 0;
+      setState({ data: null, error: "" });
+      const timer = setTimeout(() => {
+        if (live) setState((s) => s.data ? s : { data: null, error: "timeout" });
+      }, REPLAY_WAIT_MS);
+      ctxRest2(`/replay/${attemptId}?step=${encodeURIComponent(step || "compare")}`).then((data) => {
+        if (live) setState({ data, error: "" });
+      }).catch((e) => {
+        if (live) setState({ data: null, error: errorText2(e) || "error" });
+      }).finally(() => clearTimeout(timer));
+      return () => {
+        live = false;
+        clearTimeout(timer);
+      };
+    }, [attemptId, step, sample || null, tries]);
+    return { ...state, retry: () => setTries((n) => n + 1) };
+  }
+  function Meter2({ m }) {
+    const used = Number(m.used) || 0;
+    const limit = Number(m.limit) || 0;
+    return jsxs8("div", { className: "fa-meter", children: [
+      jsx9("div", { className: "fa-meter-bar", role: "img", "aria-label": `${used} of ${limit} characters`, children: jsx9("span", { style: { width: `${limit ? Math.min(100, used / limit * 100) : 0}%` } }) }),
+      jsx9("span", { className: "hk-small", children: `${m.changed ? "Changed" : "Unchanged"}, ${used.toLocaleString("en-US")} of ${limit.toLocaleString("en-US")}` })
+    ] });
+  }
+  function EventCard({ e, bracket, picked, pin }) {
+    return jsxs8("div", { className: "fa-ev", id: `fa-ev-${e.event_id}`, "data-bracket": bracket ? "" : void 0, "data-picked": picked ? "" : void 0, children: [
+      jsx9("strong", { children: e.title || e.kind }),
+      e.kind === "tool:memory" && e.text ? jsx9("p", { className: "fa-ev-deep", children: e.text }) : e.kind === "file:pending" && e.text ? jsx9("p", { children: heldSentence(e.text).sentence }) : e.text && e.kind !== "file:memory" && !/^\(called /.test(e.text) ? jsx9("p", { children: e.text }) : null,
+      // A held save's file name is a random id; the folder says what matters. Other paths show whole.
+      e.path ? jsx9("code", { title: e.path, children: /\/[0-9a-f]{6,}\.json$/.test(e.path) ? `${e.path.split("/").slice(0, -1).join("/")}/` : e.path }) : null,
+      e.meter ? jsx9(Meter2, { m: e.meter }) : null,
+      pin ? jsxs8("span", { className: "fa-ev-note", children: [jsx9(Codicon4, { name: "compass", size: 14 }), `Note ${pin.n} in the Field guide`] }) : null
+    ] });
+  }
+  function Replay({ attemptId, sample, pins = [], still = false, play = false, onSample, onState }) {
+    const { data, error } = useReplay(attemptId, "compare", sample);
+    useEffect5(() => {
+      if (onState && data) onState(data.state);
+    }, [data && data.state]);
+    const [picked, setPicked] = useState7("");
+    const [head, setHead] = useState7(play ? 0 : -1);
+    const rows = data && data.state === "ready" ? replayRows(data) : [];
+    const target = bracketAt(rows);
+    useEffect5(() => {
+      if (!play || target < 0) return void 0;
+      const reduced = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduced) {
+        setHead(target);
+        return void 0;
+      }
+      const t = setTimeout(() => setHead(target), 300);
+      return () => clearTimeout(t);
+    }, [play, target]);
+    if (error) return jsx9(Problem, { text: error });
+    if (!data) return jsx9("p", { children: "Loading the replay." });
+    if (data.state !== "ready") {
+      return jsxs8("div", { className: "fa-replay", children: [
+        jsx9("div", { className: "fa-replay-head", children: jsx9("h3", { children: "Replay your run" }) }),
+        jsx9(Notice, {
+          tone: "info",
+          title: data.state === "empty" ? "No chat to replay yet" : data.state === "schema_changed" ? "Hermes changed how it stores chats" : "The replay opens at Compare",
+          children: data.words || (data.state === "schema_changed" ? "Hermes changed how it stores chats. Your checks still work." : "")
+        }),
+        data.state === "empty" && onSample ? jsx9("div", { className: "hk-actions", children: jsx9(Button5, { onClick: onSample, children: "See a sample run" }) }) : null
+      ] });
+    }
+    const pickedEvent = picked ? (data.events || []).find((e) => e.event_id === picked) : null;
+    const shownPins = pins.filter((p) => p.kept !== false);
+    const pinFor = (id) => {
+      const i = shownPins.findIndex((p) => p.event_id === id);
+      return i < 0 ? null : { ...shownPins[i], n: i + 1 };
+    };
+    const all = rows.flatMap((r) => [...r.chat, ...r.files]);
+    const x = (i) => rows.length > 1 ? 16 + i / (rows.length - 1) * 74 : 50;
+    const words = bracketWords(data);
+    return jsxs8("div", { className: still ? "fa-replay fa-ff-still" : "fa-replay", children: [
+      still ? null : jsxs8("div", { className: "fa-replay-head", children: [
+        jsx9("h3", { children: "Replay your run" }),
+        jsx9("span", { className: "hk-small", children: `${clockWords(data.started_at)} to ${clockWords(data.ended_at)}. ${all.length} moments, read from the practice profile.` })
+      ] }),
+      jsxs8("div", { className: "fa-strip", role: "group", "aria-label": "Time line of the run", children: [
+        jsx9("span", { className: "fa-strip-lane", "data-lane": "chat" }),
+        jsx9("span", { className: "fa-strip-lane", "data-lane": "files" }),
+        target >= 0 ? jsx9("span", { className: "fa-strip-bracket", role: "img", "aria-label": words || "The moment the chat and the files split", title: words || void 0, style: { left: `${x(rows.findIndex((r) => r.bracket))}%` } }) : null,
+        ...rows.flatMap((r, i) => [...r.chat.slice(0, 1), ...r.files.slice(0, 1)].map((e) => jsx9("button", {
+          type: "button",
+          className: "fa-strip-dot",
+          "data-lane": e.lane,
+          "data-bracket": r.bracket ? "" : void 0,
+          style: { left: `${x(i)}%` },
+          "aria-label": `${r.clock}: ${e.title || e.kind}`,
+          tabIndex: still ? -1 : 0,
+          onClick: () => {
+            setPicked(e.event_id);
+            const n = typeof document !== "undefined" && document.getElementById(`fa-ev-${e.event_id}`);
+            if (n && n.scrollIntoView) n.scrollIntoView({ block: "nearest" });
+          }
+        }, e.event_id))),
+        head >= 0 ? jsx9("span", { className: "fa-strip-head", style: { left: `${x(Math.round(head * (rows.length - 1)))}%` } }) : null,
+        jsx9("span", { className: "fa-strip-label", "data-lane": "chat", "aria-hidden": "true", children: "Chat" }),
+        jsx9("span", { className: "fa-strip-label", "data-lane": "files", "aria-hidden": "true", children: "Files" })
+      ] }),
+      !still && pickedEvent ? jsxs8("div", { className: "fa-replay-detail", role: "region", "aria-label": "The moment you picked", children: [
+        jsxs8("div", { className: "fa-replay-head", children: [jsx9("h3", { children: pickedEvent.title || pickedEvent.kind }), jsx9("span", { className: "hk-small", children: `${clockWords(pickedEvent.at)}, ${pickedEvent.lane === "files" ? "in Hermes's files" : "in your chat"}` })] }),
+        pickedEvent.path ? jsx9("code", { children: pickedEvent.path }) : null,
+        pickedEvent.text ? jsx9("pre", { className: "fa-replay-excerpt", children: jsx9("mark", { children: pickedEvent.text }) }) : null,
+        pickedEvent.meter ? jsx9(Meter2, { m: pickedEvent.meter }) : null
+      ] }) : null,
+      // The home still shows the question, not the answer: the chat's own claim beside a file still to be read.
+      still ? jsxs8("div", { className: "fa-still-cards", "aria-hidden": "true", children: [
+        jsxs8("div", { className: "fa-ev", "data-bracket": "", children: [jsx9("span", { className: "fa-guide-from", children: "What the chat shows" }), jsxs8("strong", { style: { display: "flex", gap: 6, alignItems: "center" }, children: [jsx9(Codicon4, { name: "pass", size: 14 }), "Saved to memory"] })] }),
+        jsxs8("div", { className: "fa-ev", "data-bracket": "", children: [jsx9("span", { className: "fa-guide-from", children: "What Hermes's files show" }), jsx9("strong", { children: "You find out after the job" })] })
+      ] }) : jsxs8("div", { className: "fa-replay-grid", children: [
+        jsxs8("div", { className: "fa-replay-lanes", children: [
+          jsx9("span", { className: "fa-replay-spacer" }),
+          jsx9("span", { className: "fa-replay-lane-title", children: (data.lanes || []).find((l) => l.id === "chat")?.label || "In your chat" }),
+          jsx9("span", { className: "fa-replay-lane-title", children: (data.lanes || []).find((l) => l.id === "files")?.label || "In Hermes's files" })
+        ] }),
+        ...rows.map((r, i) => jsxs8("div", { className: "fa-replay-row", children: [
+          jsx9("span", { className: "fa-replay-time", children: r.clock }),
+          jsx9("div", { className: "fa-replay-cell", children: r.chat.map((e) => jsx9(EventCard, { e, bracket: r.bracket && e.event_id === data.bracket.from, picked: picked === e.event_id, pin: pinFor(e.event_id) }, e.event_id)) }),
+          jsx9("div", { className: "fa-replay-cell", children: r.files.map((e) => jsx9(EventCard, { e, bracket: r.bracket && e.event_id === data.bracket.to, picked: picked === e.event_id, pin: pinFor(e.event_id) }, e.event_id)) })
+        ] }, `${r.at}-${i}`))
+      ] })
+    ] });
+  }
+  function CompareHero({ headline, detail, score, sampleLabel, guess = "" }) {
+    return jsxs8("div", { className: "fa-hero", children: [
+      sampleLabel ? jsxs8("span", { className: "fa-sample-tag", children: [jsx9(Codicon4, { name: "play-circle", size: 14 }), sampleLabel] }) : null,
+      jsx9("h2", { className: "fa-hero-line", "data-hero": "", children: headline || "Here is what Hermes did in your practice run." }),
+      detail ? jsx9("p", { className: "fa-hero-sub", "data-detail": "", children: detail }) : null,
+      score || guess ? jsx9("p", { className: "fa-hero-sub", children: [
+        score ? jsx9("span", { children: `${score} ` }, "s") : null,
+        guess ? jsx9("span", { children: guess }, "g") : null
+      ] }) : null
+    ] });
+  }
+  function InlineGrade({ missionId, attemptId, answer, initial }) {
+    const [out, setOut] = useState7(initial || null);
+    const [busy, setBusy] = useState7(false);
+    const [started, setStarted] = useState7(0);
+    const [now, setNow] = useState7(0);
+    useEffect5(() => {
+      if (!busy) return void 0;
+      const t = setInterval(() => setNow(Date.now() / 1e3), 1e3);
+      return () => clearInterval(t);
+    }, [busy]);
+    const run = async () => {
+      setBusy(true);
+      setStarted(Date.now() / 1e3);
+      setNow(Date.now() / 1e3);
+      setOut(null);
+      try {
+        setOut(await post(`/ai/grade/${encodeURIComponent(missionId)}/explain@${attemptId}`, { answer }));
+      } catch (e) {
+        setOut({ state: "provider_error", message: errorText2(e) });
+      } finally {
+        setBusy(false);
+      }
+    };
+    return jsxs8("div", { className: "hk-stack", style: { gap: 8 }, children: [
+      jsx9("div", { className: "hk-actions", children: jsx9(Button5, { loading: busy, disabled: busy || answer.trim().length < 120, onClick: run, children: out && out.state === "ok" ? "Score it again" : "Score my answer" }) }),
+      busy ? jsxs8("div", { className: "fa-guide-wait", role: "status", children: [jsx9(Spinner, {}), `Your model is reading your answer, about 15 seconds. ${fetchingWords(started, now)}`, jsx9(Button5, { variant: "ghost", onClick: () => setBusy(false), children: "Cancel" })] }) : null,
+      out && out.state === "ok" ? jsxs8("div", { className: "fa-grade", children: [
+        jsxs8("div", { className: "fa-row", style: { display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }, children: [
+          jsx9("span", { className: "fa-grade-level", children: out.level_words || `Level ${out.level} of 4` }),
+          jsx9("span", { children: out.passed ? "That passes." : `Level ${out.pass_level} passes.` })
+        ] }),
+        jsxs8("dl", { children: [
+          jsx9("dt", { children: "Right" }),
+          jsx9("dd", { children: out.right }),
+          jsx9("dt", { children: "Missing" }),
+          jsx9("dd", { children: out.missing }),
+          jsx9("dt", { children: "Add next" }),
+          jsx9("dd", { children: out.add_next })
+        ] }),
+        out.quote ? jsx9("blockquote", { "aria-label": "Your answer, with the line your model picked out", children: quoteParts(out.answer || answer, out.quote).map((p, i) => p.mark ? jsx9("mark", { children: p.text }, i) : jsx9("span", { children: p.text }, i)) }) : null,
+        jsx9("span", { className: "fa-guide-from", title: out.model || "", children: "Scored by your model. The level is saved to your record." })
+      ] }) : null,
+      out && out.state === "off" ? jsx9(Notice, { tone: "info", children: out.message || "AI help is off, so Score my answer is off too." }) : null,
+      failureOf(out) ? jsx9(Failure2, { part: out, onRetry: run }) : null
+    ] });
+  }
+  return { PhaseRail, PhaseBar, useGuide, useReplay, FieldGuide, ExplainMiss, Replay, CompareHero, InlineGrade, Said, Failure: Failure2, FixCommands };
+}
+
+// desktop/src/foundations.js
+var FOUNDATIONS_CSS = `
+.fa-rp{display:grid;gap:4px;padding-top:10px;border-top:1px solid var(--hk-stroke)}
+.fa-rp-ev{margin:2px 0 0;padding-left:18px;display:grid;gap:3px;font-size:var(--hk-fs-sm)}
+.fa-rp-ev code{font-size:var(--hk-fs-sm)}
+.fa-rt{border-collapse:collapse;width:100%;font-size:var(--hk-fs-sm)}
+.fa-rt th,.fa-rt td{padding:6px 10px 6px 0;text-align:left;vertical-align:top;border-top:1px solid color-mix(in srgb,var(--hk-ink) 10%,transparent)}
+.fa-rt thead th{font-weight:600;border-top:0}
+.fa-rt td[data-reached]{color:var(--fa-blaze-ink,var(--hk-ink));font-weight:600}
+.fa-f-card{display:grid;gap:14px}
+.fa-f-beats{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.fa-f-beat{display:grid;gap:6px;align-content:start;padding:12px 14px;border-radius:var(--hk-radius-sm);background:var(--hk-sunken);border-top:2px solid var(--fa-blaze,var(--hk-accent))}
+.fa-f-beat p{margin:0}
+.fa-f-beat .codicon{color:var(--fa-blaze-ink,var(--hk-accent))}
+.fa-f-files{display:flex;flex-wrap:wrap;gap:6px}
+.fa-f-beat .fa-f-code{background:var(--hk-surface);border:1px solid var(--hk-stroke)}
+@container (max-width:760px){.fa-f-beats{grid-template-columns:minmax(0,1fr)}}
+.fa-root .hk{--hk-fs-xs:12px}
+.fa-f-md{display:grid;gap:10px;max-width:72ch;line-height:1.55}
+.fa-f-md>p{margin:0}
+.fa-f-md h3{margin:10px 0 0;font-size:18px}
+.fa-f-md h4{margin:6px 0 0;font-size:15px}
+.fa-f-md ul,.fa-f-md ol{margin:0;padding-left:22px;display:grid;gap:4px}
+.fa-f-md blockquote{margin:0;padding:6px 12px;border-left:3px solid var(--fa-blaze,var(--hk-accent));background:var(--hk-sunken);border-radius:0 var(--hk-radius-sm) var(--hk-radius-sm) 0;display:grid;gap:6px}
+.fa-f-md blockquote p{margin:0}
+.fa-f-md code,.fa-f-code{font-family:var(--hk-mono);font-size:max(12px,.92em);padding:1px 4px;border-radius:4px;background:var(--hk-sunken);overflow-wrap:anywhere}
+.fa-f-asof{display:inline-flex;align-items:center;padding:0 7px;margin:0 1px;border-radius:999px;border:1px solid var(--hk-stroke);font-size:12px;font-weight:600;white-space:nowrap}
+.fa-f-checks{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.fa-f-checks>li{display:grid;grid-template-columns:2rem minmax(0,1fr);gap:4px 10px;align-items:baseline}
+.fa-f-checks b{font-weight:300;font-size:20px;line-height:1;font-variant-numeric:tabular-nums;color:var(--fa-blaze-ink,var(--hk-ink))}
+.fa-f-predict{display:grid;gap:8px;padding:10px 12px;border:1px solid var(--hk-stroke);border-radius:var(--hk-radius);background:var(--hk-surface)}
+.fa-f-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fa-f-toggle{display:inline-flex;border:1px solid var(--hk-stroke);border-radius:var(--hk-radius-sm);overflow:hidden}
+.fa-f-toggle button{padding:4px 12px;border:0;background:var(--hk-surface);color:inherit;font:inherit;cursor:pointer}
+.fa-f-toggle button[aria-pressed=true]{background:color-mix(in srgb,var(--fa-blaze,var(--hk-accent)) 22%,var(--hk-surface));font-weight:600}
+.fa-f-toggle button:focus-visible{outline:2px solid var(--hk-accent);outline-offset:-2px}
+.fa-f-range{display:inline-flex;gap:8px;align-items:center}
+.fa-f-range input{width:10rem}
+.fa-f-path{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--hk-mono);font-size:var(--hk-fs-sm);padding:7px 9px;border-radius:var(--hk-radius-sm);background:var(--hk-sunken);overflow-wrap:anywhere}
+.fa-f-path span{flex:1 1 20rem;min-width:0}
+.fa-f-profiles{display:grid;gap:8px}
+.fa-f-profile{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:10px 12px;border:1px solid var(--hk-stroke);border-radius:var(--hk-radius);background:var(--hk-surface)}
+.fa-f-profile .hk-actions{justify-content:flex-end}
+.fa-f-mem{display:grid;gap:6px}
+.fa-f-mem ol{margin:0;padding-left:22px;display:grid;gap:4px;font-family:var(--hk-mono);font-size:var(--hk-fs-sm)}
+.fa-f-steps{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,19rem),1fr))}
+.fa-f-step{display:grid;gap:6px;padding:12px 14px;border:1px solid var(--hk-stroke);border-radius:var(--hk-radius);background:var(--hk-surface)}
+.fa-f-step dl{display:grid;grid-template-columns:6.5rem minmax(0,1fr);gap:4px 10px;margin:0}
+.fa-f-step dt{text-transform:uppercase;font-size:12px;letter-spacing:.06em;font-weight:600}
+.fa-f-step dd{margin:0}
+.fa-f-result{display:grid;gap:6px;padding:10px 12px;border-radius:var(--hk-radius);border:1px solid var(--hk-stroke);background:var(--hk-surface)}
+.fa-f-result[data-pass]{border-left:3px solid var(--hk-good,#3fb950)}
+.fa-f-result[data-fail]{border-left:3px solid var(--fa-blaze,var(--hk-warn))}
+.fa-f-excerpt{margin:0;font-family:var(--hk-mono);font-size:var(--hk-fs-sm);white-space:pre-wrap;overflow-wrap:anywhere;padding:7px 9px;border-radius:var(--hk-radius-sm);background:var(--hk-sunken)}
+.fa-f-grid{width:100%;border-collapse:collapse;font-size:var(--hk-fs-sm)}
+.fa-f-grid th{text-align:left;padding:6px 8px 6px 0;border-bottom:1px solid var(--hk-stroke);text-transform:uppercase;font-size:12px;letter-spacing:.06em}
+.fa-f-grid td{padding:8px 8px 8px 0;border-bottom:1px solid var(--hk-stroke);vertical-align:top}
+.fa-f-grid tr[data-off] td:nth-child(3),.fa-f-grid tr[data-off] td:nth-child(4){font-weight:600}
+.fa-f-plant{display:grid;gap:4px;padding:10px 12px;border-left:3px solid var(--fa-blaze,var(--hk-accent));background:var(--hk-sunken);border-radius:0 var(--hk-radius-sm) var(--hk-radius-sm) 0}
+.fa-f-rubric{width:100%;border-collapse:collapse;font-size:var(--hk-fs-sm)}
+.fa-f-rubric td{padding:6px 8px 6px 0;border-bottom:1px solid var(--hk-stroke);vertical-align:top}
+.fa-f-rubric td:first-child{width:3rem;font-weight:300;font-size:18px}
+.fa-f-rubric th{text-align:left;padding:6px 8px 6px 0;border-bottom:1px solid var(--hk-stroke);text-transform:uppercase;font-size:12px;letter-spacing:.06em}
+.fa-f-timer{font-variant-numeric:tabular-nums;font-size:22px;font-weight:300}
+.fa-f-evidence{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.fa-f-evidence li{display:grid;gap:4px}
+.fa-f-meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:var(--hk-fs-sm)}
+.fa-f-withhold{display:inline-flex;gap:6px;align-items:center;font-size:var(--hk-fs-sm)}
+.fa-f-cal{width:100%;border-collapse:collapse;font-size:var(--hk-fs-sm)}
+.fa-f-cal th{text-align:left;padding:6px 10px 6px 0;border-bottom:1px solid var(--hk-stroke);text-transform:uppercase;font-size:12px;letter-spacing:.06em;vertical-align:bottom}
+.fa-f-cal tbody th,.fa-f-grid tbody th{text-transform:none;letter-spacing:0;font-size:var(--hk-fs)}
+.fa-f-cal td{padding:8px 10px 8px 0;border-bottom:1px solid var(--hk-stroke);vertical-align:top;font-variant-numeric:tabular-nums}
+.fa-f-cal td.fa-f-num{font-size:18px;font-weight:300;width:7rem}
+.fa-f-cal tbody th{text-align:left;padding:8px 10px 8px 0;border-bottom:1px solid var(--hk-stroke);font-variant-caps:normal;letter-spacing:0;font-weight:400;vertical-align:top}
+.fa-f-cal tr[data-empty] td{color:var(--hk-ink-2,inherit)}
+.fa-f-form{display:grid;gap:12px;max-width:72ch}
+.fa-f-form label{display:grid;gap:4px;font-weight:600}
+.fa-f-form label span{font-weight:400}
+.fa-f-claims{margin:0;padding-left:22px;display:grid;gap:10px}
+.fa-f-claims li{display:grid;gap:3px}
+.fa-f-tag{font-size:var(--hk-fs-sm);font-style:italic}
+.fa-f-qa{display:grid;gap:8px;padding:10px 12px;border:1px solid var(--hk-stroke);border-radius:var(--hk-radius);background:var(--hk-surface)}
+.fa-f-qa label{display:block}
+.fa-f-start{border-left:3px solid var(--fa-blaze,var(--hk-accent));padding-left:14px}
+.fa-f-scroll{overflow-x:auto}
+`;
+var NEW_PROFILE_TIMEOUT_MS = 12e4;
+function createFoundationsViews(ui) {
+  const { Frame: Frame2, Label: Label2, ctxRest: ctxRest2, errorText: errorText2, copyText: copyText2, openFolder: openFolder2, sendInNewChat: sendInNewChat2, plural: plural3, longDate: longDate2 } = ui;
+  const post = (path, body) => ctxRest2(path, { method: "POST", body: body || {} });
+  const support = () => hostSupport(host4);
+  const requestPractice = async (name, method, params) => {
+    let routes = [];
+    try {
+      routes = typeof host4.profileRoutes === "function" ? await host4.profileRoutes() : [];
+    } catch (e) {
+      routes = [];
+    }
+    return host4.requestProfile(practiceRoute(routes, name), method, params);
+  };
+  const B = createFoundationsPanelsB(ui, { Markdown, PathLine, Problem, Problems, Next, post, support, requestPractice });
+  const D = createDeskViews({ ctxRest: ctxRest2, post, errorText: errorText2, copyText: copyText2, openPracticeChat: (name) => openPracticeChat(name), draftInPractice: (name, text) => draftInPractice(name, text), Problem: (props) => Problem(props) });
+  function useAction(after) {
+    const [busy, setBusy] = useState8("");
+    const [error, setError] = useState8("");
+    const run = async (name, call) => {
+      if (busy) return null;
+      setBusy(name);
+      setError("");
+      try {
+        const out = await call();
+        if (after) await after(out);
+        return out;
+      } catch (e) {
+        setError(errorText2(e));
+        return null;
+      } finally {
+        setBusy("");
+      }
+    };
+    return { busy, error, setError, run };
+  }
+  function Problem({ text }) {
+    return text ? jsx10(Notice, { tone: "warn", live: true, children: text }) : null;
+  }
+  function Problems({ items }) {
+    return items && items.length ? jsx10(Notice, { tone: "warn", live: true, children: items.length === 1 ? items[0] : jsx10("ul", { className: "fa-bullets", children: items.map((p) => jsx10("li", { children: p }, p)) }) }) : null;
+  }
+  function Inline({ text }) {
+    return spansOut(inlineSpans(text));
+  }
+  function spansOut(spans) {
+    return spans.map((span, i) => span.kind === "strong" ? jsx10("strong", { children: spansOut(span.children) }, i) : span.kind === "em" ? jsx10("em", { children: spansOut(span.children) }, i) : span.kind === "code" ? jsx10("code", { children: span.text }, i) : span.kind === "asof" ? jsx10("span", { className: "fa-f-asof", title: "Checked against the Hermes source when this lesson was built", children: span.text }, i) : span.text);
+  }
+  function Reveal({ question, answer, n }) {
+    const [mine, setMine] = useState8("");
+    const [open, setOpen] = useState8(false);
+    const id = `fa-qa-${n}`;
+    return jsxs9("div", { className: "fa-f-qa", children: [
+      jsx10("label", { htmlFor: id, children: jsx10("strong", { children: jsx10(Inline, { text: question }) }) }),
+      jsx10(Textarea4, { id, rows: 2, value: mine, placeholder: "Your answer, before you look", onChange: (e) => setMine(e.target.value) }),
+      open ? jsx10("blockquote", { "aria-live": "polite", children: answer.map((t, j) => jsx10("p", { children: jsx10(Inline, { text: t }) }, j)) }) : jsxs9("div", { className: "fa-f-row", children: [
+        jsx10(Button6, { variant: "secondary", disabled: !canReveal(mine), onClick: () => setOpen(true), children: "Show the answer" }),
+        canReveal(mine) ? null : jsx10("span", { className: "hk-small", children: "Write yours first. It stays on this page." })
+      ] })
+    ] });
+  }
+  function Markdown({ text }) {
+    const blocks = revealBlocks(mdBlocks(text));
+    if (!blocks.length) return null;
+    return jsx10("div", { className: "fa-f-md", children: blocks.map((b, i) => {
+      if (b.kind === "qa") return jsx10(Reveal, { question: b.question, answer: b.answer, n: i }, i);
+      if (b.kind === "h2") return jsx10("h3", { children: jsx10(Inline, { text: b.text }) }, i);
+      if (b.kind === "h3") return jsx10("h4", { children: jsx10(Inline, { text: b.text }) }, i);
+      if (b.kind === "ul" || b.kind === "ol") return jsx10(b.kind, { start: b.start, children: b.items.map((t, j) => jsx10("li", { children: jsx10(Inline, { text: t }) }, j)) }, i);
+      if (b.kind === "code") return jsx10("pre", { className: "fa-f-excerpt", children: b.text }, i);
+      if (b.kind === "quote") return jsx10("blockquote", { children: b.items.map((t, j) => jsx10("p", { children: jsx10(Inline, { text: t }) }, j)) }, i);
+      if (b.kind === "table") {
+        return jsx10("table", { className: "fa-table", children: [
+          jsx10("thead", { children: jsx10("tr", { children: b.head.map((c, j) => jsx10("th", { children: jsx10(Inline, { text: c }) }, j)) }) }, "h"),
+          jsx10("tbody", { children: b.rows.map((r, j) => jsx10("tr", { children: r.map((c, k) => jsx10("td", { children: jsx10(Inline, { text: c }) }, k)) }, j)) }, "b")
+        ] }, i);
+      }
+      return jsx10("p", { children: jsx10(Inline, { text: b.text }) }, i);
+    }) });
+  }
+  function Toggle({ value, onChange, yes = "Pass", no = "Fail", label }) {
+    return jsxs9("span", { className: "fa-f-toggle", role: "group", "aria-label": label, children: [
+      jsx10("button", { type: "button", "aria-pressed": value === true, onClick: () => onChange(true), children: yes }),
+      jsx10("button", { type: "button", "aria-pressed": value === false, onClick: () => onChange(false), children: no })
+    ] });
+  }
+  function PathLine({ path, shown, label, folder = true }) {
+    if (!path) return null;
+    return jsxs9("div", { className: "fa-f-path", "aria-label": label, children: [
+      jsx10("span", { children: shown || path }),
+      jsx10(Button6, { variant: "secondary", onClick: () => copyText2(path, "Copied the path."), children: "Copy" }),
+      folder ? jsx10(Button6, { variant: "ghost", onClick: () => openFolder2(path), children: "Open folder" }) : null
+    ] });
+  }
+  function openPracticeChat(name) {
+    if (!support().newChat) {
+      host4.notify({ kind: "error", message: "This Hermes app can't open a chat in another profile from here. Update Hermes Desktop." });
+      return;
+    }
+    try {
+      host4.newChat(name);
+    } catch (e) {
+      host4.notify({ kind: "error", message: `Hermes couldn't open a chat in ${name}. Update Hermes Desktop, then try again.` });
+    }
+  }
+  async function draftInPractice(name, text) {
+    if (!name || !text || !support().newChat) return false;
+    try {
+      host4.newChat(name);
+    } catch (e) {
+      return false;
+    }
+    const composer = host4.composer;
+    if (!composer || typeof composer.setDraft !== "function") return false;
+    for (let tries = 0; tries < 24; tries++) {
+      await new Promise((resolve) => setTimeout(resolve, 125));
+      try {
+        const ok = await composer.setDraft(null, text);
+        if (ok) return true;
+      } catch (e) {
+        break;
+      }
+    }
+    return false;
+  }
+  async function createOne(which, attemptId) {
+    const planned = await post("/foundations/practice/plan", { which, attempt_id: attemptId });
+    let result = null;
+    let failure = null;
+    try {
+      const raw = await host4.request(planned.request.method, planned.request.params, NEW_PROFILE_TIMEOUT_MS);
+      result = raw && typeof raw === "object" && "result" in raw ? raw.result : raw;
+    } catch (e) {
+      failure = e;
+    }
+    if (failure && /already exists/i.test(String(failure?.message || failure))) throw failure;
+    try {
+      return await post("/foundations/practice/confirm", { name: planned.name, result: result && typeof result === "object" ? result : null });
+    } catch (e) {
+      throw failure || e;
+    }
+  }
+  async function deleteOne(profile) {
+    await post("/foundations/practice/remove", { name: profile.name, confirm: true });
+    if (!support().deleteProfile) {
+      throw new Error(`This Hermes app can't delete a profile from here. Delete ${profile.name} in Settings, Profiles, then press Check it's gone.`);
+    }
+    await host4.deleteProfile(profile.name);
+    return post("/foundations/practice/removed", { name: profile.name });
+  }
+  function StepFrame({ title, eyebrow, lead, children }) {
+    return jsxs9("div", { className: "hk-stack", style: { gap: 14 }, children: [
+      jsxs9("div", { className: "hk-stack", style: { gap: 4 }, children: [
+        // A plain 'Step N' repeats the stepper above, so only a real label (the mission's level, a phase) shows.
+        eyebrow && !/^Step \d+$/.test(String(eyebrow)) ? jsx10(Label2, { children: eyebrow }) : null,
+        jsx10("h2", { className: "hk-h2", style: { margin: 0 }, children: title }),
+        lead ? jsx10("p", { className: "hk-lead", style: { margin: 0 }, children: lead }) : null
+      ] }),
+      children
+    ] });
+  }
+  function Next({ label = "Next", onClick, busy, disabled }) {
+    return jsx10("div", { className: "hk-actions", children: jsx10(Button6, { loading: busy, disabled, onClick, children: label }) });
+  }
+  function StandardList({ checks }) {
+    return jsx10("ol", { className: "fa-f-checks", children: checks.map((c, i) => jsxs9("li", { children: [jsx10("b", { children: i + 1 }), jsx10("span", { children: c.text })] }, c.id)) });
+  }
+  function RecallStep({ mission, view, save, action, listing }) {
+    const saved = latest(view, "recall");
+    const prompts = mission.recall?.prompts || [];
+    const seconds = mission.recall?.seconds || 180;
+    const [answers, setAnswers] = useState8(() => saved?.answers || prompts.map(() => ""));
+    const [left, setLeft] = useState8(null);
+    const started = useRef5(0);
+    useEffect6(() => {
+      if (left === null || left <= 0) return void 0;
+      const t = setTimeout(() => setLeft(Math.max(0, seconds - Math.round((Date.now() - started.current) / 1e3))), 500);
+      return () => clearTimeout(t);
+    }, [left]);
+    const problems = recallProblems(answers, prompts);
+    const [shown, setShown] = useState8([]);
+    if (view.test_out?.on && !saved) {
+      return jsx10(StepFrame, { title: mission.labels?.recall || "Recall", eyebrow: "Step 1", children: [
+        jsx10(Notice, { tone: "info", title: "Skipped: you're testing out", children: "A test-out skips Recall, and your record says so. Go on to your claim." }, "skip")
+      ] });
+    }
+    const skipped = recallLead(view.recall_from);
+    const fresh = [mission.fresh_text, earlierPracticeLeft(listing, view.attempt) ? mission.fresh_replace : ""].filter(Boolean).join("\n\n");
+    return jsx10(StepFrame, { title: mission.labels?.recall || "Recall", eyebrow: "Step 1", lead: mission.recall?.lead, children: [
+      skipped ? jsx10(Notice, { tone: "info", title: "If you skipped ahead", children: skipped }, "skipped") : null,
+      fresh ? jsx10(Notice, { tone: "info", title: mission.labels?.fresh || "A fresh practice profile", children: jsx10(Markdown, { text: fresh }) }, "fresh") : null,
+      saved ? jsx10(Notice, { tone: "good", title: "Saved", children: "Your recall is kept with this attempt. It locks when you set up practice." }, "saved") : null,
+      jsxs9("div", { className: "fa-f-row", children: [
+        left === null ? jsx10(Button6, { variant: "secondary", onClick: () => {
+          started.current = Date.now();
+          setLeft(seconds);
+        }, children: "Start the three minutes" }) : jsx10("span", { className: "fa-f-timer", role: "timer", "aria-live": "off", children: left > 0 ? timerWords(left) : "Time" }),
+        jsx10("span", { className: "hk-small", children: "No looking back. Write what comes to mind." })
+      ] }, "timer"),
+      ...prompts.map((p, i) => jsxs9("div", { className: "fa-field", children: [
+        jsx10("label", { htmlFor: `fa-recall-${i}`, children: p }),
+        jsx10(Textarea4, { id: `fa-recall-${i}`, rows: 3, value: answers[i] || "", onChange: (e) => setAnswers(answers.map((a, j) => j === i ? e.target.value : a)) })
+      ] }, `p${i}`)),
+      jsx10(Problems, { items: shown }, "problems"),
+      jsx10(Problem, { text: action.error }, "error"),
+      jsx10(Next, {
+        label: saved ? "Save again" : "Save my recall",
+        busy: action.busy === "recall",
+        disabled: view.attempt.frozen_at,
+        onClick: () => {
+          setShown(problems);
+          if (!problems.length) save("recall", "recall", { answers, seconds: left === null ? 0 : seconds - left });
+        }
+      }, "go")
+    ] });
+  }
+  function ClaimStep({ mission, view, act, action, reload }) {
+    const level = view.attempt.level;
+    const course = mission.standard.map((c) => ({ id: c.id, text: c.text }));
+    const savedClaim = latest(view, "claim");
+    const savedStd = latest(view, "standard");
+    const [claim, setClaim] = useState8(savedClaim?.text || mission.claim.text);
+    const [checks, setChecks] = useState8(savedStd?.checks || course);
+    const editable = level !== "beginner" && !view.attempt.frozen_at;
+    const keep = () => act("claim", async () => {
+      await post(`/foundations/attempt/${view.attempt.id}/entry`, { kind: "claim", body: { text: claim, author: claim === mission.claim.text ? "course" : "learner" } });
+      await post(`/foundations/attempt/${view.attempt.id}/entry`, { kind: "standard", body: { checks } });
+    });
+    return jsx10(StepFrame, { title: mission.labels?.claim || "Your claim", eyebrow: "Step 2", children: [
+      editable ? jsx10(Textarea4, { rows: 3, value: claim, onChange: (e) => setClaim(e.target.value), "aria-label": "Your claim" }, "c") : jsx10("blockquote", { className: "fa-f-md", style: { margin: 0 }, children: jsx10("div", { className: "fa-f-md", children: jsx10("p", { style: { margin: 0, padding: "6px 12px", borderLeft: "3px solid var(--fa-blaze)", background: "var(--hk-sunken)" }, children: claim }) }) }, "c"),
+      jsx10("h3", { className: "hk-h3", style: { margin: 0 }, children: mission.labels?.standard || "How you'll know" }, "sh"),
+      jsx10("p", { style: { margin: 0 }, children: mission.standard_lead }, "sl"),
+      editable ? jsx10("div", { className: "hk-stack", children: checks.map((c, i) => jsx10(Input5, {
+        value: c.text,
+        "aria-label": `Check ${i + 1}`,
+        onChange: (e) => setChecks(checks.map((x) => x.id === c.id ? { ...x, text: e.target.value } : x))
+      }, c.id)) }, "std") : jsx10(StandardList, { checks }, "std"),
+      level === "beginner" ? jsx10("p", { className: "hk-small", children: "At Beginner the course writes these. From Intermediate you reword them, and at Advanced you write your own." }, "b") : null,
+      view.standard_changes?.length ? jsx10(Details, { label: `Changed after the start (${view.standard_changes.length})`, children: view.standard_changes.map((c) => jsx10("p", { children: `${longDate2(c.created_at)}: ${c.why}` }, c.created_at)) }, "changes") : null,
+      jsx10(Problem, { text: action.error }, "error"),
+      savedClaim && savedStd ? jsx10(Notice, { tone: "good", title: "Saved", children: "These lock when you set up practice. A change after that is recorded on your record with your reason." }, "saved") : jsx10(Next, { label: "Keep this claim and these checks", busy: action.busy === "claim", onClick: keep }, "go")
+    ] });
+  }
+  function FirstFlightGuess({ view, save, action }) {
+    const ff = view.first_flight || {};
+    const g = ff.guess || {};
+    const saved = ff.guessed || latest(view, "prediction")?.guess || null;
+    const [answer, setAnswer] = useState8(saved?.answer || "");
+    const [sure, setSure] = useState8(saved?.confidence || "");
+    const frozen = Boolean(view.attempt.frozen_at) || Boolean(saved);
+    return jsxs9("div", { className: "fa-guess", children: [
+      jsx10("h3", { children: g.question || "Where do you think Hermes will trip?" }, "q"),
+      jsx10("div", { className: "fa-choices", role: "group", "aria-label": "Your guess", children: (g.answers || []).map((a) => jsxs9("button", {
+        type: "button",
+        className: "fa-choice",
+        "aria-pressed": answer === a.id,
+        disabled: frozen,
+        onClick: () => setAnswer(a.id),
+        children: [jsx10(Codicon5, { name: answer === a.id ? "pass-filled" : "circle-large-outline", size: 16 }), a.label]
+      }, a.id)) }, "a"),
+      jsxs9("div", { className: "fa-chips", role: "group", "aria-label": "How sure you are", children: [
+        jsx10("strong", { children: "How sure?" }, "l"),
+        ...(g.confidence || []).map((c) => jsx10("button", { type: "button", className: "fa-chip-btn", "aria-pressed": sure === c.id, disabled: frozen, onClick: () => setSure(c.id), children: c.label }, c.id))
+      ] }, "c"),
+      jsx10(Problem, { text: action.error }, "e"),
+      saved ? jsx10(Notice, { tone: "info", children: "Locked. You'll see it beside your result." }, "locked") : jsx10(Next, { label: "Lock my guess", busy: action.busy === "prediction", disabled: !answer || !sure, onClick: () => save("prediction", "prediction", { guess: { answer, confidence: sure } }) }, "go")
+    ] });
+  }
+  function PredictStep({ mission, view, save, action }) {
+    if (view.first_flight?.on) return jsx10(StepFrame, { title: "Your guess", children: jsx10(FirstFlightGuess, { view, save, action }) });
+    const saved = latest(view, "prediction");
+    const ids = mission.standard.map((c) => c.id);
+    const [form, setForm] = useState8(() => saved || { checks: Object.fromEntries(ids.map((id) => [id, { expect_pass: void 0, confidence: 75 }])), where_wrong: "" });
+    const [shown, setShown] = useState8([]);
+    const set = (id, patch) => setForm({ ...form, checks: { ...form.checks, [id]: { ...form.checks[id], ...patch } } });
+    const frozen = Boolean(view.attempt.frozen_at);
+    return jsx10(StepFrame, { title: mission.labels?.predict || "Your guess", eyebrow: "Step 3", lead: mission.predict?.lead, children: [
+      ...mission.standard.map((c, i) => jsxs9("div", { className: "fa-f-predict", children: [
+        jsx10("span", { children: [jsx10("strong", { children: `Check ${i + 1}. ` }, "n"), c.text] }),
+        jsxs9("div", { className: "fa-f-row", children: [
+          jsx10(Toggle, { label: `Check ${i + 1}: will it pass?`, value: form.checks[c.id]?.expect_pass, onChange: (v) => !frozen && set(c.id, { expect_pass: v }), yes: "I'll pass", no: "I'll miss" }),
+          jsxs9("span", { className: "fa-chips", role: "group", "aria-label": `How sure, check ${i + 1}`, children: [
+            jsx10("span", { children: "How sure?" }, "l"),
+            ...[[60, "Not sure"], [75, "Fairly sure"], [90, "Sure"]].map(([n, words]) => jsx10("button", {
+              type: "button",
+              className: "fa-chip-btn",
+              disabled: frozen,
+              "aria-pressed": (form.checks[c.id]?.confidence ?? 75) === n,
+              onClick: () => set(c.id, { confidence: n }),
+              children: words
+            }, n))
+          ] })
+        ] })
+      ] }, c.id)),
+      jsxs9("div", { className: "fa-field", children: [
+        jsx10("label", { htmlFor: "fa-where", children: "Where do you think you'll slip?" }),
+        jsx10(Textarea4, { id: "fa-where", rows: 2, value: form.where_wrong, disabled: frozen, onChange: (e) => setForm({ ...form, where_wrong: e.target.value }) })
+      ] }, "where"),
+      mission.cost?.line ? jsx10("p", { className: "hk-small", children: mission.cost.line }, "cost") : null,
+      jsx10(Problems, { items: shown }, "p"),
+      jsx10(Problem, { text: action.error }, "e"),
+      frozen ? jsx10(Notice, { tone: "info", children: "Locked when practice was set up. You'll see it beside your result." }, "locked") : jsx10(Next, { label: saved ? "Save my guess again" : "Save my guess", busy: action.busy === "prediction", onClick: () => {
+        const problems = predictionProblems(form, ids);
+        setShown(problems);
+        if (!problems.length) save("prediction", "prediction", form);
+      } }, "go")
+    ] });
+  }
+  function MemoryFile({ name }) {
+    const [data, setData] = useState8(null);
+    const [error, setError] = useState8("");
+    const [busy, setBusy] = useState8(false);
+    const load = async () => {
+      setBusy(true);
+      setError("");
+      try {
+        setData(await ctxRest2(`/foundations/practice/${encodeURIComponent(name)}/memory`));
+      } catch (e) {
+        setError(errorText2(e));
+      } finally {
+        setBusy(false);
+      }
+    };
+    return jsxs9("div", { className: "fa-f-mem", children: [
+      jsx10("div", { className: "hk-actions", children: jsx10(Button6, { variant: "secondary", loading: busy, onClick: load, children: data ? "Read it again" : "Show memory file" }) }),
+      jsx10(Problem, { text: error }),
+      data ? jsxs9("div", { className: "hk-stack", children: [
+        jsx10("p", { className: "hk-small", style: { margin: 0 }, children: `Read just now from ${data.name}, straight from the files on disk. Anything shaped like a key is hidden.` }),
+        data.pending ? jsx10(Notice, { tone: "warn", children: `${plural3(data.pending, "save is", "saves are")} waiting for approval and ${data.pending === 1 ? "isn't" : "aren't"} in the file yet. Type /memory pending in a practice chat to see ${data.pending === 1 ? "it" : "them"}.` }) : null,
+        ...data.files.map((f) => jsxs9("div", { className: "fa-f-mem", children: [
+          jsxs9("div", { className: "fa-f-row", children: [jsx10("strong", { children: f.file }), jsx10("span", { className: "hk-small", children: `${f.chars.toLocaleString()} of ${f.limit.toLocaleString()} characters, ${plural3(f.entries.length, "line", "lines")}` })] }),
+          f.entries.length ? jsx10("ol", { children: f.entries.map((e, i) => jsx10("li", { children: e }, i)) }) : jsx10("p", { className: "hk-small", style: { margin: 0 }, children: f.exists ? "Empty." : "No file yet. Hermes makes it with the first save." }),
+          jsx10(PathLine, { path: f.path, shown: f.path_shown, label: `${f.file} full path`, folder: false })
+        ] }, f.file))
+      ] }) : null
+    ] });
+  }
+  function WorkingFolder({ name }) {
+    const [data, setData] = useState8(null);
+    const [error, setError] = useState8("");
+    const [busy, setBusy] = useState8(false);
+    const load = async () => {
+      setBusy(true);
+      setError("");
+      try {
+        setData(await ctxRest2(`/foundations/practice/${encodeURIComponent(name)}/folder`));
+      } catch (e) {
+        setError(errorText2(e));
+      } finally {
+        setBusy(false);
+      }
+    };
+    useEffect6(() => {
+      load();
+    }, [name]);
+    const words = {
+      pass: ["good", "The practice chat works in the practice folder"],
+      fail: ["warn", "The practice chat works in another folder"],
+      unknown: ["info", "Hermes didn't record the chat's folder"],
+      no_chat: ["idle", "No practice chat yet"]
+    }[data?.state] || ["idle", "Working folder"];
+    return jsxs9("div", { className: "hk-stack", style: { gap: 6 }, children: [
+      jsx10(Notice, {
+        tone: words[0] === "idle" ? "info" : words[0],
+        title: words[1],
+        action: jsx10(Button6, { variant: "secondary", loading: busy, onClick: load, children: "Check again" }),
+        children: data?.state === "no_chat" ? "Open a practice chat, send one message, then check again." : data?.state === "pass" ? `It's in ${data.cwd}.` : data ? [data.cwd ? jsx10("p", { style: { margin: 0 }, children: `It's in ${data.cwd}.` }, "cwd") : null, data.fix ? jsx10("p", { style: { margin: 0 }, children: data.fix }, "fix") : null] : null
+      }),
+      jsx10(Problem, { text: error })
+    ] });
+  }
+  function ProfileRow({ row, mainName, chat = true }) {
+    const p = row.profile;
+    const name = p?.name || (row.which === "b" ? "academy-practice-b" : "academy-practice");
+    const usable = p && ["ready", "in_use"].includes(p.status);
+    return jsxs9("div", { className: "fa-f-profile", children: [
+      jsxs9("div", { className: "hk-stack", style: { gap: 2 }, children: [
+        jsxs9("div", { className: "fa-f-row", children: [jsx10("strong", { children: name }), jsx10(Pill, { tone: usable ? "good" : "idle", children: statusWord(p) })] }),
+        jsx10("span", { className: "hk-small", children: row.which === "a" ? "This mission uses this profile." : "A second practice profile, kept for the course." })
+      ] }),
+      jsx10("div", { className: "hk-actions", children: usable && (chat || name !== mainName) ? jsx10(Button6, {
+        variant: name === mainName ? "primary" : "secondary",
+        onClick: () => openPracticeChat(name),
+        children: name === mainName ? "Open practice chat" : `Open a chat in ${name}`
+      }) : null })
+    ] });
+  }
+  function SetupStep({ mission, view, listing, reloadAll }) {
+    const action = useAction(reloadAll);
+    const [confirming, setConfirming] = useState8("");
+    const rows = practiceRows(listing, view.lab.profiles);
+    const live = listing.filter((p) => ["ready", "in_use", "planned", "removing"].includes(p.status));
+    const mainRow = rows.find((r) => r.which === "a")?.profile;
+    const frozen = Boolean(view.attempt.frozen_at);
+    const ready = stepStates(view, listing).find((s) => s.id === "setup").status === "done";
+    const later = view.lab.after_try?.needed || [];
+    const stale = live.some((p) => p.set_up && p.name !== view.attempt.profile) || live.some((p) => p.status === "in_use" && !ready) || !ready && live.some((p) => later.includes(p.which));
+    const missing = freezeMissing(view);
+    const has = support();
+    const [progress, setProgress] = useState8(null);
+    const mark = (key) => setProgress((p) => ({ ...p || { at: Date.now() / 1e3, marks: {} }, now: key, marks: { ...(p || {}).marks || {}, [key]: Date.now() / 1e3 } }));
+    const setUp = () => action.run("setup", async () => {
+      setProgress({ at: Date.now() / 1e3, now: "make", marks: { make: Date.now() / 1e3 } });
+      if (!frozen) await post(`/foundations/attempt/${view.attempt.id}/lab/open`);
+      const now = (await ctxRest2("/foundations/practice")).practice || [];
+      for (const which of view.lab.profiles) {
+        if (!now.some((p) => p.which === which && ["ready", "in_use"].includes(p.status))) await createOne(which, view.attempt.id);
+      }
+      mark("plant");
+      await post("/foundations/practice/plant", { attempt_id: view.attempt.id });
+      mark("ready");
+    });
+    const removeAll = (then) => action.run(then, async () => {
+      for (const p of live) await deleteOne(p);
+      if (then === "reset") {
+        for (const which of view.lab.profiles) await createOne(which, view.attempt.id);
+        await post("/foundations/practice/plant", { attempt_id: view.attempt.id });
+      }
+      setConfirming("");
+    });
+    const request = mainRow?.request || null;
+    return jsx10(StepFrame, { title: "Practice", eyebrow: "Step 4", lead: "Field Academy makes a separate practice profile for this. Your own profiles are not changed.", children: [
+      jsx10(PracticeNote, { mission }, "note"),
+      !frozen && missing.length ? jsx10(Notice, { tone: "info", children: `Save ${missing.join(", ")} first. They lock when practice is set up.` }, "missing") : null,
+      !has.request ? jsx10(Notice, { tone: "warn", children: "This Hermes app can't make a profile from here. Update Hermes Desktop." }, "old") : null,
+      // Once practice is ready, the try below has the one Open practice chat button (0.9 persona test).
+      action.busy === "setup" ? null : jsx10("div", { className: "fa-f-profiles", children: rows.map((r) => jsx10(ProfileRow, { row: r, mainName: view.attempt.profile || "academy-practice", chat: !ready }, r.which)) }, "rows"),
+      mainRow?.path ? jsxs9("div", { className: "hk-stack", style: { gap: 4 }, children: [jsx10("strong", { children: "Where the practice profile lives" }), jsx10(PathLine, { path: mainRow.path, shown: mainRow.path_shown, label: "Practice profile full path" })] }, "path") : null,
+      jsx10(Problem, { text: action.error }, "err"),
+      progress && (action.busy === "setup" || !ready) ? jsx10(SetupProgress, { progress, name: view.attempt.profile || "academy-practice", busy: action.busy === "setup" }, "progress") : null,
+      !ready ? jsxs9("div", { className: "hk-stack", children: [
+        frozen ? null : jsx10("p", { style: { margin: 0 }, children: view.first_flight?.on ? "Your guess is saved as it is now." : "Setting up locks your recall, claim, checks and guess, so they can't change after you see how it goes." }),
+        stale ? jsx10(Notice, { tone: "warn", children: `A practice profile from an earlier mission or try is still there: ${live.map((p) => p.name).join(", ")}. Delete it and start fresh?` }) : null,
+        jsx10("div", { className: "hk-actions", children: stale ? confirming === "fresh" ? [
+          jsx10(Button6, { key: "yes", variant: "destructive", loading: action.busy === "reset", onClick: () => removeAll("reset"), children: "Yes, delete it and start fresh" }),
+          jsx10(Button6, { key: "no", variant: "ghost", onClick: () => setConfirming(""), children: "Keep it for now" })
+        ] : jsx10(Button6, { onClick: () => setConfirming("fresh"), children: "Start fresh" }) : jsx10(Button6, { loading: action.busy === "setup", disabled: missing.length > 0 || !has.request, onClick: setUp, children: frozen ? "Set up practice" : "Lock my answers and set up practice" }) }),
+        request ? jsx10(Details, { label: "The exact request Field Academy sends to Hermes", children: jsx10("pre", { className: "fa-pre", children: JSON.stringify(request, null, 2) }) }) : null
+      ] }, "setup") : null,
+      ready ? jsxs9("div", { className: "hk-stack", children: [
+        mission.try_text ? jsx10("h3", { className: "hk-h3", style: { margin: 0 }, children: "Try this first" }) : null,
+        jsx10(Markdown, { text: mission.try_text }),
+        jsxs9("div", { className: "fa-f-row", children: [
+          // The question goes into the practice chat's box, not sent: the learner presses Enter (P14).
+          jsx10(Button6, { onClick: async () => {
+            if (!mission.try_prompt) {
+              openPracticeChat(view.attempt.profile);
+              return;
+            }
+            const placed = await draftInPractice(view.attempt.profile, mission.try_prompt);
+            if (!placed) copyText2(mission.try_prompt, "Copied. Paste it in the practice chat and press Enter.");
+          }, children: "Open practice chat" }),
+          mission.try_prompt ? jsx10(Button6, { variant: "secondary", onClick: () => copyText2(mission.try_prompt, "Copied the question."), children: "Copy the question" }) : null
+        ] }),
+        // The try asks for the practice folder's path, so it shows here too, with Copy (0.9 persona test).
+        (mission.lab?.panels || []).includes("folder") ? jsx10(B.FolderPanel, { name: view.attempt.profile }) : null,
+        showsMemory(mission) ? jsx10(MemoryFile, { name: view.attempt.profile }) : null,
+        jsx10(WorkingFolder, { name: view.attempt.profile }),
+        jsx10(TryNote, { mission, view, reloadAll })
+      ] }, "try") : null,
+      ready ? jsx10(Details, { label: "Reset or delete practice", children: jsxs9("div", { className: "hk-stack", children: [
+        jsx10("p", { style: { margin: 0 }, children: "Reset deletes the practice profiles and makes fresh ones with the same setup. Delete removes them. Either way their chats and memory are gone, and your own profiles are never touched." }),
+        confirming ? jsxs9("div", { className: "fa-f-row", children: [
+          jsx10("span", { children: confirming === "reset" ? "Delete the practice profiles and make them again?" : "Delete the practice profiles?" }),
+          jsx10(Button6, { variant: "destructive", loading: Boolean(action.busy), onClick: () => removeAll(confirming), children: confirming === "reset" ? "Yes, reset" : "Yes, delete" }),
+          jsx10(Button6, { variant: "ghost", onClick: () => setConfirming(""), children: "Keep them" })
+        ] }) : jsxs9("div", { className: "hk-actions", children: [
+          jsx10(Button6, { variant: "secondary", onClick: () => setConfirming("reset"), children: "Reset practice" }),
+          jsx10(Button6, { variant: "ghost", onClick: () => setConfirming("delete"), children: "Delete practice profiles" })
+        ] }),
+        has.deleteProfile ? null : jsx10("p", { className: "hk-small", children: "This Hermes app can't delete a profile from here. Delete them in Settings, Profiles, then come back." })
+      ] }) }, "manage") : null
+    ] });
+  }
+  function SetupProgress({ progress, name, busy }) {
+    const [now, setNow] = useState8(() => Date.now() / 1e3);
+    useEffect6(() => {
+      if (!busy) return void 0;
+      const t = setInterval(() => setNow(Date.now() / 1e3), 500);
+      return () => clearInterval(t);
+    }, [busy]);
+    const lines = [["make", `Making ${name}`], ["plant", "Writing the practice folder and planting one snag"], ["ready", "Ready"]];
+    const order = lines.map((l) => l[0]);
+    const reached = order.indexOf(progress.now);
+    return jsx10("ol", { className: "fa-progress", "aria-live": "polite", "aria-label": "Setting up your practice Hermes", children: lines.map(([key, words], i) => {
+      const state = i < reached || progress.now === "ready" ? "done" : i === reached ? "now" : "later";
+      const started = progress.marks?.[key];
+      const ended = progress.marks?.[order[i + 1]];
+      const secs = started ? Math.max(0, Math.round((ended || now) - started)) : null;
+      return jsxs9("li", { "data-state": state, children: [
+        state === "done" ? jsx10(Codicon5, { name: "pass-filled", size: 16 }) : state === "now" ? jsx10(Codicon5, { name: "loading", size: 16, className: "codicon-modifier-spin" }) : jsx10(Codicon5, { name: "circle-large-outline", size: 16 }),
+        jsx10("span", { children: words }),
+        jsx10("span", { children: secs === null || key === "ready" ? "" : `${secs} s` })
+      ] }, key);
+    }) });
+  }
+  function TryNote({ mission, view, reloadAll }) {
+    if (PA.owns(view.attempt.mission_id)) return jsx10(PA.TryPanel, { view, reloadAll });
+    const kind = tryFormKind(mission);
+    if (kind === "fields") return jsx10(B.TryForm, { mission, view, reloadAll });
+    if (kind !== "memory") return null;
+    return jsx10(MemoryTry, { view, reloadAll });
+  }
+  function MemoryTry({ view, reloadAll }) {
+    const saved = latest(view, "try_note");
+    const [guess, setGuess] = useState8(saved?.guess || "");
+    const [tokens, setTokens] = useState8(saved?.memory_tokens ?? "");
+    const action = useAction(reloadAll);
+    const math = memoryMath(tokens);
+    return jsxs9("div", { className: "hk-stack", children: [
+      jsxs9("div", { className: "fa-inputs", children: [
+        jsxs9("div", { className: "fa-field", children: [
+          jsx10("label", { htmlFor: "fa-guess", children: "Your guess: how much does Hermes carry?" }),
+          jsx10(Input5, { id: "fa-guess", value: guess, placeholder: "A paragraph, a page, ten pages", onChange: (e) => setGuess(e.target.value) })
+        ] }),
+        jsxs9("div", { className: "fa-field", children: [
+          jsx10("label", { htmlFor: "fa-tokens", children: "Your Memory line, in tokens" }),
+          jsx10(Input5, { id: "fa-tokens", inputMode: "numeric", value: String(tokens), placeholder: "260", onChange: (e) => setTokens(e.target.value.replace(/[^0-9]/g, "")) })
+        ] })
+      ] }),
+      math ? jsx10("p", { className: "hk-small", style: { margin: 0 }, children: `Room left: ${math.full} − ${math.tokens} = ${math.room} tokens. That's about ${plural3(math.notes, "more one-line note", "more one-line notes")}.` }) : null,
+      jsx10(Problem, { text: action.error }),
+      jsx10("div", { className: "hk-actions", children: jsx10(Button6, {
+        variant: "secondary",
+        loading: action.busy === "try",
+        disabled: !guess.trim(),
+        onClick: () => action.run("try", () => post(`/foundations/attempt/${view.attempt.id}/entry`, { kind: "try_note", body: { guess, memory_tokens: tokens } })),
+        children: saved ? "Save again" : "Save my guess and number"
+      }) })
+    ] });
+  }
+  function IdeaStep({ mission, view, save, action }) {
+    const read = view.entries.some((e) => e.kind === "read" && e.body.step === "idea");
+    return jsx10(StepFrame, { title: "The idea", eyebrow: "Step 5", children: [
+      jsx10(Markdown, { text: mission.idea_text }, "md"),
+      jsx10(Problem, { text: action.error }, "e"),
+      read ? jsx10(Notice, { tone: "good", children: "Marked as read." }, "r") : jsx10(Next, { label: "I've read it", busy: action.busy === "idea", onClick: () => save("idea", "read", { step: "idea" }) }, "go")
+    ] });
+  }
+  function ExpertStep({ mission, view, save, action }) {
+    const read = view.entries.some((e) => e.kind === "read" && e.body.step === "expert");
+    return jsx10(StepFrame, { title: "Watch it done", eyebrow: "Step 6", lead: mission.expert_lead, children: [
+      mission.expert_note ? jsx10("p", { className: "hk-small", style: { margin: 0, fontStyle: "italic" }, children: mission.expert_note }, "note") : null,
+      jsx10("div", { className: "fa-f-steps", children: mission.expert_steps.map((s, i) => jsxs9("div", { className: "fa-f-step", children: [
+        jsx10("strong", { children: `${i + 1}. ${s.title}` }),
+        jsxs9("dl", { children: [
+          jsx10("dt", { children: "Did" }),
+          jsx10("dd", { children: jsx10(Inline, { text: s.did }) }),
+          jsx10("dt", { children: "Saw" }),
+          jsx10("dd", { children: jsx10(Inline, { text: s.saw }) }),
+          jsx10("dt", { children: "Noticed" }),
+          jsx10("dd", { children: jsx10(Inline, { text: s.noticed }) }),
+          jsx10("dt", { children: "Ruled out" }),
+          jsx10("dd", { children: jsx10(Inline, { text: s.ruled_out }) })
+        ] })
+      ] }, i)) }, "steps"),
+      jsx10(Problem, { text: action.error }, "e"),
+      read ? jsx10(Notice, { tone: "good", children: "Marked as read." }, "r") : jsx10(Next, { label: "I've read it", busy: action.busy === "expert", onClick: () => save("expert", "read", { step: "expert" }) }, "go")
+    ] });
+  }
+  const PA = createPartAViews({ Markdown, PathLine, Toggle, Problem, Problems, MemoryFile, openPracticeChat, post, ctxRest: ctxRest2, copyText: copyText2, useAction, latest });
+  function NoteForm({ view, save, action, transfer = false }) {
+    if (PA.owns(view.attempt.mission_id)) return jsx10(PA.NoteForm, { view, save, action, transfer });
+    const saved = latest(view, "lab_note", (b) => transfer ? b.for === "transfer" : b.for !== "transfer");
+    const [form, setForm] = useState8(() => saved || { fact: "", key_term: "", removed_ok: "", one_off: "", one_off_why: "" });
+    const [shown, setShown] = useState8([]);
+    const set = (patch) => setForm({ ...form, ...patch });
+    return jsxs9("div", { className: "hk-stack", children: [
+      jsxs9("div", { className: "fa-field", children: [
+        jsx10("label", { htmlFor: `fa-fact-${transfer}`, children: transfer ? "The fact about you that you asked Hermes to save" : "The fact you asked Hermes to save" }),
+        jsx10(Input5, {
+          id: `fa-fact-${transfer}`,
+          value: form.fact,
+          onChange: (e) => set({ fact: e.target.value, key_term: form.key_term || "" }),
+          onBlur: () => {
+            if (!form.key_term) set({ key_term: guessKeyTerm(form.fact) });
+          }
+        })
+      ] }),
+      jsxs9("div", { className: "fa-inputs", children: [
+        jsxs9("div", { className: "fa-field", children: [
+          jsx10("label", { htmlFor: `fa-key-${transfer}`, children: "Its key word" }),
+          jsx10(Input5, { id: `fa-key-${transfer}`, value: form.key_term, onChange: (e) => set({ key_term: e.target.value }) }),
+          jsx10("span", { className: "hk-small", children: "The word a new chat would have to use, such as the software's name." })
+        ] })
+      ] }),
+      transfer ? jsxs9("div", { className: "hk-stack", children: [
+        jsxs9("div", { className: "fa-field", children: [
+          jsx10("label", { htmlFor: "fa-oneoff", children: "The one-off detail you weighed up" }),
+          jsx10(Input5, { id: "fa-oneoff", value: form.one_off || "", placeholder: "The printer quote came in at noon today", onChange: (e) => set({ one_off: e.target.value }) })
+        ] }),
+        jsxs9("div", { className: "fa-f-row", children: [
+          jsx10("span", { children: "Did it get a line?" }),
+          jsx10(Toggle, { label: "Did the one-off detail get a line?", value: form.one_off_saved, onChange: (v) => set({ one_off_saved: v }), yes: "I saved it", no: "I left it out" })
+        ] }),
+        jsxs9("div", { className: "fa-field", children: [
+          jsx10("label", { htmlFor: "fa-oneoff-why", children: "Why, in one sentence" }),
+          jsx10(Input5, { id: "fa-oneoff-why", value: form.one_off_why || "", onChange: (e) => set({ one_off_why: e.target.value }) })
+        ] })
+      ] }) : null,
+      transfer ? null : jsxs9("div", { className: "fa-field", children: [
+        jsx10("label", { htmlFor: "fa-removed", children: "If Hermes cut a note to make room, which one, and why was that all right? (Optional)" }),
+        jsx10(Textarea4, { id: "fa-removed", rows: 2, value: form.removed_ok || "", onChange: (e) => set({ removed_ok: e.target.value }) })
+      ] }),
+      jsx10(Problems, { items: shown }),
+      jsx10(Problem, { text: action.error }),
+      jsx10(Next, { label: saved ? "Save again" : "Save what I did", busy: action.busy === `note-${transfer}`, onClick: () => {
+        const problems = labNoteProblems(form, transfer);
+        setShown(problems);
+        if (problems.length) return;
+        const body = { fact: form.fact, key_term: form.key_term, for: transfer ? "transfer" : "first" };
+        if (transfer) Object.assign(body, { one_off: form.one_off, one_off_saved: form.one_off_saved, one_off_why: form.one_off_why });
+        if (!transfer && (form.removed_ok || "").trim()) body.removed_ok = form.removed_ok;
+        save(`note-${transfer}`, "lab_note", body);
+      } })
+    ] });
+  }
+  function AfterTry({ view, listing, reloadAll }) {
+    const run = useAction(reloadAll);
+    const needed = view.lab.after_try?.needed || [];
+    const tried = latest(view, "try_note") !== null;
+    const has = support();
+    const go = () => run.run("after-try", async () => {
+      const now = (await ctxRest2("/foundations/practice")).practice || [];
+      for (const which of needed) {
+        if (!now.some((p) => p.which === which && ["ready", "in_use"].includes(p.status))) await createOne(which, view.attempt.id);
+      }
+      await post(`/foundations/attempt/${view.attempt.id}/after-try`);
+    });
+    const rows = practiceRows(listing, needed);
+    return jsx10(StepFrame, { title: "Your turn", eyebrow: "Step 7", lead: "One more practice profile first. Field Academy makes it now, after the try, so the try always lands in academy-practice.", children: [
+      !tried ? jsx10(Notice, { tone: "info", children: "Do the try in Practice and save its numbers first." }, "try") : null,
+      jsx10("p", { style: { margin: 0 }, children: "Took the try's line back out of SOUL.md? Check 1 looks for it, so do that before you start." }, "line"),
+      jsx10("div", { className: "fa-f-profiles", children: rows.map((r) => jsx10(ProfileRow, { row: r, mainName: view.attempt.profile || "academy-practice" }, r.which)) }, "rows"),
+      !has.request ? jsx10(Notice, { tone: "warn", children: "This Hermes app can't make a profile from here. Update Hermes Desktop." }, "old") : null,
+      jsx10(Problem, { text: run.error }, "err"),
+      jsx10("div", { className: "hk-actions", children: jsx10(Button6, { loading: run.busy === "after-try", disabled: !tried || !has.request, onClick: go, children: "Make the second practice profile" }) }, "go")
+    ] });
+  }
+  function PracticeNote({ mission }) {
+    return mission.practice_note ? jsx10(Notice, { tone: "warn", title: "Before your first practice chat", children: jsx10(Markdown, { text: mission.practice_note }) }) : null;
+  }
+  function LabStep2({ mission, view, save, action, listing, reloadAll }) {
+    if (view.lab.after_try && !view.lab.after_try.done) return jsx10(AfterTry, { view, listing, reloadAll });
+    return jsx10(StepFrame, { title: "Your turn", eyebrow: "Step 7", children: [
+      jsx10(PracticeNote, { mission }, "note"),
+      view.protected_notes?.length ? jsx10(Card, { tone: "info", children: jsxs9("div", { className: "hk-stack", style: { gap: 6 }, children: [
+        jsx10("strong", { children: "Two notes this profile's owner can't lose" }),
+        jsx10("ul", { className: "fa-bullets", children: view.protected_notes.map((n) => jsx10("li", { children: jsx10("code", { className: "fa-f-code", children: n }) }, n)) })
+      ] }) }, "protected") : null,
+      jsx10(Markdown, { text: view.lab.body }, "body"),
+      jsxs9("div", { className: "fa-f-row", children: [
+        jsx10(Button6, { onClick: () => openPracticeChat(view.attempt.profile), children: "Open practice chat" }),
+        jsx10("span", { className: "hk-small", children: "Each press opens a brand-new chat in the practice profile. Your own profile stays as it is." })
+      ] }, "chat"),
+      mission.lab?.panels ? jsx10(B.LabPanels, { mission, view }, "panels") : null,
+      showsMemory(mission) ? jsx10(MemoryFile, { name: view.attempt.profile }, "mem") : null,
+      jsx10(WorkingFolder, { name: view.attempt.profile }, "folder"),
+      PA.owns(view.attempt.mission_id) ? jsx10(PA.LabPanel, { view }, "part-a") : null,
+      jsx10(Details, { label: "What Field Academy checks", children: jsx10(Markdown, { text: mission.lab?.checks_text }) }, "checks"),
+      mission.lab?.note_fields ? jsx10(B.FieldNoteForm, { mission, view, save, action }, "note") : jsx10(NoteForm, { view, save, action }, "note")
+    ] });
+  }
+  function ScoreStep({ mission, view, save, action, goStep }) {
+    const saved = latest(view, "self_score");
+    const ids = mission.standard.map((c) => c.id);
+    const [form, setForm] = useState8(() => saved || { checks: {} });
+    const [shown, setShown] = useState8([]);
+    const closed = Boolean(view.runs?.first);
+    const locked = closed || Boolean(saved);
+    return jsx10(StepFrame, { title: "Did it work?", lead: locked ? "" : "Say how you did on each check before you see any result.", children: [
+      jsx10("div", { className: "fa-toggles", children: mission.standard.map((c, i) => jsxs9("div", { className: "fa-tog", children: [
+        jsx10("span", { children: [jsx10("strong", { children: `${i + 1}. ` }, "n"), c.text] }),
+        jsxs9("span", { className: "fa-tog-pair", role: "group", "aria-label": `Check ${i + 1}: did you pass?`, children: [
+          jsx10("button", { type: "button", "aria-pressed": form.checks[c.id]?.pass === true, disabled: locked, onClick: () => setForm({ checks: { ...form.checks, [c.id]: { pass: true } } }), children: "Passed" }),
+          jsx10("button", { type: "button", "aria-pressed": form.checks[c.id]?.pass === false, disabled: locked, onClick: () => setForm({ checks: { ...form.checks, [c.id]: { pass: false } } }), children: "Missed" })
+        ] })
+      ] }, c.id)) }, "toggles"),
+      jsx10(Problems, { items: shown }, "p"),
+      jsx10(Problem, { text: action.error }, "e"),
+      locked ? jsxs9("div", { className: "hk-stack", style: { gap: 8 }, children: [
+        jsx10(Notice, { tone: "info", children: closed ? "Your answers are saved. The first check has run." : "Your answers are saved." }),
+        !closed && goStep ? jsx10("div", { className: "hk-actions", children: jsx10(Button6, { onClick: () => goStep("check"), children: "Check my work" }) }) : null
+      ] }, "locked") : jsx10(Next, { label: "Lock my score", busy: action.busy === "self", onClick: () => {
+        const problems = selfScoreProblems(form, ids);
+        setShown(problems);
+        if (!problems.length) save("self", "self_score", form);
+      } }, "go")
+    ] });
+  }
+  function localTimes(text) {
+    return String(text ?? "").replace(/([A-Z][a-z]+ \d{1,2}, \d{4}), (\d{2}:\d{2}):\d{2} UTC/g, (all, day, hm) => {
+      const when = /* @__PURE__ */ new Date(`${day} ${hm} UTC`);
+      return Number.isNaN(when.getTime()) ? all : when.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    });
+  }
+  function Outcome({ run, mission, guide, attemptId, headline, hunted = true }) {
+    if (!run) return null;
+    const hidden = run.hidden || { count: 0, passed: 0 };
+    const checks = run.checks || [];
+    const missed = checks.filter((c) => !c.passed);
+    const passed = checks.filter((c) => c.passed);
+    const hiddenLeft = (hidden.count || 0) - (hidden.passed || 0);
+    const when = run.at ? new Date(run.at) : null;
+    const clock = when && !Number.isNaN(when.getTime()) ? when.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+    const line = headline || checkHeadline(run);
+    const said = (c) => !c.passed && line.includes(c.title);
+    const row = (c) => said(c) && !c.facts?.length ? null : jsxs9("div", { className: "fa-f-result", "data-pass": c.passed ? "" : void 0, "data-fail": c.passed ? void 0 : "", children: [
+      said(c) ? null : jsxs9("div", { className: "fa-f-row", children: [jsx10(Codicon5, { name: c.passed ? "pass" : "circle-large-outline", size: 16 }), jsx10("strong", { children: c.title })] }),
+      c.detail && c.detail !== c.title && !said(c) ? jsx10("span", { children: c.detail }) : null,
+      c.facts?.length ? jsx10(Facts, { rows: c.facts.map((f) => ({ label: f.label, value: localTimes(factWords(f, mission)) })) }) : null,
+      c.checked_by && c.checked_by !== "Field Academy read it" ? jsx10("span", { className: "hk-small", children: `Checked by: ${c.checked_by}` }) : null
+    ] }, c.id);
+    return jsxs9("div", { className: "hk-stack", children: [
+      jsxs9("div", { className: "fa-check-head", "data-pass": run.passed ? "" : void 0, role: "status", children: [
+        jsx10("p", { className: "fa-check-line", children: line }),
+        jsx10("p", { children: `Field Academy read the practice profile's files${clock ? ` on ${clock}` : ""}.${hiddenLeft > 0 ? ` There is also a hidden check, and it hasn't passed.` : ""}` })
+      ] }),
+      ...missed.map(row).filter(Boolean),
+      passed.length ? missed.length ? jsx10(Details, { label: `Also checked and passed: ${passed.map((c) => lowerFirstWord(c.title)).join("; ")}`, children: jsx10("div", { className: "hk-stack", children: passed.map(row) }) }, "passed") : jsx10("div", { className: "hk-stack", children: passed.map(row) }, "passed") : null
+    ] });
+  }
+  function lowerFirstWord(t) {
+    const s = String(t || "");
+    return /^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+  }
+  function Evidence({ items }) {
+    if (!items || !items.length) return null;
+    return jsx10(Details, { label: `The lines Field Academy read (${items.length})`, children: jsx10("ul", { className: "fa-f-evidence", children: items.map((e) => jsxs9("li", { children: [
+      jsxs9("div", { className: "fa-f-meta", children: [jsx10("span", { className: "fa-f-code", children: e.rel_path }), jsx10("span", { title: `SHA-256 ${e.sha256 || ""}`, children: "As the check read it" })] }),
+      jsx10("pre", { className: "fa-f-excerpt", children: e.excerpt })
+    ] }, e.id)) }) });
+  }
+  async function pageSample(profile) {
+    if (!support().requestProfile || !profile) return null;
+    try {
+      const out = await requestPractice(profile, "session.list", {});
+      const raw = out && typeof out === "object" && "result" in out ? out.result : out;
+      const list = Array.isArray(raw) ? raw : Array.isArray(raw?.sessions) ? raw.sessions : [];
+      return { source: "session.list", sessions: list.length };
+    } catch (e) {
+      return null;
+    }
+  }
+  function ExplainPanel({ mission, view, reloadAll, gradeShown }) {
+    const ex = view.explain || {};
+    const [answer, setAnswer] = useState8(ex.answer || gradeShown?.answer || "");
+    const action = useAction(reloadAll);
+    const send = (path, body) => action.run("explain", async () => {
+      const out = await post(path, body);
+      await sendInNewChat2(out.prompt, "A new chat is open in your own profile and the grading request is copied. Paste it and press Enter.");
+      return out;
+    });
+    const rubric = mission.explain?.rubric || {};
+    const open = !ex.submitted || ex.level && !ex.passed;
+    return jsx10(Section, { title: "Explain it", children: jsxs9("div", { className: "hk-stack", children: [
+      jsx10("blockquote", { className: "fa-f-md", style: { margin: 0 }, children: jsx10("p", { style: { margin: 0, padding: "6px 12px", borderLeft: "3px solid var(--hk-accent)", background: "var(--hk-sunken)" }, children: jsx10(Inline, { text: mission.explain?.question || "" }) }) }),
+      jsx10(Details, { label: `What each level looks like. Level ${mission.explain?.pass_level || 3} passes.`, children: jsx10("table", { className: "fa-f-rubric", children: [
+        jsx10("thead", { children: jsxs9("tr", { children: [jsx10("th", { scope: "col", children: "Level" }), jsx10("th", { scope: "col", children: "An answer at this level" })] }) }, "h"),
+        jsx10("tbody", { children: [1, 2, 3, 4].map((n) => jsxs9("tr", { children: [jsx10("td", { children: n }), jsx10("td", { children: jsx10(Inline, { text: rubric[n] || rubric[String(n)] || "" }) })] }, n)) }, "b")
+      ] }) }),
+      ex.level && !gradeShown ? jsx10(Notice, { tone: ex.passed ? "good" : "warn", title: `Level ${ex.level} of 4${ex.passed ? "" : `. Level ${ex.pass_level} passes`}`, children: `${ex.feedback || ""}` }) : null,
+      ex.waiting ? jsx10(Notice, { tone: "info", live: true, children: "Waiting for your Hermes to give it a level in the chat that opened. This updates by itself." }) : null,
+      open ? jsxs9("div", { className: "hk-stack", style: { gap: 4 }, children: [
+        jsx10(Textarea4, { id: "fa-explain-answer", rows: 5, value: answer, onChange: (e) => setAnswer(e.target.value), "aria-label": "Your answer" }),
+        jsx10("span", { className: "hk-small", children: `${answer.trim().length} characters. At least 120.` })
+      ] }) : null,
+      open ? jsx10(D.InlineGrade, { missionId: mission.id, attemptId: view.attempt.id, answer, initial: gradeShown }) : null,
+      jsx10(Problem, { text: action.error }),
+      open || ex.waiting ? jsx10(Details, { label: "Score it in a chat instead", children: jsxs9("div", { className: "hk-actions", children: [
+        open ? jsx10(Button6, { variant: "secondary", loading: action.busy === "explain", disabled: answer.trim().length < 120, onClick: () => send(`/foundations/attempt/${view.attempt.id}/explain`, { answer }), children: "Open a grading chat" }) : null,
+        ex.waiting ? jsx10(Button6, { variant: "secondary", onClick: () => send(`/foundations/attempt/${view.attempt.id}/explain/resend`), children: "Open the grading chat again" }) : null
+      ] }) }) : null
+    ] }) });
+  }
+  function RecheckPanel({ mission, view, reloadAll, goStep, hunted = true }) {
+    const runner = useAction(reloadAll);
+    const gap = latest(view, "gap_note") !== null;
+    const after = view.runs?.after_fix;
+    const recheck = () => runner.run("after_fix", async () => {
+      const sample = await B.sample(mission, view.attempt.profile);
+      return post(`/foundations/attempt/${view.attempt.id}/check`, { phase: "after_fix", ...sample ? { sample } : {} });
+    });
+    return jsx10("section", { className: "fa-next", "aria-label": "What to do next", children: jsxs9("div", { className: "hk-stack", children: [
+      jsx10("h3", { children: "What to do next" }),
+      // Before a hint, no sentence: the Field guide already says to look in the practice chat first (Nov 9 critics).
+      gap || hunted ? jsx10("p", { style: { margin: 0 }, children: gap ? "Fix the problem in the practice chat, then check again here." : "When you think you know why, go to Compare to see your chat and Hermes's files side by side." }) : null,
+      jsx10("div", { className: "hk-actions", children: [
+        jsx10(Button6, { key: "chat", variant: "secondary", onClick: () => openPracticeChat(view.attempt.profile), children: "Open practice chat" }),
+        gap ? jsx10(Button6, { key: "run", loading: runner.busy === "after_fix", onClick: recheck, children: "Check my fix" }) : goStep && hunted ? jsx10(Button6, { key: "go", variant: "secondary", onClick: () => goStep("compare"), children: "Go to Compare" }) : null
+      ] }),
+      jsx10(Problem, { text: runner.error }),
+      after ? jsx10(Outcome, { run: after, mission }) : null,
+      after && goStep ? jsx10("div", { className: "hk-actions", children: jsx10(Button6, { variant: "secondary", onClick: () => goStep("fix"), children: "Go on to the transfer" }) }) : null
+    ] }) });
+  }
+  function CheckStep({ mission, view, reloadAll, goStep, guide, gradeShown }) {
+    const action = useAction(reloadAll);
+    const run = view.runs?.first;
+    return jsx10(StepFrame, { title: run ? "What Field Academy found" : "Check", lead: run ? "" : "Field Academy reads the practice profile's memory files, settings and chat records itself.", children: [
+      run ? jsx10(Outcome, { run, mission, guide, attemptId: view.attempt.id, hunted: huntStarted(guide?.view, view.explain) }, "out") : jsx10("div", { className: "hk-actions", children: jsx10(Button6, { loading: action.busy === "check", onClick: () => action.run("check", async () => {
+        const sample = await B.sample(mission, view.attempt.profile) || await pageSample(view.attempt.profile);
+        return post(`/foundations/attempt/${view.attempt.id}/check`, { phase: "first", ...sample ? { sample } : {} });
+      }), children: "Check my work" }) }, "go"),
+      jsx10(Problem, { text: action.error }, "e"),
+      run && !run.passed ? jsx10(RecheckPanel, { mission, view, reloadAll, goStep, hunted: huntStarted(guide?.view, view.explain) }, "recheck") : null,
+      run ? jsx10(Evidence, { items: view.evidence }, "ev") : null,
+      run && mission.explain ? jsxs9("details", { className: "fa-explain-box", id: "fa-explain-box", open: Boolean(gradeShown) || void 0, children: [
+        jsx10("summary", { children: "Score my answer: explain it in your own words, and your model gives it a level" }),
+        jsx10(ExplainPanel, { mission, view, reloadAll, gradeShown })
+      ] }, "explain") : null
+    ] });
+  }
+  function guessWords(view) {
+    const p = latest(view, "prediction");
+    if (!p) return "";
+    const ff = view.first_flight?.guess;
+    if (p.guess && ff) {
+      const a = (ff.answers || []).find((x) => x.id === p.guess.answer);
+      const sure = { low: "not sure", medium: "fairly sure", high: "sure" }[p.guess.confidence];
+      return a ? `Before you started, you guessed “${a.label.replace(/[.\s]+$/, "")}”${sure ? `, and you were ${sure}` : ""}.` : "";
+    }
+    const w = String(p.where_wrong || "").trim();
+    return w ? `Before you started, you guessed you might slip here: “${w}”` : "";
+  }
+  function CompareStep({ view, save, action, guide, sample, go, onReplayState }) {
+    const replay = D.useReplay(view.attempt.id, "compare", sample);
+    const cmp = view.compare;
+    const savedGap = latest(view, "gap_note");
+    const [gap, setGap] = useState8(savedGap?.text || "");
+    if (!cmp) return jsx10(StepFrame, { title: "Compare", lead: "Run the first check to see your score beside what Hermes did." });
+    const cal = cmp.calibration || {};
+    const pins = guide?.view?.pins || [];
+    const head = runHeadline(replay.data, view.runs?.first?.checks);
+    return jsxs9("div", { className: "hk-stack", style: { gap: 18 }, children: [
+      jsx10(D.CompareHero, { headline: head.headline, detail: head.detail, score: scoreSentence(cmp), guess: guessWords(view) }, "hero"),
+      replay.data ? jsx10(D.Replay, { attemptId: view.attempt.id, pins, sample: sample || replay.data, onSample: go ? () => go({ name: "sample" }) : null, onState: onReplayState }, "replay") : replayStatus(replay).state === "error" ? jsx10(Notice, { tone: "warn", title: replayStatus(replay).title, action: jsx10(Button6, { variant: "secondary", onClick: replay.retry, children: "Retry" }), children: replayStatus(replay).words }, "replay") : jsx10("p", { children: replayStatus(replay).words }, "replay"),
+      jsx10(Details, { label: "See each check", children: jsxs9("div", { className: "hk-stack", children: [
+        jsx10("div", { className: "fa-f-scroll", children: jsx10("table", { className: "fa-f-grid", children: [
+          jsx10("thead", { children: jsx10("tr", { children: ["Check", "Your guess", "Your score", "Hermes shows"].map((h) => jsx10("th", { scope: "col", children: h }, h)) }) }, "h"),
+          jsx10("tbody", { children: cmp.grid.map((g, i) => {
+            const r = gridRow(g);
+            return jsxs9("tr", { "data-off": r.off ? "" : void 0, children: [
+              jsx10("td", { children: `${i + 1}. ${r.text}` }),
+              jsx10("td", { children: r.guess }),
+              jsx10("td", { children: r.mine }),
+              jsx10("td", { children: g.passed === null || g.passed === void 0 ? "Waits for Score my answer" : r.after ? `${r.check}, then ${r.after} after the fix` : r.check })
+            ] }, r.id);
+          }) }, "b")
+        ] }) }),
+        jsx10(Facts, { rows: [{ label: "Guesses that matched", value: percent(cal.hit_rate) }] })
+      ] }) }, "grid"),
+      jsx10(Details, { label: "How we know", children: jsx10("div", { className: "hk-stack", children: cmp.plants.map((p) => {
+        const words = plantWords(p.kind);
+        return jsxs9("div", { className: "fa-f-plant", children: [
+          jsxs9("div", { className: "fa-f-row", children: [jsx10("strong", { children: words.title }), jsx10(Pill, { tone: p.caught ? "good" : p.fired ? "warn" : "idle", children: plantPill(p) })] }),
+          jsx10("span", { children: words.what }),
+          p.facts?.length ? jsx10(Facts, { rows: p.facts.map((f) => ({ label: f.label, value: f.value })) }) : null
+        ] }, p.kind);
+      }) }) }, "plants"),
+      jsxs9("div", { className: "fa-field", children: [
+        jsx10("label", { htmlFor: "fa-gap", children: "In one line: what did Hermes do that you didn't expect?" }),
+        jsx10(Textarea4, { id: "fa-gap", rows: 3, value: gap, onChange: (e) => setGap(e.target.value) })
+      ] }, "gap"),
+      jsx10(Problem, { text: action.error }, "e"),
+      jsx10(Next, { label: savedGap ? "Save my note again" : "Save my note", busy: action.busy === "gap", disabled: gap.trim().length < 10, onClick: () => save("gap", "gap_note", { text: gap }) }, "go")
+    ] });
+  }
+  function FixStep({ mission, view, save, action, reloadAll }) {
+    const runner = useAction(reloadAll);
+    const savedFix = latest(view, "fix_note");
+    const [fix, setFix] = useState8(savedFix?.text || "");
+    const transferNote = latest(view, "lab_note", (b) => b.for === "transfer");
+    const runPhase = (phase) => runner.run(phase, async () => {
+      const sample = await B.sample(mission, view.attempt.profile);
+      return post(`/foundations/attempt/${view.attempt.id}/check`, { phase, ...sample ? { sample } : {} });
+    });
+    const after = view.runs?.after_fix;
+    const changes = after?.passed ? fixChanges(view.runs?.first, after) : [];
+    const replay = D.useReplay(view.attempt.id, "compare");
+    const held = (replay.data && replay.data.state === "ready" && replay.data.events || []).find((e) => e.kind === "file:pending");
+    const heldText = held ? heldSentence(held.text).sentence : "";
+    const planted = (view.compare?.plants || []).find((p) => p.fired) || (view.compare?.plants || [])[0];
+    return jsx10(StepFrame, { title: "Fix it", children: [
+      after?.passed ? jsxs9("section", { className: "fa-fixed", "aria-label": "What your fix changed", children: [
+        jsx10("p", { className: "fa-check-line", children: "Your fix worked." }),
+        ...changes.map((ch) => jsxs9("div", { className: "fa-fixed-row", children: [
+          jsxs9("strong", { children: [jsx10(Codicon5, { name: "pass", size: 16 }), ` ${ch.title}`] }),
+          ch.was || ch.now ? jsxs9("span", { children: [ch.was ? jsx10("span", { className: "fa-was", children: `Before: ${localTimes(ch.was)}` }) : null, ch.now ? jsx10("span", { children: `Now: ${localTimes(ch.now)}` }) : null] }) : null
+        ] }, ch.id))
+      ] }, "fixed") : jsxs9("section", { className: "fa-fixed", "aria-label": "What to fix", children: [
+        // The action, not a third telling of Compare's headline (round 15).
+        jsx10("p", { className: "fa-check-line", children: held ? "Approve the one note Hermes is holding." : planted ? `${plantWords(planted.kind).title}.` : "Fix what the check found, in the practice chat." }),
+        held ? jsxs9("div", { className: "fa-replay-detail", children: [
+          jsx10("span", { className: "hk-small", children: `In Hermes's files, ${held.path || "the approval queue"}` }),
+          jsx10("p", { style: { margin: 0 }, children: heldText })
+        ] }) : null,
+        held && heldCommands(held.path).length ? jsx10("p", { style: { margin: 0 }, children: "Type these two commands in the practice chat, then press Check my fix." }) : jsx10("p", { style: { margin: 0 }, children: "Do the fix in the practice chat yourself, then press Check my fix." }),
+        held && heldCommands(held.path).length ? jsx10(D.FixCommands, { commands: heldCommands(held.path), attemptId: view.attempt.id, practiceName: view.attempt.profile }) : null
+      ] }, "tofix"),
+      jsx10(Section, { title: after?.passed ? "Your notes on the fix" : "Then check your fix", children: jsxs9("div", { className: "hk-stack", children: [
+        jsxs9("div", { className: "fa-f-row", children: [
+          jsx10(Button6, { variant: "secondary", onClick: () => openPracticeChat(view.attempt.profile), children: "Open practice chat" }),
+          showsMemory(mission) ? jsx10(MemoryFile, { name: view.attempt.profile }) : null
+        ] }),
+        jsx10("div", { className: "hk-actions", children: jsx10(Button6, { key: "run", variant: after?.passed ? "secondary" : void 0, loading: runner.busy === "after_fix", onClick: () => runPhase("after_fix"), children: after?.passed ? "Check my fix again" : "Check my fix" }) }),
+        // A note on the fix is for the record, not needed to check it, so it sits folded (round 11 and 12 critics).
+        jsx10(Details, { label: savedFix ? "Your note on the fix" : "Add a note on the fix for your record", children: jsxs9("div", { className: "hk-stack", children: [
+          jsx10(Textarea4, { id: "fa-fix", rows: 3, value: fix, onChange: (e) => setFix(e.target.value), "aria-label": "Your note on the fix" }),
+          jsx10("div", { className: "hk-actions", children: jsx10(Button6, { variant: "secondary", loading: action.busy === "fix", disabled: fix.trim().length < 10, onClick: () => save("fix", "fix_note", { text: fix }), children: savedFix ? "Update the note" : "Save the note" }) })
+        ] }) }),
+        jsx10(Problem, { text: runner.error || action.error }),
+        after && !after.passed ? jsx10(Outcome, { run: after, mission }) : null,
+        after?.passed ? jsx10(Details, { label: "Every check, after your fix", children: jsx10(Outcome, { run: after, mission }) }) : null
+      ] }) }, "fix"),
+      !view.runs?.after_fix?.passed ? null : jsx10(Section, { title: "Next: do the job once more, a little differently", children: jsxs9("div", { className: "hk-stack", children: [
+        jsx10(Markdown, { text: mission.transfer?.body }),
+        mission.lab?.note_fields ? jsx10(B.FieldNoteForm, { mission, view, save, action, transfer: true }) : jsx10(NoteForm, { view, save, action, transfer: true }),
+        jsx10("div", { className: "hk-actions", children: jsx10(Button6, { loading: runner.busy === "transfer", disabled: !transferNote, onClick: () => runPhase("transfer"), children: "Check the transfer" }) }),
+        jsx10(Outcome, { run: view.runs?.transfer, mission })
+      ] }) }, "transfer")
+    ] });
+  }
+  function DeletePractice({ view, listing, reloadAll }) {
+    const [sure, setSure] = useState8(false);
+    const [receipt, setReceipt] = useState8("");
+    const action = useAction();
+    const live = (listing || []).filter((p) => ["ready", "in_use"].includes(p.status));
+    if (receipt) return jsx10("p", { role: "status", style: { margin: 0 }, children: receipt });
+    if (!live.length) return null;
+    const names = live.map((p) => p.name).join(" and ");
+    return jsxs9("div", { className: "hk-stack", style: { gap: 6 }, children: [
+      sure ? jsxs9("div", { className: "fa-f-row", children: [
+        jsx10("span", { children: `Delete ${names}? Its chats and memory go with it.` }),
+        jsx10(Button6, { variant: "destructive", loading: action.busy === "delete", onClick: () => action.run("delete", async () => {
+          for (const p of live) await deleteOne(p);
+          setReceipt(`Deleted ${names}. Your own profiles were not touched.`);
+          if (reloadAll) await reloadAll();
+        }), children: "Yes, delete it" }),
+        jsx10(Button6, { variant: "ghost", onClick: () => setSure(false), children: "Keep it" })
+      ] }) : jsx10("div", { className: "hk-actions", children: jsx10(Button6, { variant: "secondary", onClick: () => setSure(true), children: "Delete the practice profile" }) }),
+      jsx10(Problem, { text: action.error })
+    ] });
+  }
+  function RecordStep({ mission, view, reloadAll, go, listing = [] }) {
+    const [preview, setPreview] = useState8(null);
+    const [withhold, setWithhold] = useState8([]);
+    const [sure, setSure] = useState8(false);
+    const action = useAction(reloadAll);
+    useEffect6(() => {
+      let live = true;
+      post(`/foundations/attempt/${view.attempt.id}/record/preview`, { withhold }).then((p) => {
+        if (live) setPreview(p);
+      }).catch((e) => {
+        if (live) action.setError(errorText2(e));
+      });
+      return () => {
+        live = false;
+      };
+    }, [view.attempt.status, withhold.join(",")]);
+    const added = view.record || preview?.added;
+    const entry = preview?.entry;
+    return jsx10(StepFrame, { title: "Record", eyebrow: "Step 12", lead: "This is the entry exactly as it would go into your Field Record. Read every excerpt first: you can keep any of them out.", children: [
+      jsx10(Problem, { text: action.error }, "e"),
+      entry ? jsxs9("div", { className: "hk-stack", children: [
+        jsx10(Facts, { rows: [
+          { label: "Claim", value: entry.claim },
+          { label: "Checks frozen", value: longDate2(entry.standard_frozen_at) },
+          { label: "Your guess", value: `${entry.grid.filter((g) => g.expect_pass === true).length} of ${entry.grid.length} to pass` },
+          { label: "First result", value: entry.result_first.of != null ? `${entry.result_first.passed} of ${entry.result_first.of}. ${entry.result_first.checked_by}` : "Not run" },
+          { label: "After the fix", value: entry.result_after_fix.of != null ? `${entry.result_after_fix.passed} of ${entry.result_after_fix.of}. ${entry.result_after_fix.checked_by}` : "Not run" },
+          { label: "Transfer", value: entry.transfer.of != null ? `${entry.transfer.passed} of ${entry.transfer.of}. ${entry.transfer.checked_by}` : "Not run" },
+          { label: "Explain it", value: entry.explain.level ? `Level ${entry.explain.level} of 4. ${entry.explain.checked_by}` : "No level yet" },
+          entry.transfer.one_off ? { label: "Save or skip", value: `${entry.transfer.one_off.saved ? "Saved" : "Left out"}: "${entry.transfer.one_off.detail}". ${entry.transfer.one_off.checked_by}. Why: ${entry.transfer.one_off.why} (${entry.transfer.one_off.why_checked_by})` } : null
+        ].filter(Boolean) }),
+        // The try in this mission's own words (try_lines, 0.9 persona test), never another mission's form.
+        entry.try_lines?.length ? jsx10(Section, { title: "The try, before the lesson", children: jsx10(Facts, { rows: entry.try_lines.map((t) => ({ label: t.label, value: t.value })) }) }) : null,
+        entry.caught.length ? jsx10(Facts, { rows: entry.caught.map((c) => ({ label: "Caught", value: c.title })) }) : null,
+        entry.missed.length ? jsx10(Facts, { rows: entry.missed.map((c) => ({ label: "Missed", value: c.title })) }) : null,
+        entry.gap ? jsx10(Facts, { rows: [{ label: "Gap note", value: entry.gap }] }) : null,
+        jsx10(Section, { title: "Excerpts", count: entry.evidence.length, children: jsx10("ul", { className: "fa-f-evidence", children: entry.evidence.map((e) => jsxs9("li", { children: [
+          jsxs9("div", { className: "fa-f-meta", children: [
+            jsx10("span", { className: "fa-f-code", children: e.file }),
+            jsx10("span", { title: `SHA-256 ${e.sha256 || ""}`, children: "Fingerprinted" }),
+            jsx10("span", { children: e.checked_by }),
+            added ? null : jsxs9("label", { className: "fa-f-withhold", children: [jsx10("input", {
+              type: "checkbox",
+              checked: withhold.includes(e.id),
+              onChange: (ev) => setWithhold(ev.target.checked ? [...withhold, e.id] : withhold.filter((x) => x !== e.id))
+            }), "Keep this excerpt out"] })
+          ] }),
+          e.withheld ? jsx10("p", { className: "hk-small", style: { margin: 0 }, children: "Kept out. The record keeps only its fingerprint." }) : jsx10("pre", { className: "fa-f-excerpt", children: e.excerpt })
+        ] }, e.id)) }) })
+      ] }, "entry") : jsx10("p", { children: "Loading the entry." }, "loading"),
+      mission.record_example_text ? jsx10(Details, { label: "An example entry", children: jsx10(Markdown, { text: mission.record_example_text }) }, "example") : null,
+      added ? jsx10(Notice, { tone: "good", title: "In your record", children: jsxs9("div", { className: "hk-stack", children: [
+        jsx10("p", { style: { margin: 0 }, children: `Added ${longDate2(added.created_at)}. It can't be changed; a correction would be added below it.` }),
+        go ? jsx10("div", { className: "hk-actions", children: jsx10(Button6, { variant: "secondary", onClick: () => go({ name: "f-record" }), children: "See your Field Record" }) }) : null,
+        jsx10(DeletePractice, { view, listing, reloadAll })
+      ] }) }, "added") : preview && preview.ready ? jsxs9("div", { className: "hk-stack", children: [
+        jsxs9("label", { className: "fa-f-withhold", children: [jsx10("input", { type: "checkbox", checked: sure, onChange: (e) => setSure(e.target.checked) }), "I've read the entry. Adding it can't be undone."] }),
+        jsx10("div", { className: "hk-actions", children: jsx10(Button6, { disabled: !sure, loading: action.busy === "add", onClick: () => action.run("add", () => post(`/foundations/attempt/${view.attempt.id}/record`, { withhold, confirm: true })), children: "Add to my record" }) })
+      ] }, "add") : jsx10(Notice, { tone: "info", children: view.test_out?.on && view.test_out.passed !== false ? "To test out, every check has to pass on the first run, your explanation included. Then the entry is ready." : "Run the check after your fix and the transfer check first." }, "wait")
+    ] });
+  }
+  const STEP_VIEWS = {
+    recall: RecallStep,
+    claim: ClaimStep,
+    predict: PredictStep,
+    setup: SetupStep,
+    idea: IdeaStep,
+    expert: ExpertStep,
+    lab: LabStep2,
+    evidence: ScoreStep,
+    check: CheckStep,
+    compare: CompareStep,
+    fix: FixStep,
+    record: RecordStep
+  };
+  function useMission(missionId, testOut = false, firstFlight = false) {
+    const [state, setState] = useState8({ loading: true, error: "", mission: null, view: null, listing: [] });
+    const asked = useRef5(testOut);
+    const load = async () => {
+      try {
+        const start = { mission_id: missionId, ...asked.current ? { test_out: true } : {} };
+        asked.current = false;
+        const [mission, view, practice] = await Promise.all([
+          ctxRest2(`/foundations/mission/${encodeURIComponent(missionId)}`),
+          firstFlight ? post("/first-flight/start", {}) : post("/foundations/attempt/start", start),
+          ctxRest2("/foundations/practice")
+        ]);
+        setState({ loading: false, error: "", mission, view, listing: practice.practice || [] });
+      } catch (e) {
+        setState((s) => ({ ...s, loading: false, error: errorText2(e) }));
+      }
+    };
+    useEffect6(() => {
+      load();
+    }, [missionId]);
+    const waiting = Boolean(state.view?.explain?.waiting);
+    useEffect6(() => {
+      if (!waiting) return void 0;
+      const t = setInterval(load, 5e3);
+      return () => clearInterval(t);
+    }, [waiting]);
+    return { ...state, reload: load };
+  }
+  function TestOutNotice({ state }) {
+    if (state.passed === true) return jsx10(Notice, { tone: "good", title: "You tested out", children: "Every check passed on the first run. Add the mission to your record from the Record step; it goes in marked Tested out. Compare and the fix and transfer are there if you want them." });
+    if (state.passed === false) return jsx10(Notice, { tone: "info", title: "This test-out became the full mission", children: "A check missed on the first run, so finish the usual way: Compare, the fix and the transfer, then the record. Your record says the try began as a test-out." });
+    return jsx10(Notice, { tone: "info", title: "Testing out", children: "Recall is skipped, and the lesson and the worked example are optional. Pass every check on the first run, your explanation included, and the mission goes in your record marked Tested out." });
+  }
+  function MissionLoop({ missionId, go, initialStep, testOut = false, firstFlight = false, harnessGrade = null }) {
+    const m = useMission(missionId, testOut, firstFlight);
+    const [stepId, setStepId] = useState8(initialStep || "");
+    const action = useAction(m.reload);
+    const trail = m.mission?.trail?.id ? m.mission.trail : null;
+    const up = () => go(trail ? { name: "path", id: trail.id } : { name: "foundations" });
+    const states = m.view && m.mission ? stepStates(m.view, m.listing) : [];
+    const hunting = Boolean(m.view?.runs?.first && !m.view.runs.first.passed && latest(m.view, "gap_note") === null && !(m.view.entries || []).some((e) => e.kind === "help" && e.body?.kind === "reveal"));
+    const opening = states.length ? currentStep(states) : "";
+    const at = !states.length ? "" : stepId && states.find((s) => s.id === stepId && s.status !== "locked") ? stepId : opening === "compare" && hunting ? "check" : opening;
+    const runsKey = m.view ? `${m.view.runs?.first?.at || ""}|${m.view.runs?.after_fix?.at || ""}|${(m.view.entries || []).length}` : "";
+    const guide = D.useGuide(m.view?.attempt?.id, at, runsKey);
+    const [replayState, setReplayState] = useState8("");
+    if (m.loading) return jsx10(Frame2, { up, children: jsx10("p", { children: "Loading the mission." }) });
+    if (!m.view || !m.mission) return jsx10(Frame2, { up, children: [jsx10(Back, { label: "Foundations", onClick: up }, "b"), jsx10(Problem, { text: m.error || "This mission could not load." }, "e")] });
+    const index = STEPS.findIndex((s) => s.id === at);
+    const save = (name, kind, body) => action.run(name, () => post(`/foundations/attempt/${m.view.attempt.id}/entry`, { kind, body }));
+    const act = (name, call) => action.run(name, call);
+    const View = STEP_VIEWS[at];
+    const skipLearn = m.view.first_flight?.on && at === "setup";
+    const next = skipLearn ? states.find((s) => s.id === "lab") : states[index + 1];
+    const ff = m.view.first_flight?.on;
+    const missed = Boolean(m.view.runs?.first && !m.view.runs.first.passed);
+    const level = m.view.attempt.level === "beginner" ? "Beginner" : m.view.attempt.level === "intermediate" ? "Intermediate" : "Advanced";
+    const turnOn = async () => {
+      await post("/settings/ai", { ai_help: true }).catch(() => null);
+      guide.reload();
+    };
+    const turnOff = async () => {
+      await post("/settings/ai", { ai_help: false }).catch(() => null);
+      guide.reload();
+    };
+    return jsx10(Frame2, { up, width: "full", children: jsxs9("div", { className: "fa-desk", children: [
+      jsxs9("header", { className: "fa-desk-head", children: [
+        jsx10(Back, { label: ff ? "Home" : trail ? `${trail.name} trail` : "Foundations", onClick: ff ? () => go({ name: "map" }) : up, hint: false }),
+        jsx10(Label2, { children: ff ? "Your first practice" : `${trail ? `${trail.name} · ${trail.camp_name} camp` : `Foundations · ${level}`} · Try ${m.view.attempt.attempt_no}${m.view.test_out?.on ? " · Test-out" : ""}` }),
+        jsx10("h1", { className: "hk-h1", style: { margin: 0 }, children: m.mission.title }),
+        jsx10(D.PhaseBar, { states, at })
+      ] }, "head"),
+      jsx10(D.PhaseRail, { states, at, onPick: setStepId }, "rail"),
+      jsxs9("main", { className: "fa-desk-work", children: [
+        m.view.test_out?.on ? jsx10(TestOutNotice, { state: m.view.test_out }, "testout") : null,
+        m.view.attempt.frozen_at && !["lab", "compare"].includes(at) ? jsx10(B.CheckNotices, { mission: m.mission, view: m.view }, "notices") : null,
+        jsx10(View, { key: `${at}:${m.view.attempt.id}`, mission: m.mission, view: m.view, listing: m.listing, save, act, action, reload: m.reload, reloadAll: m.reload, go, goStep: setStepId, guide, gradeShown: harnessGrade, onReplayState: setReplayState }, `step-${at}`),
+        next && next.status !== "locked" && !["record", "evidence", "predict"].includes(at) && !(at === "check" && missed) ? jsx10("div", { className: "hk-actions", children: jsx10(Button6, { variant: "secondary", onClick: () => setStepId(next.id), children: `Next: ${next.title}` }) }, "next") : null
+      ] }, "work"),
+      jsx10(D.FieldGuide, {
+        guide,
+        attemptId: m.view.attempt.id,
+        step: at,
+        missed,
+        practiceName: m.view.attempt.profile,
+        onOpenCompare: () => setStepId("compare"),
+        onTurnOn: turnOn,
+        onTurnOff: turnOff,
+        noRun: ["empty", "schema_changed"].includes(replayState),
+        fixed: Boolean(m.view.runs?.after_fix?.passed),
+        onScoreAnswer: m.view.runs?.first && m.mission.explain ? () => {
+          const box = typeof document !== "undefined" ? document.getElementById("fa-explain-box") : null;
+          if (box) box.open = true;
+          setTimeout(() => {
+            const n = typeof document !== "undefined" ? document.getElementById("fa-explain-answer") : null;
+            if (n) {
+              n.scrollIntoView({ block: "center" });
+              n.focus();
+            }
+          }, 50);
+        } : null
+      }, "guide")
+    ] }) });
+  }
+  function CalibrationView({ rows, emptyText = "Not tried yet" }) {
+    const table = calibrationTable(rows);
+    if (!table.length) return null;
+    return jsxs9("div", { className: "hk-stack", children: [
+      jsx10("div", { className: "fa-f-scroll", children: jsxs9("table", { className: "fa-f-cal", children: [
+        jsx10("thead", { children: jsxs9("tr", { children: [
+          jsx10("th", { scope: "col", children: "Mission" }),
+          jsx10("th", { scope: "col", children: "Checks" }),
+          jsx10("th", { scope: "col", children: "You expected to pass" }),
+          jsx10("th", { scope: "col", children: "You scored yourself" }),
+          jsx10("th", { scope: "col", children: "Passed the first time" })
+        ] }) }),
+        jsx10("tbody", { children: table.map((r) => r.empty ? jsxs9("tr", { "data-empty": "", children: [jsx10("th", { scope: "row", style: { fontWeight: 400 }, children: r.title }), jsx10("td", { colSpan: 4, children: emptyText })] }, r.id) : jsxs9("tr", { children: [
+          jsx10("th", { scope: "row", style: { fontWeight: 400 }, children: r.title }),
+          jsx10("td", { className: "fa-f-num", children: r.checks }),
+          jsx10("td", { className: "fa-f-num", children: r.predicted }),
+          jsx10("td", { className: "fa-f-num", children: r.selfScored }),
+          jsx10("td", { className: "fa-f-num", children: r.passed })
+        ] }, r.id)) })
+      ] }) }),
+      jsx10("span", { className: "fa-f-tag", children: "Field Academy read it" })
+    ] });
+  }
+  function useRecord() {
+    const [state, setState] = useState8({ loading: true, data: null, error: "" });
+    const load = async (body) => {
+      try {
+        const data = body ? await post("/foundations/record/preview", body) : await ctxRest2("/foundations/record");
+        setState({ loading: false, data, error: "" });
+      } catch (e) {
+        setState((s) => ({ ...s, loading: false, error: errorText2(e) }));
+      }
+    };
+    return { ...state, load };
+  }
+  function ExcerptList({ items, withhold, setWithhold, locked }) {
+    return jsx10("ul", { className: "fa-f-evidence", children: items.map((x) => {
+      const before = x.withheld && !withhold.includes(x.id);
+      return jsxs9("li", { children: [
+        jsxs9("div", { className: "fa-f-meta", children: [
+          jsx10("strong", { children: x.mission_title }),
+          jsx10("span", { className: "fa-f-code", children: x.file }),
+          jsx10("span", { children: x.kind }),
+          jsx10("span", { children: `Read ${longDate2(x.read_at)}` }),
+          jsx10("span", { title: `SHA-256 ${x.sha256 || ""}`, children: "Fingerprinted" }),
+          jsx10("span", { className: "fa-f-tag", children: "Field Academy read it" }),
+          locked || before ? null : jsxs9("label", { className: "fa-f-withhold", children: [jsx10("input", {
+            type: "checkbox",
+            checked: withhold.includes(x.id),
+            onChange: (e) => setWithhold(toggleWithhold(withhold, x.id, e.target.checked))
+          }), "Keep this excerpt out"] })
+        ] }),
+        // What a stranger reads beside it in record.md: the check it backs, and what kind of line it is (0.9 persona test).
+        x.backs?.label ? jsx10("span", { className: "hk-small", children: `${x.backs.label}${x.backs.n ? `: ${x.backs.text}` : `: ${x.backs.text}`} ${x.about || ""}` }) : null,
+        x.withheld ? jsx10("p", { className: "hk-small", style: { margin: 0 }, children: before ? "Kept out when you added this entry. The record keeps only its fingerprint." : "Kept out. The record keeps only its fingerprint and says it was withheld." }) : jsx10("pre", { className: "fa-f-excerpt", children: x.excerpt })
+      ] }, x.id);
+    }) });
+  }
+  function SavedRecord({ item }) {
+    return jsxs9("div", { className: "fa-f-result", "data-pass": "", children: [
+      jsxs9("div", { className: "fa-f-row", children: [
+        jsx10("strong", { className: "fa-f-code", children: item.number }),
+        jsx10("span", { className: "hk-small", children: `Saved ${longDate2(item.issued_at)}` }),
+        item.entries != null ? jsx10("span", { className: "hk-small", children: plural3(item.entries, "entry", "entries") }) : null
+      ] }),
+      item.folder_shown ? jsx10(PathLine, { path: item.folder, shown: item.folder_shown, label: "Record folder" }) : null
+    ] });
+  }
+  function recordLine(body) {
+    const entries = body.entries || [];
+    const passed = new Set(((body.can_claim || {}).passed || []).map((x) => x.title));
+    if (!entries.length) return "Nothing is in your record yet.";
+    const e = entries[entries.length - 1];
+    if (passed.has(e.mission_title)) return `You passed “${e.mission_title}”.`;
+    const fixed = e.result_after_fix && e.result_after_fix.of != null && e.result_after_fix.passed === e.result_after_fix.of;
+    const graded = e.explain && e.explain.level;
+    return `${fixed ? `You fixed the problem in “${e.mission_title}”.` : `“${e.mission_title}” is in your record.`} ${graded ? "It isn't passed yet because your written answer needs more." : "It isn't passed yet."}`;
+  }
+  function RecordCover({ body, verdict }) {
+    const scope = body.scope || {};
+    const entries = body.entries || [];
+    const left = Math.max(0, (scope.missions_in_course || 0) - (scope.missions_in_record || 0));
+    return jsxs9("section", { className: "fa-cover", "aria-label": "Record cover", children: [
+      jsx10("p", { className: "fa-cover-line", children: recordLine(body) }),
+      entries.length ? jsx10(Facts, { rows: entries.flatMap((e) => [
+        { label: e.mission_title, value: [e.help?.words, e.mode === "first_flight" || (e.skipped || []).includes("claim") ? "Started from the 10-minute practice" : ""].filter(Boolean).join(". ") || "In your record" }
+      ].filter(Boolean)) }) : null,
+      jsx10("p", { children: `${body.disclaimer || ""} If an entry is changed after it is added, the saved record shows it.` }),
+      jsx10(Details, { label: "Details", children: jsx10(Facts, { rows: [
+        ...entries.filter((e) => e.cost?.practice).map((e) => ({ label: "What it cost", value: `${e.cost.practice} ${e.cost.guide || ""}`.trim() })),
+        { label: "Latest entry fingerprint", value: body.chain_head || "" },
+        { label: "Format", value: `${body.record_format || ""}` }
+      ] }) })
+    ] });
+  }
+  function RecordTrails({ trails }) {
+    const camps = trails.trails[0]?.camps || [];
+    const head = trails.trailhead;
+    return jsxs9("div", { className: "hk-stack", style: { gap: 8 }, children: [
+      head?.total ? jsx10("p", { style: { margin: 0 }, children: jsxs9("span", { children: [jsx10("strong", { children: "Foundations, the trailhead: " }), `${head.passed} of ${head.total} missions passed.`] }) }) : null,
+      jsx10("table", { className: "fa-rt", children: [
+        jsx10("thead", { children: jsxs9("tr", { children: [jsx10("th", { children: "Trail" }), ...camps.map((c) => jsx10("th", { children: `${c.name} camp` }, c.id)), jsx10("th", { children: "Summit" })] }) }, "h"),
+        jsx10("tbody", { children: trails.trails.map((t) => jsxs9("tr", { children: [
+          jsxs9("th", { scope: "row", children: [jsx10("span", { className: "fa-sc fa-sc-blaze", style: { display: "block" }, children: t.eyebrow }), t.name] }),
+          ...t.camps.map((c, i) => jsx10("td", { "data-reached": c.reached ? "" : void 0, children: `${c.name !== camps[i]?.name ? `${c.name}: ` : ""}${c.reached ? "Reached" : c.total ? `${c.passed} of ${c.total}` : ""}` }, c.id)),
+          jsx10("td", { "data-reached": t.summit ? "" : void 0, children: t.summit ? "Reached" : "Not yet" })
+        ] }, t.id)) }, "b")
+      ] }),
+      jsx10("p", { className: "hk-small", style: { margin: 0 }, children: trails.note })
+    ] });
+  }
+  function RecordPassed({ passed }) {
+    const rows = passed.missions || [];
+    if (!rows.length) return jsx10("p", { style: { margin: 0 }, children: "None yet. A mission goes here once every check on it has passed." });
+    return jsxs9("div", { className: "hk-stack", style: { gap: 12 }, children: [
+      jsx10("p", { className: "hk-small", style: { margin: 0 }, children: passed.note }),
+      ...rows.map((m) => jsxs9("div", { className: "fa-rp", children: [
+        jsxs9("div", { className: "fa-f-row", children: [jsx10("strong", { children: m.title }), jsx10("span", { className: "hk-small", children: m.where })] }),
+        jsx10("span", { className: "hk-small", children: `Passed ${m.how}, ${m.checks} checks, ${longDate2(m.date)}. Record entry ${m.entry}.` }),
+        jsx10("ul", { className: "fa-rp-ev", children: m.evidence.map((ev, i) => jsxs9("li", { children: [
+          jsx10("code", { children: ev.withheld ? "withheld" : ev.file }),
+          jsx10("span", { children: ev.withheld ? ` read from ${ev.read_from}, kept out by you` : ` read from ${ev.read_from}: “${ev.excerpt}”` }),
+          jsx10("span", { className: "hk-small", children: ` ${String(ev.sha256 || "").slice(0, 12)}` })
+        ] }, i)) })
+      ] }, m.mission))
+    ] });
+  }
+  function FieldRecordView({ go }) {
+    const rec = useRecord();
+    const [form, setForm] = useState8({ holder: "", limits: "", caseText: "" });
+    const [withhold, setWithhold] = useState8([]);
+    const [sure, setSure] = useState8(false);
+    const [saved, setSaved] = useState8(null);
+    const action = useAction();
+    const up = () => go({ name: "foundations" });
+    useEffect6(() => {
+      rec.load({ withhold });
+    }, [withhold.join(",")]);
+    const data = rec.data;
+    const body = data?.body;
+    const problems = recordProblems(form);
+    const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+    const save = () => action.run("save", async () => {
+      const out = await post("/foundations/record/issue", { holder: form.holder, limits: form.limits, case: form.caseText, withhold, confirm: true });
+      setSaved(out);
+      setSure(false);
+      await rec.load({ withhold });
+      return out;
+    });
+    const again = (number) => action.run(`again-${number}`, async () => {
+      const out = await post("/foundations/record/save", { number });
+      host4.notify({ kind: "success", message: "Saved the files again." });
+      return out;
+    });
+    const head = jsx10(PageHeader, {
+      back: jsx10(Back, { label: "Foundations", onClick: up }),
+      eyebrow: jsx10(Label2, { children: "Field Academy" }),
+      title: "Your Field Record",
+      lead: "Camps reached on each trail, and every mission you passed with the lines Field Academy read as evidence. It is saved on this computer, and you choose who sees it."
+    }, "head");
+    if (rec.loading) return jsx10(Frame2, { up, children: [head, jsx10("p", { children: "Loading your record." }, "l")] });
+    if (!body) return jsx10(Frame2, { up, children: [head, jsx10(Problem, { text: rec.error || "Your record could not load." }, "e")] });
+    const scope = body.scope || {};
+    const issuedList = data.issued || [];
+    const items = data.excerpts || [];
+    const can = body.can_claim || { passed: [], not_yet: [] };
+    const fl = body.first_and_last || {};
+    if (!data.ready) {
+      return jsx10(Frame2, { up, children: [
+        head,
+        jsx10(Notice, { tone: "info", title: "Nothing in your record yet", children: "Finish a mission and add it to your record at its last step. Then your Field Record can be saved here." }, "empty"),
+        jsx10(Section, { title: "How your self-judgment moved", children: jsx10(CalibrationView, { rows: body.calibration?.per_mission, emptyText: "Not in your record yet" }) }, "cal")
+      ] });
+    }
+    return jsx10(Frame2, { up, children: [
+      head,
+      jsx10(Problem, { text: rec.error || action.error }, "e"),
+      saved ? jsx10(Notice, { tone: "good", title: "Your Field Record is saved", children: jsxs9("div", { className: "hk-stack", children: [
+        jsx10("p", { style: { margin: 0 }, children: `Record number ${saved.number}. The folder holds the record, the excerpts, a fingerprint of every file and a README that tells a stranger how to check it.` }),
+        jsx10(PathLine, { path: saved.folder, shown: saved.folder_shown, label: "Record folder" }),
+        jsx10(Facts, { rows: (saved.files || []).map((f) => ({ label: f.startsWith("evidence/") ? "Excerpt" : "File", value: f })) })
+      ] }) }, "saved") : null,
+      jsx10(RecordCover, { body, verdict: data.verdict }, "cover"),
+      body.trails?.trails?.length ? jsx10(Section, { title: "The trail map", children: jsx10(RecordTrails, { trails: body.trails }) }, "trails") : null,
+      body.passed ? jsx10(Section, { title: "Missions passed, with evidence", count: (body.passed.missions || []).length, children: jsx10(RecordPassed, { passed: body.passed }) }, "passed") : null,
+      jsx10(Details, { label: "Who, when, and every claim", children: jsxs9("div", { className: "hk-stack", children: [
+        jsx10(Section, { title: "Who and when", children: jsx10(Facts, { rows: [
+          { label: "Issued by", value: "You. Nobody else issues it." },
+          { label: "Hermes", value: `${scope.hermes?.line || ""} ${checkedByWords(scope.hermes?.checked_by)}.` },
+          { label: "Time", value: `${hoursWords(scope.hours)}. Gaps over 15 minutes, like waiting for a scheduled run, don't count. Field Academy counted it.` },
+          { label: "Missions", value: `${scope.missions_in_record} of ${scope.missions_in_course} in your record` },
+          { label: "Outside reviewer", value: 'None. The record says so: "Nobody outside has reviewed this record."' }
+        ] }) }, "scope"),
+        jsx10(Section, { title: "Your claims", count: body.claims.length, children: jsx10("ol", { className: "fa-f-claims", children: body.claims.map((c) => jsxs9("li", { children: [
+          jsx10("strong", { children: c.mission_title }),
+          jsx10("span", { children: c.claim }),
+          jsx10("span", { className: "hk-small", children: `${plural3((c.standard || []).length, "check", "checks")}, frozen ${longDate2(c.standard_frozen_at)}. ${c.changes.length ? `Changed ${plural3(c.changes.length, "time", "times")} after that, with your reasons.` : "No change after that."}` })
+        ] }, c.n)) }) }, "claims"),
+        jsx10(Section, { title: "How your self-judgment moved", children: jsxs9("div", { className: "hk-stack", children: [
+          jsx10(CalibrationView, { rows: (body.calibration.per_mission || []).filter((r) => r.in_record), emptyText: "Not in your record yet" }),
+          (body.calibration.per_mission || []).some((r) => !r.in_record) ? jsx10("p", { style: { margin: 0 }, children: `${plural3((body.calibration.per_mission || []).filter((r) => !r.in_record).length, "mission", "missions")} to go.` }) : null
+        ] }) }, "cal")
+      ] }) }, "details"),
+      jsx10(Section, { title: "First and last", children: jsxs9("div", { className: "hk-stack", children: [
+        jsx10("p", { className: "hk-small", style: { margin: 0 }, children: fl.note }),
+        jsx10(Facts, { rows: [fl.first, fl.last].filter(Boolean).map((s, i) => ({
+          label: i === 0 ? "First" : "Latest",
+          value: `${s.mission_title}: ${s.found_wrong || "Nothing written about what was wrong."} Planted problems caught ${s.caught}, missed ${s.missed}.`
+        })) })
+      ] }) }, "fl"),
+      jsx10(Section, { title: "What you can now claim", children: jsxs9("div", { className: "hk-stack", children: [
+        can.passed.length ? jsx10(Facts, { rows: can.passed.map((x) => ({ label: x.title, value: `${x.claim}${x.after_fix ? " Passed after a fix." : x.tested_out ? " Tested out." : ""}` })) }) : jsx10("p", { style: { margin: 0 }, children: "Nothing yet. A claim goes here once every check on it has passed." }),
+        can.not_yet.length ? jsx10(Details, { label: `Not yet (${can.not_yet.length})`, children: jsx10(Facts, { rows: can.not_yet.map((x) => ({ label: x.title, value: x.why })) }) }) : null
+      ] }) }, "can"),
+      jsx10(Details, { label: `The lines Field Academy read (${items.length}). Check them before you save.`, children: jsxs9("div", { className: "hk-stack", children: [
+        jsx10("p", { className: "hk-small", style: { margin: 0 }, children: "These are the lines Field Academy read from your practice profiles. Secrets were already removed. Read each one: keep out anything you don't want a stranger to see. A kept-out excerpt shows as withheld, with only its fingerprint." }),
+        jsx10(ExcerptList, { items, withhold, setWithhold, locked: false })
+      ] }) }, "excerpts"),
+      jsx10(Section, { title: "In your words", children: jsxs9("div", { className: "fa-f-form", children: [
+        jsxs9("label", { children: ["Your name on the record", jsx10(Input5, { value: form.holder, onChange: set("holder"), placeholder: "Your name", "aria-label": "Your name on the record" })] }),
+        jsxs9("label", { children: [
+          "What this record doesn't show",
+          jsx10("span", { className: "hk-small", children: "Two or three lines, in your own words. Not graded." }),
+          jsx10(Textarea4, {
+            style: { minHeight: "5rem", width: "100%" },
+            value: form.limits,
+            onChange: set("limits"),
+            "aria-label": "What this record doesn't show",
+            placeholder: "It shows practice work on my own computer. Nobody else watched, and my own Hermes graded my answers."
+          })
+        ] }),
+        jsxs9("label", { children: [
+          "A case for a stranger, if you want one",
+          jsx10("span", { className: "hk-small", children: "One job: what you asked, what Hermes got wrong or nearly got wrong, how you found out. Under 300 words. Leave it empty and the record says no case was written." }),
+          jsx10(Textarea4, { style: { minHeight: "8rem", width: "100%" }, value: form.caseText, onChange: set("caseText"), "aria-label": "A case for a stranger" })
+        ] })
+      ] }) }, "form"),
+      jsx10(Section, { title: "Save your record", children: jsxs9("div", { className: "hk-stack", children: [
+        jsx10("p", { style: { margin: 0 }, children: "Field Academy saves a folder on this computer with the record, every excerpt you kept, a fingerprint of each file and a README for a stranger. Nothing is sent anywhere. You choose who sees it." }),
+        problems.length && (form.holder || form.limits || form.caseText || sure) ? jsx10(Problems, { items: problems }) : null,
+        jsxs9("label", { className: "fa-f-withhold", children: [jsx10("input", { type: "checkbox", checked: sure, onChange: (e) => setSure(e.target.checked) }), "I've read the record and every excerpt. Saving it can't be undone."] }),
+        jsx10("div", { className: "hk-actions", children: jsx10(Button6, { disabled: !sure || problems.length > 0, loading: action.busy === "save", onClick: save, children: "Save my Field Record" }) })
+      ] }) }, "save"),
+      issuedList.length ? jsx10(Section, { title: "Records you saved", count: issuedList.length, children: jsx10("div", { className: "hk-stack", children: [
+        jsx10("p", { className: "hk-small", style: { margin: 0 }, children: "Save the files again writes a record's folder again from the record as it was saved, in the same place. Use it if a file in the folder was deleted or changed. The record and its number stay the same." }, "about"),
+        ...issuedList.map((item) => jsxs9("div", { className: "hk-stack", children: [
+          jsx10(SavedRecord, { item }),
+          jsx10("div", { className: "hk-actions", children: [
+            jsx10(Button6, { variant: "secondary", loading: action.busy === `again-${item.number}`, onClick: () => again(item.number), children: "Save the files again" }, "a"),
+            item.folder ? jsx10(Button6, { variant: "secondary", onClick: () => openFolder2(item.folder), children: "Open the folder" }, "o") : null
+          ] })
+        ] }, item.number))
+      ] }) }, "issued") : null
+    ] });
+  }
+  function useFoundations(wanted = true) {
+    const [state, setState] = useState8({ loading: true, data: null, error: "" });
+    useEffect6(() => {
+      if (!wanted) return void 0;
+      let live = true;
+      ctxRest2("/foundations").then((data) => live && setState({ loading: false, data, error: "" })).catch((e) => live && setState({ loading: false, data: null, error: errorText2(e) }));
+      return () => {
+        live = false;
+      };
+    }, []);
+    return state;
+  }
+  function missionStatus(m) {
+    return missionWords(m);
+  }
+  function FoundationsCard({ go, foundations }) {
+    const own = useFoundations(!foundations);
+    const f = foundations || own;
+    const missions = (f.data?.missions || []).filter((m) => !m.trail);
+    if (!missions.length) return null;
+    const done = missions.filter((m) => (m.attempts || []).some((a) => a.status === "done")).length;
+    const beat = (icon, title, body, files) => jsxs9("li", { className: "fa-f-beat", children: [
+      jsxs9("div", { className: "fa-f-row", children: [jsx10(Codicon5, { name: icon, size: 16 }), jsx10("strong", { children: title })] }),
+      jsx10("p", { children: body }),
+      jsx10("div", { className: "fa-f-files", children: files.map((name) => jsx10("code", { className: "fa-f-code", children: name }, name)) })
+    ] });
+    const begun = missions.some((m) => (m.attempts || []).length);
+    return jsx10(Section, { title: "Foundations", count: missions.length, children: jsx10(Card, { children: jsxs9("div", { className: "fa-f-card fa-f-start", children: [
+      jsxs9("div", { className: "hk-stack", style: { gap: 4 }, children: [
+        jsx10(Label2, { children: begun ? "Where you left off" : "The trailhead: Foundations" }),
+        jsx10("h2", { className: "hk-h2", style: { margin: 0 }, children: "Prove what you can do with Hermes" }),
+        jsx10("p", { style: { margin: 0 }, children: `${missions.length === 11 ? "Eleven" : missions.length} missions on how Hermes really works. Each one runs in a practice profile Field Academy makes for you, so your own setup stays as it is.` })
+      ] }),
+      jsxs9("ol", { className: "fa-f-beats", "aria-label": "What every mission does", children: [
+        beat(
+          "bug",
+          "A problem is planted first",
+          "Before your first chat, the practice profile gets a snag a real setup has: memory nearly full, saves held for approval, a job set to deliver nowhere.",
+          ["memories/MEMORY.md", "config.yaml"]
+        ),
+        beat(
+          "eye",
+          "The check reads Hermes itself",
+          "When you press Check, Field Academy opens that profile's memory files, settings, chat records and run history. What you say about your work is never the check.",
+          ["state.db", "cron/jobs.json"]
+        ),
+        beat(
+          "verified",
+          "The record opens anywhere",
+          "Each pass goes into your Field Record with the exact line it read. The record is tamper-evident and opens without Hermes.",
+          ["record.md", "MANIFEST.sha256"]
+        )
+      ] }),
+      jsxs9("div", { className: "hk-actions", children: [
+        jsx10(Button6, { onClick: () => go({ name: "foundations" }), children: "Open Foundations" }),
+        jsx10("span", { className: "hk-small", children: `${done} of ${plural3(missions.length, "mission", "missions")} in your record` })
+      ] })
+    ] }) }) });
+  }
+  function useSample() {
+    const [sample, setSample] = useState8(null);
+    useEffect6(() => {
+      let live = true;
+      ctxRest2("/replay/sample").then((d) => {
+        if (live) setSample(d);
+      }).catch(() => {
+        if (live) setSample({ state: "empty", words: "" });
+      });
+      return () => {
+        live = false;
+      };
+    }, []);
+    return sample;
+  }
+  function FirstFlightCard({ go, foundations, compact = false }) {
+    const sample = useSample();
+    const own = useFoundations(!foundations);
+    const f = foundations || own;
+    const resume = resumeWords((f.data?.missions || []).find((m) => m.id === "f.memory"));
+    return jsxs9("section", { className: compact ? "fa-ff fa-ff-compact" : "fa-ff", "aria-label": "First flight", children: [
+      jsxs9("div", { className: "hk-stack fa-ff-copy", style: { gap: 12 }, children: [
+        jsx10(Label2, { children: resume ? "Where you left off" : "Start here" }),
+        jsx10("h2", { children: resume ? resume.title : "Practice one job in a test copy of Hermes, and see what it really did" }),
+        jsx10("p", { children: resume ? resume.where : "Field Academy makes a practice copy of Hermes with one hidden problem. You ask it to save a note, say whether you think it worked, then see what Hermes actually did. It takes about 10 minutes." }),
+        jsxs9("div", { className: "fa-ff-actions", children: [
+          jsx10(Button6, { onClick: () => go({ name: "f-mission", id: "f.memory", firstFlight: true }), children: resume ? resume.button : "Start the practice" }),
+          jsx10(Button6, { variant: "secondary", onClick: () => go({ name: "sample" }), children: "Watch a sample run" })
+        ] }),
+        jsx10("p", { className: "hk-small", children: "It uses a separate practice profile and your own model." })
+      ] }),
+      jsxs9("div", { className: "hk-stack", style: { gap: 6 }, "aria-label": "A still from a sample run", children: [
+        // Never an empty box: the live sample when it is ready, the bundled recorded run while it loads or when Hermes can't be reached.
+        jsx10(D.Replay, { sample: homePreview(sample), still: true }),
+        jsx10("span", { className: "hk-small", children: "At the end you see your practice chat beside the files Hermes wrote." })
+      ] })
+    ] });
+  }
+  function SampleRun({ go }) {
+    const sample = useSample();
+    const up = () => go({ name: "map" });
+    if (!sample) return jsx10(Frame2, { up, children: jsx10("p", { children: "Loading the sample run." }) });
+    if (sample.state !== "ready") return jsx10(Frame2, { up, children: [jsx10(Back, { label: "Home", onClick: up }, "b"), jsx10(Notice, { tone: "info", title: "The sample run is not in this copy", children: "Start the practice to see your own run instead." }, "n")] });
+    const pins = sample.pins?.pins || [];
+    return jsx10(Frame2, { up, width: "full", children: jsxs9("div", { className: "fa-desk", "data-norail": "", children: [
+      jsxs9("header", { className: "fa-desk-head", children: [
+        jsx10(Back, { label: "Home", onClick: up, hint: false }),
+        jsx10(Label2, { children: "Sample run" })
+      ] }, "head"),
+      jsxs9("main", { className: "fa-desk-work", children: [
+        jsx10(D.CompareHero, { ...runHeadline(sample, sample.checks, "the learner's"), score: scoreSentence(sample.compare, "The learner in this sample"), sampleLabel: "Sample run: a test practice profile, coached by Claude Sonnet. Not a live Hermes recording." }, "hero"),
+        jsxs9("div", { className: "fa-ff-actions", children: [
+          jsx10(Button6, { onClick: () => go({ name: "f-mission", id: "f.memory", firstFlight: true }), children: "Start your own practice" }),
+          jsx10("span", { className: "hk-small", style: { alignSelf: "center" }, children: "About 10 minutes." })
+        ] }, "go"),
+        jsx10(D.Replay, { sample, pins, play: true }, "replay")
+      ] }, "work"),
+      jsx10("aside", { className: "fa-desk-guide", "data-open": "true", "aria-label": "Field guide", children: jsxs9("div", { className: "fa-guide", children: [
+        jsxs9("h2", { children: [jsx10(Codicon5, { name: "compass", size: 16 }), "Field guide"] }),
+        jsxs9("section", { className: "fa-guide-sec", children: [
+          jsx10("h3", { children: "Notes on the run" }),
+          ...pins.map((p, i) => jsx10(D.Said, { text: `${i + 1}. ${p.why}` }, p.event_id)),
+          jsx10("p", { className: "hk-small", children: "Written by the model from the sample run." })
+        ] })
+      ] }) }, "guide")
+    ] }) });
+  }
+  function FoundationsPath({ go }) {
+    const f = useFoundations();
+    const up = () => go({ name: "map" });
+    const missions = (f.data?.missions || []).filter((m) => !m.trail);
+    const table = f.data?.calibration_table || [];
+    const done = missions.filter((m) => (m.attempts || []).some((a) => a.status === "done")).length;
+    const saved = (f.data?.record || []).length;
+    return jsx10(Frame2, { up, children: [
+      jsx10(PageHeader, {
+        back: jsx10(Back, { label: "Trail map", onClick: up }),
+        eyebrow: jsx10(Label2, { children: "Missions" }),
+        title: "Foundations",
+        lead: "How Hermes really works, one idea at a time. Each mission runs in a practice profile, so your own Hermes stays as it is."
+      }, "head"),
+      f.loading ? jsx10("p", { children: "Loading." }, "l") : null,
+      jsx10(Problem, { text: f.error }, "e"),
+      missions.length ? jsx10(Details, { label: "Already use Hermes? Test out of a mission", children: jsxs9("div", { className: "hk-stack", style: { gap: 8 }, children: [
+        jsx10("p", { style: { margin: 0 }, children: "A test-out skips Recall, and the lesson and the worked example are there only if you want them. Everything that proves the skill stays: your claim, your guess, a practice profile with a problem planted in it, the real job, your own score, and the check." }),
+        jsx10("p", { style: { margin: 0 }, children: "Pass every check on the first run, your explanation included, and the mission goes into your record marked Tested out. Miss one and you finish the mission the usual way, from where you are: Compare, the fix and the transfer. Your record says the try began as a test-out either way." }),
+        jsx10("p", { className: "hk-small", style: { margin: 0 }, children: "Press Test out beside a mission to start. Mission 11 is the review itself, so it has no test-out." })
+      ] }) }, "testout") : null,
+      jsx10(Section, { title: "Missions", count: missions.length, children: jsx10("div", { className: "hk-stack", children: missions.map((m) => {
+        const st = missionStatus(m);
+        return jsx10(Card, { children: jsxs9("div", { className: "fa-f-card", children: [
+          jsxs9("div", { className: "fa-f-row", children: [jsx10("strong", { className: "hk-h3", children: Number.isInteger(m.order) ? `${m.order}. ${m.title}` : m.title }), jsx10(Pill, { tone: st.tone, children: st.word })] }),
+          jsx10("span", { className: "hk-small", children: jsx10(Inline, { text: [m.minutes ? `About ${(m.minutes.read || 0) + (m.minutes.do || 0)} minutes. ` : "", m.cost?.line || ""].join("") }) }),
+          jsxs9("div", { className: "hk-actions", children: [
+            jsx10(Button6, { onClick: () => go({ name: "f-mission", id: m.id }), children: st.button }, "go"),
+            canTestOut(m) ? jsx10(Button6, { variant: "secondary", onClick: () => go({ name: "f-mission", id: m.id, testOut: true }), children: "Test out" }, "out") : null
+          ] })
+        ] }) }, m.id);
+      }) }) }, "missions"),
+      table.some((r) => r.in_record) ? jsx10(Section, { title: "How well you judge your own work", children: jsx10(CalibrationView, { rows: table }) }, "cal") : null,
+      done ? jsx10(Section, { title: "Your Field Record", children: jsx10(Card, { children: jsxs9("div", { className: "fa-f-card", children: [
+        jsx10("p", { style: { margin: 0 }, children: `${plural3(done, "mission is", "missions are")} in your record. Read it, keep out any excerpt you want private, and save a folder a stranger can check.` }),
+        saved ? jsx10("p", { className: "hk-small", style: { margin: 0 }, children: `You saved ${plural3(saved, "record", "records")} so far.` }) : null,
+        jsx10("div", { className: "hk-actions", children: jsx10(Button6, { onClick: () => go({ name: "f-record" }), children: "Open my Field Record" }) })
+      ] }) }) }, "record") : null
+    ] });
+  }
+  return { FoundationsCard, FoundationsPath, MissionLoop, FieldRecordView, CalibrationView, useFoundations, FirstFlightCard, SampleRun };
+}
+
+// desktop/src/learn.js
+var str6 = (value) => typeof value === "string" ? value : "";
+var obj4 = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : {};
 var norm = (value) => String(value == null ? "" : value).trim().toLowerCase();
 function blob(value) {
   try {
@@ -2601,12 +6390,12 @@ var CONNECTION_KEYS = { "this computer": "local", "another computer": "remote", 
 function flattenSkills(response) {
   const raw = response && typeof response === "object" && !Array.isArray(response) && "skills" in response ? response.skills : response;
   const items = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? Object.values(raw).flat() : [];
-  return items.map((skill) => (typeof skill === "string" ? skill : String(obj2(skill).name || obj2(skill).id || "")).trim()).filter(Boolean);
+  return items.map((skill) => (typeof skill === "string" ? skill : String(obj4(skill).name || obj4(skill).id || "")).trim()).filter(Boolean);
 }
 function jobRequestRead(job) {
   const full = jobRequest(job);
   if (full) return { text: full, cut: false };
-  const preview = typeof obj2(job).prompt_preview === "string" ? obj2(job).prompt_preview.trim() : "";
+  const preview = typeof obj4(job).prompt_preview === "string" ? obj4(job).prompt_preview.trim() : "";
   if (!preview) return { text: "", cut: false };
   const cut = preview.endsWith("...");
   return { text: cut ? preview.slice(0, -3).trimEnd() : preview, cut };
@@ -2628,22 +6417,22 @@ var CUES = [
   { id: "fail", label: "what to do on failure", pattern: /\b(?:fail|failure|error|if (?:it|you|anything|something)|can't|cannot|unable|otherwise|retry|stop and|tell me)\b/i }
 ];
 function promptCues(text) {
-  const body = str3(text);
+  const body = str6(text);
   return CUES.map((cue) => ({ id: cue.id, label: cue.label, found: cue.pattern.test(body) }));
 }
 function jobRequest(job) {
-  const record = obj2(job);
+  const record = obj4(job);
   for (const key of ["prompt", "request", "instruction", "instructions", "task", "message", "text", "command", "description"]) {
     if (typeof record[key] === "string" && record[key].trim()) return record[key].trim();
   }
   return "";
 }
 function jobHasSchedule(job) {
-  const record = obj2(job);
+  const record = obj4(job);
   return ["schedule", "cron", "cron_expression", "expression", "every", "interval", "next_run", "next_run_at", "run_at", "at", "when"].some((key) => record[key] !== void 0 && record[key] !== null && record[key] !== "" && record[key] !== "?" && record[key] !== false);
 }
 function recordTime(record) {
-  const r = obj2(record);
+  const r = obj4(record);
   for (const key of ["started_at", "created_at", "updated_at", "last_active", "last_active_at", "timestamp", "time"]) {
     const raw = r[key];
     if (raw === void 0 || raw === null || raw === "") continue;
@@ -2686,7 +6475,7 @@ var CSS = `
 .fa-lore{margin:-4px 0 0;max-width:62ch;font-size:13.5px;line-height:1.55;font-style:italic;color:var(--hk-ink);opacity:.9}
 .fa-deeper{padding-top:8px;border-top:1px solid var(--hk-stroke)}
 .fa-table{width:100%;border-collapse:collapse;font-size:var(--hk-fs-sm);line-height:1.45}
-.fa-table th{text-align:left;font-weight:600;padding:8px 8px 6px 0;border-bottom:1px solid var(--hk-stroke);font-variant-caps:all-small-caps;letter-spacing:.06em;font-size:var(--hk-fs)}
+.fa-table th{text-align:left;font-weight:600;padding:8px 8px 6px 0;border-bottom:1px solid var(--hk-stroke);text-transform:uppercase;font-size:12px;letter-spacing:.06em}
 .fa-table td{padding:8px 8px 8px 0;border-bottom:1px solid var(--hk-stroke);vertical-align:top;overflow-wrap:break-word}
 .fa-table tr:last-child td{border-bottom:0}
 .fa-pre{font-family:var(--hk-mono);font-size:var(--hk-fs-sm);padding:7px 9px;border-radius:var(--hk-radius-sm);background:var(--hk-sunken);overflow-x:auto;margin:0}
@@ -2734,7 +6523,7 @@ var CSS = `
 .fa-placed{display:inline-flex;gap:5px;align-items:center;font-size:var(--hk-fs-sm)}
 `;
 async function rpc(method, params = {}) {
-  const raw = await host2.request(method, params);
+  const raw = await host5.request(method, params);
   return raw && typeof raw === "object" && "result" in raw ? raw.result : raw;
 }
 function listOf(response, keys) {
@@ -2784,8 +6573,8 @@ async function skillNames() {
 }
 var CHECKS = {
   async runtime(step, inputs = {}) {
-    const gateway = host2.state.gateway.get();
-    const profile = host2.state.profile.get() || "default";
+    const gateway = host5.state.gateway.get();
+    const profile = host5.state.profile.get() || "default";
     const missing = [];
     let facts = [];
     let answered = true;
@@ -2809,7 +6598,7 @@ var CHECKS = {
       } else if (typedProfile !== norm(profile)) {
         missing.push(miss("profile_mismatch", `You typed "${String(inputs.profile).trim()}". Hermes reports a different profile for this window.`));
       }
-      const routes = typeof host2.profileRoutes === "function" ? await host2.profileRoutes() : [];
+      const routes = typeof host5.profileRoutes === "function" ? await host5.profileRoutes() : [];
       const mine = routes.find((route) => norm(route?.profile || "default") === norm(profile)) || routes[0];
       const actual = classifyConnection(mine);
       const said = CONNECTION_KEYS[norm(inputs.connection)] || "";
@@ -2926,7 +6715,7 @@ var CHECKS = {
   },
   /* The three checks below read the live app as one half of a document gate. */
   async routes() {
-    const routes = typeof host2.profileRoutes === "function" ? await host2.profileRoutes() : [];
+    const routes = typeof host5.profileRoutes === "function" ? await host5.profileRoutes() : [];
     const passed = routes.length > 0;
     return {
       passed,
@@ -2962,7 +6751,7 @@ var CHECKS = {
     };
   },
   async estate() {
-    const routes = typeof host2.profileRoutes === "function" ? await host2.profileRoutes() : [];
+    const routes = typeof host5.profileRoutes === "function" ? await host5.profileRoutes() : [];
     const names = [...new Set(routes.map((route) => firstText(route?.profile) || "default"))];
     const passed = routes.length > 0;
     return {
@@ -2993,7 +6782,7 @@ var missionListeners = /* @__PURE__ */ new Set();
 function requestMission(missionId) {
   pendingMission = missionId;
   missionListeners.forEach((fn) => fn(missionId));
-  host2.navigate(ROUTE);
+  host5.navigate(ROUTE);
 }
 function readView() {
   if (pendingMission) {
@@ -3003,9 +6792,58 @@ function readView() {
   }
   return { name: "map" };
 }
+var HOME_KEY = "field-academy.home-profile";
+var home = null;
+function activeProfile() {
+  try {
+    return String(host5.state?.profile?.get?.() || "");
+  } catch (error) {
+    return "";
+  }
+}
+function noteHome() {
+  const profile = activeProfile();
+  if (!profile || isPracticeProfile(profile)) return;
+  let connectionId = null;
+  try {
+    connectionId = host5.state?.connectionId?.get?.() ?? null;
+  } catch (error) {
+    connectionId = null;
+  }
+  home = { profile, connectionId };
+  try {
+    api?.storage?.set?.(HOME_KEY, home);
+  } catch (error) {
+  }
+}
+function knownHome() {
+  if (home) return home;
+  try {
+    const saved = api?.storage?.get?.(HOME_KEY, null);
+    if (saved && typeof saved.profile === "string") home = saved;
+  } catch (error) {
+  }
+  return home;
+}
+var PRACTICE_ACTIVE = "Field Academy runs in your own profile, and the app is on a practice profile right now.";
+async function comeHome() {
+  const target = knownHome();
+  const what = homeAction(activeProfile(), target, typeof host5.ensureAgent === "function", true);
+  if (what !== "repin") return what === "call";
+  try {
+    await host5.ensureAgent(target.connectionId, target.profile);
+    return !isPracticeProfile(activeProfile());
+  } catch (error) {
+    return false;
+  }
+}
 function ctxRest(path, options) {
   if (!api) return Promise.reject(new Error("Field Academy is still starting."));
-  return api.rest(path, options || {});
+  if (isPracticeProfile(activeProfile())) return Promise.reject(new Error(PRACTICE_ACTIVE));
+  return api.rest(path, options || {}).then((out) => {
+    noteHome();
+    return out;
+  });
 }
 function usePassport() {
   return usePolled({
@@ -3035,7 +6873,7 @@ function refreshDeployer() {
 }
 async function copyText(text, message) {
   if (api?.os?.writeClipboard) await api.os.writeClipboard(text);
-  host2.notify({ kind: "success", message: message || "Copied." });
+  host5.notify({ kind: "success", message: message || "Copied." });
 }
 async function openFolder(path) {
   if (api?.os?.writeClipboard) await api.os.writeClipboard(path);
@@ -3049,12 +6887,12 @@ async function openFolder(path) {
   if (api?.os?.openExternal) {
     try {
       await api.os.openExternal(folderUrl(path));
-      host2.notify({ kind: "info", message: "Opening the folder. The path is also copied." });
+      host5.notify({ kind: "info", message: "Opening the folder. The path is also copied." });
       return;
     } catch (error) {
     }
   }
-  host2.notify({ kind: "info", message: "The path is copied. Paste it into your file manager or terminal." });
+  host5.notify({ kind: "info", message: "The path is copied. Paste it into your file manager or terminal." });
 }
 async function readHermes(jobName) {
   let jobs = [];
@@ -3142,45 +6980,45 @@ function certificateWords(certificate) {
 }
 function CertificatePill({ certificate }) {
   const tone = certificate.status === "issued" ? "good" : certificate.status === "ready" ? "warn" : "idle";
-  return jsx7(Pill, { tone, icon: certificate.status === "issued" ? "pass-filled" : "mortar-board", children: certificateWords(certificate) });
+  return jsx11(Pill, { tone, icon: certificate.status === "issued" ? "pass-filled" : "mortar-board", children: certificateWords(certificate) });
 }
 function CertificateBezel({ track, size = 64 }) {
   const total = (track.missions || []).length;
-  return jsx7(Bezel, { passed: track.verified_missions || 0, total, size, children: [
-    jsx7("span", { className: "fa-num fa-num-m", children: track.verified_missions || 0 }, "n"),
-    jsx7("span", { className: "fa-sc", style: { fontSize: 11 }, children: `of ${total}` }, "of")
+  return jsx11(Bezel, { passed: track.verified_missions || 0, total, size, children: [
+    jsx11("span", { className: "fa-num fa-num-m", children: track.verified_missions || 0 }, "n"),
+    jsx11("span", { className: "fa-sc", style: { fontSize: 11 }, children: `of ${total}` }, "of")
   ] });
 }
 var LINK_ICON = { video: "play-circle", docs: "book", guide: "compass", article: "note", course: "mortar-board" };
 function LinkButton({ link }) {
-  return jsxs6("button", { type: "button", className: "fa-link", onClick: () => openLink(link.url), children: [
-    jsx7(Codicon4, { name: LINK_ICON[link.kind] || "link-external", size: 14 }),
-    jsxs6("span", { className: "hk-grow", children: [
-      jsx7("span", { className: "fa-link-title", children: link.part && link.kind === "video" ? `${link.title} (${link.part})` : link.title }),
-      jsx7("span", { className: "fa-link-credit", children: link.credit })
+  return jsxs10("button", { type: "button", className: "fa-link", onClick: () => openLink(link.url), children: [
+    jsx11(Codicon6, { name: LINK_ICON[link.kind] || "link-external", size: 14 }),
+    jsxs10("span", { className: "hk-grow", children: [
+      jsx11("span", { className: "fa-link-title", children: link.part && link.kind === "video" ? `${link.title} (${link.part})` : link.title }),
+      jsx11("span", { className: "fa-link-credit", children: link.credit })
     ] }),
-    jsx7(Codicon4, { name: "link-external", size: 12 })
+    jsx11(Codicon6, { name: "link-external", size: 12 })
   ] });
 }
 function LinkList({ links }) {
   if (!links || !links.length) return null;
   const shown = links.slice(0, 4);
   const more = links.slice(4);
-  return jsxs6("div", { className: "hk-stack", children: [
-    jsx7("div", { className: "fa-links", children: shown.map((link) => jsx7(LinkButton, { link }, `${link.url}-${link.title}`)) }),
-    more.length ? jsx7(Details, { label: `${more.length} more to read or watch`, children: jsx7("div", { className: "fa-links", children: more.map((link) => jsx7(LinkButton, { link }, `${link.url}-${link.title}`)) }) }) : null
+  return jsxs10("div", { className: "hk-stack", children: [
+    jsx11("div", { className: "fa-links", children: shown.map((link) => jsx11(LinkButton, { link }, `${link.url}-${link.title}`)) }),
+    more.length ? jsx11(Details, { label: `${more.length} more to read or watch`, children: jsx11("div", { className: "fa-links", children: more.map((link) => jsx11(LinkButton, { link }, `${link.url}-${link.title}`)) }) }) : null
   ] });
 }
 function Result({ result }) {
   if (!result) return null;
   const tone = result.error ? "bad" : result.passed ? "good" : "warn";
-  return jsx7(Card, { tone, tint: true, className: result.passed ? "hk-enter hk-pulse" : "hk-enter", role: "status", "aria-live": "polite", children: [
-    jsxs6("div", { className: "hk-row", key: "h", children: [
-      jsx7(Codicon4, { name: result.error ? "error" : result.passed ? "pass-filled" : "warning", size: 15, style: { color: "var(--hk-tone)" } }),
-      jsx7("strong", { children: result.title })
+  return jsx11(Card, { tone, tint: true, className: result.passed ? "hk-enter hk-pulse" : "hk-enter", role: "status", "aria-live": "polite", children: [
+    jsxs10("div", { className: "hk-row", key: "h", children: [
+      jsx11(Codicon6, { name: result.error ? "error" : result.passed ? "pass-filled" : "warning", size: 15, style: { color: "var(--hk-tone)" } }),
+      jsx11("strong", { children: result.title })
     ] }),
-    result.detail ? jsx7(Prose, { text: result.detail }, "d") : null,
-    result.facts && result.facts.length ? jsx7(Facts, { rows: result.facts.map((f) => ({ label: f.label, value: String(f.value) })) }, "f") : null
+    result.detail ? jsx11(Prose, { text: result.detail }, "d") : null,
+    result.facts && result.facts.length ? jsx11(Facts, { rows: result.facts.map((f) => ({ label: f.label, value: String(f.value) })) }, "f") : null
   ] });
 }
 function missingWords(what) {
@@ -3190,23 +7028,23 @@ function missingWords(what) {
 function Feedback({ feedback }) {
   if (!feedback || !(feedback.missing || []).length) return null;
   const first = feedback.misses <= 1;
-  return jsx7(Card, { tone: "warn", tint: true, className: "hk-enter", role: "status", "aria-live": "polite", children: jsxs6("div", { className: "hk-stack", style: { gap: 8 }, children: [
-    jsxs6("div", { className: "hk-row", children: [jsx7(Codicon4, { name: "lightbulb", size: 15, style: { color: "var(--hk-tone)" } }), jsx7("strong", { children: feedback.headline })] }),
-    jsxs6("div", { className: "hk-stack", style: { gap: 4 }, children: [
-      jsx7(Label, { plain: true, children: "What was missing" }),
-      jsx7("ul", { className: "fa-bullets", children: feedback.missing.slice(0, 4).map((item) => jsx7("li", { children: missingWords(item.what) }, `${item.id}-${item.what}`)) }),
-      feedback.missing.length > 4 ? jsx7("p", { className: "hk-small", children: `${feedback.missing.length - 4} more after these. Fix the first one and check again.` }) : null
+  return jsx11(Card, { tone: "warn", tint: true, className: "hk-enter", role: "status", "aria-live": "polite", children: jsxs10("div", { className: "hk-stack", style: { gap: 8 }, children: [
+    jsxs10("div", { className: "hk-row", children: [jsx11(Codicon6, { name: "lightbulb", size: 15, style: { color: "var(--hk-tone)" } }), jsx11("strong", { children: feedback.headline })] }),
+    jsxs10("div", { className: "hk-stack", style: { gap: 4 }, children: [
+      jsx11(Label, { plain: true, children: "What was missing" }),
+      jsx11("ul", { className: "fa-bullets", children: feedback.missing.slice(0, 4).map((item) => jsx11("li", { children: missingWords(item.what) }, `${item.id}-${item.what}`)) }),
+      feedback.missing.length > 4 ? jsx11("p", { className: "hk-small", children: `${feedback.missing.length - 4} more after these. Fix the first one and check again.` }) : null
     ] }),
-    feedback.hint ? jsxs6("div", { className: "fa-hint", children: [jsx7(Label, { plain: true, children: "One hint" }), jsx7(Prose, { text: feedback.hint })] }) : null,
-    feedback.example ? jsxs6("div", { className: "fa-hint", children: [jsx7(Label, { plain: true, children: "A worked example" }), jsx7(Prose, { text: withoutExampleWord(feedback.example) })] }) : null,
-    jsx7("p", { className: "hk-small", children: first ? "Fix the first item, then try again. You can retry as many times as you like." : "Use the example as a model for the first item, then try again. Another miss shows the same help." })
+    feedback.hint ? jsxs10("div", { className: "fa-hint", children: [jsx11(Label, { plain: true, children: "One hint" }), jsx11(Prose, { text: feedback.hint })] }) : null,
+    feedback.example ? jsxs10("div", { className: "fa-hint", children: [jsx11(Label, { plain: true, children: "A worked example" }), jsx11(Prose, { text: withoutExampleWord(feedback.example) })] }) : null,
+    jsx11("p", { className: "hk-small", children: first ? "Fix the first item, then try again. You can retry as many times as you like." : "Use the example as a model for the first item, then try again. Another miss shows the same help." })
   ] }) });
 }
 function Label({ children, plain = false }) {
-  return jsx7("span", { className: plain ? "fa-sc" : "fa-sc fa-sc-blaze", children });
+  return jsx11("span", { className: plain ? "fa-sc" : "fa-sc fa-sc-blaze", children });
 }
 function Frame({ children, up, width = "wide", onKey }) {
-  const root = useRef3(null);
+  const root = useRef6(null);
   useFocusOnMount(root);
   const keys = useKeys({ Escape: (e) => {
     if (isTyping(e)) {
@@ -3215,7 +7053,7 @@ function Frame({ children, up, width = "wide", onKey }) {
     }
     if (up) up();
   } });
-  return jsx7(Page, { rootRef: root, width, className: "fa-page", label: "Field Academy", onKeyDown: (e) => {
+  return jsx11(Page, { rootRef: root, width, className: "fa-page", label: "Field Academy", onKeyDown: (e) => {
     if (onKey) onKey(e);
     keys(e);
   }, children });
@@ -3226,6 +7064,7 @@ function scrollToId(id) {
   const reduced = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
 }
+var foundationsViews = createFoundationsViews({ Frame, Label, ctxRest, errorText, copyText, openFolder, sendInNewChat, plural: plural2, longDate });
 var deployerViews = createDeployerViews({
   Prose,
   withoutExampleWord,
@@ -3247,10 +7086,10 @@ var deployerViews = createDeployerViews({
 });
 function GoalCard({ data }) {
   const goal = data.goal || { text: "", asked: false };
-  const [editing, setEditing] = useState5(false);
-  const [text, setText] = useState5(goal.text || "");
-  const [busy, setBusy] = useState5(false);
-  const [problem, setProblem] = useState5("");
+  const [editing, setEditing] = useState9(false);
+  const [text, setText] = useState9(goal.text || "");
+  const [busy, setBusy] = useState9(false);
+  const [problem, setProblem] = useState9("");
   const save = async (skipped) => {
     if (busy) return;
     if (!skipped && text.trim().length < 8) {
@@ -3270,20 +7109,20 @@ function GoalCard({ data }) {
     }
   };
   if (goal.asked && !editing) {
-    return jsxs6("div", { className: "fa-goal", children: [
-      jsx7(Label, { children: "Your goal" }),
-      goal.text ? jsx7("span", { children: `“${goal.text}”` }) : jsx7("span", { children: "You skipped this question. Missions use general examples." }),
-      jsx7("button", { type: "button", className: "hk-link", onClick: () => {
+    return jsxs10("div", { className: "fa-goal", children: [
+      jsx11(Label, { children: "Your goal" }),
+      goal.text ? jsx11("span", { children: `“${goal.text}”` }) : jsx11("span", { children: "You skipped this question. Missions use general examples." }),
+      jsx11("button", { type: "button", className: "hk-link", onClick: () => {
         setText(goal.text || "");
         setEditing(true);
       }, children: goal.text ? "Change it" : "Add a goal" })
     ] });
   }
-  return jsx7(Card, { tone: "info", tint: !goal.asked, className: "hk-enter", children: jsxs6("div", { className: "hk-stack", style: { gap: 8 }, children: [
-    jsx7(Label, { children: goal.asked ? "Your goal" : "Before you start" }),
-    jsx7("h2", { className: "hk-h2", children: "What do you want Hermes to do for you?" }),
-    jsx7("p", { children: "One or two sentences about your own work. Your answer becomes the example in every practice prompt and mission. You can change it any time, or skip it." }),
-    jsx7(Textarea2, {
+  return jsx11(Card, { tone: "info", tint: !goal.asked, className: "hk-enter", children: jsxs10("div", { className: "hk-stack", style: { gap: 8 }, children: [
+    jsx11(Label, { children: goal.asked ? "Your goal" : "Before you start" }),
+    jsx11("h2", { className: "hk-h2", children: "What do you want Hermes to do for you?" }),
+    jsx11("p", { children: "One or two sentences about your own work. Your answer becomes the example in the practice prompts and missions on the paths. Foundations uses its own made-up examples. You can change it any time, or skip it." }),
+    jsx11(Textarea5, {
       style: { minHeight: "4.5rem", width: "100%" },
       value: text,
       onChange: (event) => setText(event.target.value),
@@ -3291,10 +7130,10 @@ function GoalCard({ data }) {
       "aria-label": "What you want Hermes to do for you",
       ...submitOnModEnter(() => save(false))
     }),
-    problem ? jsx7(Result, { result: { passed: false, title: problem } }) : null,
-    jsxs6("div", { className: "hk-actions", children: [
-      jsx7(Button3, { loading: busy, onClick: () => save(false), children: "Save my goal" }),
-      goal.asked ? jsx7(Button3, { variant: "secondary", onClick: () => setEditing(false), children: "Cancel" }) : jsx7(Button3, { variant: "secondary", onClick: () => save(true), children: "Skip for now" })
+    problem ? jsx11(Result, { result: { passed: false, title: problem } }) : null,
+    jsxs10("div", { className: "hk-actions", children: [
+      jsx11(Button7, { loading: busy, onClick: () => save(false), children: "Save my goal" }),
+      goal.asked ? jsx11(Button7, { variant: "secondary", onClick: () => setEditing(false), children: "Cancel" }) : jsx11(Button7, { variant: "secondary", onClick: () => save(true), children: "Skip for now" })
     ] })
   ] }) });
 }
@@ -3303,74 +7142,75 @@ function WherePanel({ info, data }) {
   const started = info.passed > 0 || info.tracks.some((track) => track.waypoints.some((w) => w.status !== "waiting"));
   const where = !goal || !started ? "At the trailhead" : camp ? `${goal.name} path, ${camp.name} camp` : goal.summit.status === "issued" ? `${goal.name} path, at the summit` : `${goal.name} path, below the summit`;
   const honest = data.honest || { passed: 0, holding: 0 };
-  return jsxs6("div", { className: "fa-panel fa-where hk-enter", children: [
-    jsx7(Bezel, { passed: info.passed, total: info.total, children: [
-      jsx7("span", { className: "fa-num fa-num-xl", children: info.passed }, "n"),
-      jsx7("span", { className: "fa-sc", children: `of ${info.total}` }, "of")
+  return jsxs10("div", { className: "fa-panel fa-where hk-enter", children: [
+    jsx11(Bezel, { passed: info.passed, total: info.total, children: [
+      jsx11("span", { className: "fa-num fa-num-xl", children: info.passed }, "n"),
+      jsx11("span", { className: "fa-sc", children: `of ${info.total}` }, "of")
     ] }),
-    jsxs6("div", { className: "fa-where-lines", children: [
-      jsx7(Label, { children: "Where you are" }),
-      jsx7("h2", { className: "hk-h1", children: where }),
-      jsx7("p", { children: `${info.passed} of ${plural2(info.total, "mission", "missions")} passed${info.certificates ? `, and ${plural2(info.certificates, "Field Record", "Field Records")} in your collection` : ""}.` }),
-      honest.passed ? jsx7("p", { children: `${honest.holding} of ${honest.passed} passed ${honest.passed === 1 ? "mission" : "missions"} still ${honest.holding === 1 ? "holds" : "hold"} up when Hermes reviews you.` }) : null,
-      jsx7("p", { className: "hk-small", children: "Go at your own pace. Your progress stays saved on this computer." })
+    jsxs10("div", { className: "fa-where-lines", children: [
+      jsx11(Label, { children: "Where you are" }),
+      jsx11("h2", { className: "hk-h1", children: where }),
+      jsx11("p", { children: `${info.passed} of ${plural2(info.total, "mission", "missions")} passed${info.certificates ? `, and ${plural2(info.certificates, "Field Record", "Field Records")} in your collection` : ""}.` }),
+      honest.passed ? jsx11("p", { children: `${honest.holding} of ${honest.passed} passed ${honest.passed === 1 ? "mission" : "missions"} still ${honest.holding === 1 ? "holds" : "hold"} up when Hermes reviews you.` }) : null,
+      jsx11("p", { className: "hk-small", children: "Go at your own pace. Your progress stays saved on this computer." })
     ] })
   ] });
 }
 function NextStep({ next, info, go }) {
   if (!next) {
-    return jsxs6("div", { className: "fa-panel fa-next hk-enter", children: [
-      jsx7(Label, { children: "Next best step" }),
-      jsx7("h2", { className: "hk-h2", children: "Every mission passed" }),
-      jsx7("p", { children: "Create a Field Record for each path you finished. Each one waits at the summit of its trail." })
+    return jsxs10("div", { className: "fa-panel fa-next hk-enter", children: [
+      jsx11(Label, { children: "Next best step" }),
+      jsx11("h2", { className: "hk-h2", children: "Every mission passed" }),
+      jsx11("p", { children: "Create a Field Record for each path you finished. Each one waits at the summit of its trail." })
     ] });
   }
   const started = info.tracks.some((track) => track.waypoints.some((w) => w.status !== "waiting"));
-  return jsxs6("div", { className: "fa-panel fa-next hk-enter", children: [
-    jsx7(Label, { children: started ? "Next best step" : "Start here" }),
-    jsx7("h2", { className: "hk-h2", children: next.title }),
-    jsxs6("div", { className: "fa-next-meta", children: [
-      jsxs6("span", { children: [jsx7(Codicon4, { name: "location", size: 13 }), `${next.track_name} path`] }),
-      jsxs6("span", { children: [jsx7(Codicon4, { name: "milestone", size: 13 }), `${next.level_name} camp`] }),
-      jsxs6("span", { children: [jsx7(Codicon4, { name: "watch", size: 13 }), minutesWords(next.minutes)] })
+  return jsxs10("div", { className: `fa-panel fa-next hk-enter${started ? "" : " fa-next-quiet"}`, children: [
+    // Foundations holds the page's one Start here; this card is the next step on the paths (0.9 persona test).
+    jsx11(Label, { children: started ? "Next best step on the paths" : "When you want a path" }),
+    jsx11("h2", { className: "hk-h2", children: next.title }),
+    jsxs10("div", { className: "fa-next-meta", children: [
+      jsxs10("span", { children: [jsx11(Codicon6, { name: "location", size: 13 }), `${next.track_name} path`] }),
+      jsxs10("span", { children: [jsx11(Codicon6, { name: "milestone", size: 13 }), `${next.level_name} camp`] }),
+      jsxs10("span", { children: [jsx11(Codicon6, { name: "watch", size: 13 }), minutesWords(next.minutes)] })
     ] }),
-    jsx7("p", { children: next.reason }),
-    next.use_text ? jsx7("div", { className: "fa-use", children: [jsx7(Label, { plain: true, children: "Why this matters to you" }, "l"), jsx7("p", { children: next.use_text }, "p")] }) : null,
-    jsx7("div", { className: "hk-actions", children: jsx7(Button3, { onClick: () => go({ name: "mission", id: next.mission_id }), children: started ? "Continue" : "Start" }) })
+    jsx11("p", { children: next.reason }),
+    next.use_text ? jsx11("div", { className: "fa-use", children: [jsx11(Label, { plain: true, children: "Why this matters to you" }, "l"), jsx11("p", { children: next.use_text }, "p")] }) : null,
+    jsx11("div", { className: "hk-actions", children: jsx11(Button7, { variant: started ? "default" : "secondary", onClick: () => go({ name: "mission", id: next.mission_id }), children: started ? "Continue" : "Start this path mission" }) })
   ] });
 }
 function ReviewQueue({ data, go }) {
   const reviews = data.reviews || { due: [], due_count: 0, strength: {}, passed_missions: 0 };
   const rows = Object.values(reviews.strength || {}).sort((a, b) => String(a.due_at).localeCompare(String(b.due_at)));
   if (!reviews.passed_missions) {
-    return jsx7(Section, { title: "Review queue", children: jsxs6("div", { className: "fa-panel", children: [
-      jsx7("p", { children: "A mission comes back for review two days after you pass it, then after a week, three weeks and two months. A review is three short questions about missions you passed earlier, scored by your own Hermes. Pass your first mission to start the queue." })
+    return jsx11(Section, { title: "Review queue", children: jsxs10("div", { className: "fa-panel", children: [
+      jsx11("p", { children: "A mission comes back for review two days after you pass it, then after a week, three weeks and two months. A review is three short questions about missions you passed earlier, scored by your own Hermes. Pass your first mission to start the queue." })
     ] }) }, "review");
   }
   const start = (practice) => go({ name: "review", practice });
   const due = reviews.due_count;
   const reviewNow = reviews.now && !Number.isNaN(new Date(reviews.now).getTime()) ? new Date(reviews.now) : /* @__PURE__ */ new Date();
-  return jsx7(Section, { title: "Review queue", count: due, children: jsxs6("div", { className: "fa-panel", children: [
-    jsxs6("div", { className: "hk-row", style: { flexWrap: "wrap", gap: 14, alignItems: "center" }, children: [
-      jsxs6("div", { className: "hk-grow hk-stack", style: { gap: 3 }, children: [
-        jsx7("strong", { children: due ? `${plural2(due, "mission", "missions")} due for review` : "Nothing is due" }),
-        jsx7("p", { className: "hk-small", children: due ? `A session is three questions, ${minutesWords(reviews.minutes).toLowerCase()}. Hermes scores your answers the way it scores a question in a mission, and weak answers come back sooner.` : reviews.next_due_at ? `${reviews.next_due_title} comes up ${dueWords(reviews.next_due_at, reviewNow).replace("Due ", "")}. You can practice early, which changes your strength but not your schedule.` : "Nothing is scheduled." })
+  return jsx11(Section, { title: "Review queue", count: due, children: jsxs10("div", { className: "fa-panel", children: [
+    jsxs10("div", { className: "hk-row", style: { flexWrap: "wrap", gap: 14, alignItems: "center" }, children: [
+      jsxs10("div", { className: "hk-grow hk-stack", style: { gap: 3 }, children: [
+        jsx11("strong", { children: due ? `${plural2(due, "mission", "missions")} due for review` : "Nothing is due" }),
+        jsx11("p", { className: "hk-small", children: due ? `A session is three questions, ${minutesWords(reviews.minutes).toLowerCase()}. Hermes scores your answers the way it scores a question in a mission, and weak answers come back sooner.` : reviews.next_due_at ? `${reviews.next_due_title} comes up ${dueWords(reviews.next_due_at, reviewNow).replace("Due ", "")}. You can practice early, which changes your strength but not your schedule.` : "Nothing is scheduled." })
       ] }),
-      jsxs6("div", { className: "hk-actions", children: [
-        due ? jsx7(Button3, { onClick: () => start(false), children: "Start a review" }) : null,
-        reviews.can_practice ? jsx7(Button3, { variant: due ? "secondary" : "default", onClick: () => start(true), children: "Practice early" }) : null
+      jsxs10("div", { className: "hk-actions", children: [
+        due ? jsx11(Button7, { onClick: () => start(false), children: "Start a review" }) : null,
+        reviews.can_practice ? jsx11(Button7, { variant: due ? "secondary" : "default", onClick: () => start(true), children: "Practice early" }) : null
       ] })
     ] }),
-    reviews.open_session && reviews.open_session.status !== "graded" ? jsx7("p", { className: "hk-small", children: reviews.open_session.status === "submitted" ? "You have a review waiting for its score. Open a review to see it." : "You have a review in progress. Start a review to pick it back up." }) : null,
-    jsx7("div", { children: rows.map((row) => {
+    reviews.open_session && reviews.open_session.status !== "graded" ? jsx11("p", { className: "hk-small", children: reviews.open_session.status === "submitted" ? "You have a review waiting for its score. Open a review to see it." : "You have a review in progress. Start a review to pick it back up." }) : null,
+    jsx11("div", { children: rows.map((row) => {
       const found = typeof row.strength === "number";
-      return jsxs6("div", { className: "fa-rev", children: [
-        jsx7("button", { type: "button", className: "hk-link", style: { textAlign: "left" }, onClick: () => go({ name: "mission", id: row.mission_id }), children: row.title }),
-        jsxs6("div", { className: "hk-stack", style: { gap: 3 }, children: [
-          jsx7("div", { className: "fa-meter", role: "img", "aria-label": `${row.strength_word}, ${found ? row.strength : 0} out of 100`, children: jsx7("span", { style: { width: `${found ? Math.max(4, row.strength) : 0}%` } }) }),
-          jsx7("span", { className: "hk-small", children: row.strength_word })
+      return jsxs10("div", { className: "fa-rev", children: [
+        jsx11("button", { type: "button", className: "hk-link", style: { textAlign: "left" }, onClick: () => go({ name: "mission", id: row.mission_id }), children: row.title }),
+        jsxs10("div", { className: "hk-stack", style: { gap: 3 }, children: [
+          jsx11("div", { className: "fa-meter", role: "img", "aria-label": `${row.strength_word}, ${found ? row.strength : 0} out of 100`, children: jsx11("span", { style: { width: `${found ? Math.max(4, row.strength) : 0}%` } }) }),
+          jsx11("span", { className: "hk-small", children: row.strength_word })
         ] }),
-        jsx7("span", { className: "hk-small fa-rev-due", children: dueWords(row.due_at, reviewNow) })
+        jsx11("span", { className: "hk-small fa-rev-due", children: dueWords(row.due_at, reviewNow) })
       ] }, row.mission_id);
     }) })
   ] }) }, "review");
@@ -3379,11 +7219,11 @@ function ChangesPanel({ data, go }) {
   const changes = data.changes || [];
   const fresh = data.new_missions || [];
   const passed = (data.honest || {}).passed;
-  const [busy, setBusy] = useState5("");
-  const [problem, setProblem] = useState5("");
+  const [busy, setBusy] = useState9("");
+  const [problem, setProblem] = useState9("");
   if (!changes.length && !fresh.length) {
     if (!passed) return null;
-    return jsx7(Section, { title: "What changed since you learned this", children: jsx7("div", { className: "fa-panel", children: jsx7("p", { children: "Nothing has changed in the missions you passed. When a lesson or a check is updated, it shows up here with a way to re-verify." }) }) }, "changes");
+    return jsx11(Section, { title: "What changed since you learned this", children: jsx11("div", { className: "fa-panel", children: jsx11("p", { children: "Nothing has changed in the missions you passed. When a lesson or a check is updated, it shows up here with a way to re-verify." }) }) }, "changes");
   }
   const reverify = async (change) => {
     setBusy(change.mission_id);
@@ -3411,30 +7251,30 @@ function ChangesPanel({ data, go }) {
     }
   };
   const title = changes.length ? "What changed since you learned this" : "New on paths you started";
-  return jsx7(Section, { title, count: changes.length + fresh.length, children: jsxs6("div", { className: "hk-stack", children: [
-    changes.length ? jsx7("p", { className: "hk-small", children: "Your passes stay passed. When a check changed after you passed a mission, you can run the new one to re-verify. If it misses, the mission stays passed." }) : null,
-    problem ? jsx7(Result, { result: { passed: false, title: problem } }) : null,
-    ...changes.map((change) => jsx7(Card, { children: jsxs6("div", { className: "hk-stack", style: { gap: 6 }, children: [
-      jsxs6("div", { className: "hk-row", style: { flexWrap: "wrap", gap: 10 }, children: [
-        jsxs6("div", { className: "hk-grow", children: [
-          jsx7("strong", { children: change.title }),
-          jsx7("div", { className: "hk-small", children: `${change.track_name} path · ${change.level_name} · you passed version ${change.passed_version}, now version ${change.version}${change.carried_over ? " · passed before version 0.5" : ""}` })
+  return jsx11(Section, { title, count: changes.length + fresh.length, children: jsxs10("div", { className: "hk-stack", children: [
+    changes.length ? jsx11("p", { className: "hk-small", children: "Your passes stay passed. When a check changed after you passed a mission, you can run the new one to re-verify. If it misses, the mission stays passed." }) : null,
+    problem ? jsx11(Result, { result: { passed: false, title: problem } }) : null,
+    ...changes.map((change) => jsx11(Card, { children: jsxs10("div", { className: "hk-stack", style: { gap: 6 }, children: [
+      jsxs10("div", { className: "hk-row", style: { flexWrap: "wrap", gap: 10 }, children: [
+        jsxs10("div", { className: "hk-grow", children: [
+          jsx11("strong", { children: change.title }),
+          jsx11("div", { className: "hk-small", children: `${change.track_name} path · ${change.level_name} · you passed version ${change.passed_version}, now version ${change.version}${change.carried_over ? " · passed before version 0.5" : ""}` })
         ] }),
-        jsx7(Pill, { tone: change.needs === "check" ? "warn" : "info", children: change.needs === "check" ? "The check changed" : "The lesson changed" })
+        jsx11(Pill, { tone: change.needs === "check" ? "warn" : "info", children: change.needs === "check" ? "The check changed" : "The lesson changed" })
       ] }),
-      jsx7("ul", { className: "fa-bullets", children: change.revisions.map((r) => jsx7("li", { children: r.summary }, r.summary)) }),
-      jsxs6("div", { className: "hk-actions", children: [
-        change.needs === "check" ? jsx7(Button3, { loading: busy === change.mission_id, onClick: () => reverify(change), children: "Re-verify" }) : jsx7(Button3, { loading: busy === change.mission_id, onClick: () => acknowledge(change), children: "I've read the changes" }),
-        jsx7(Button3, { variant: "secondary", onClick: () => go({ name: "mission", id: change.mission_id }), children: "Open the mission" })
+      jsx11("ul", { className: "fa-bullets", children: change.revisions.map((r) => jsx11("li", { children: r.summary }, r.summary)) }),
+      jsxs10("div", { className: "hk-actions", children: [
+        change.needs === "check" ? jsx11(Button7, { loading: busy === change.mission_id, onClick: () => reverify(change), children: "Re-verify" }) : jsx11(Button7, { loading: busy === change.mission_id, onClick: () => acknowledge(change), children: "I've read the changes" }),
+        jsx11(Button7, { variant: "secondary", onClick: () => go({ name: "mission", id: change.mission_id }), children: "Open the mission" })
       ] })
     ] }) }, change.mission_id)),
-    ...fresh.map((item) => jsx7(Card, { tone: "info", children: jsxs6("div", { className: "hk-row", style: { flexWrap: "wrap", gap: 10 }, children: [
-      jsxs6("div", { className: "hk-grow hk-stack", style: { gap: 2 }, children: [
-        jsx7("strong", { children: `New: ${item.title}` }),
-        jsx7("div", { className: "hk-small", children: `${item.track_name} path · ${item.level_name}` }),
-        jsx7("p", { children: item.summary })
+    ...fresh.map((item) => jsx11(Card, { tone: "info", children: jsxs10("div", { className: "hk-row", style: { flexWrap: "wrap", gap: 10 }, children: [
+      jsxs10("div", { className: "hk-grow hk-stack", style: { gap: 2 }, children: [
+        jsx11("strong", { children: `New: ${item.title}` }),
+        jsx11("div", { className: "hk-small", children: `${item.track_name} path · ${item.level_name}` }),
+        jsx11("p", { children: item.summary })
       ] }),
-      jsx7(Button3, { variant: "secondary", onClick: () => go({ name: "mission", id: item.mission_id }), children: "Open it" })
+      jsx11(Button7, { variant: "secondary", onClick: () => go({ name: "mission", id: item.mission_id }), children: "Open it" })
     ] }) }, item.mission_id))
   ] }) }, "changes");
 }
@@ -3442,18 +7282,18 @@ var MAP_SHAPE = [{ title: true, lines: 2, button: true, dot: true }, { title: tr
 function DeployerTrailPanel({ deployer, list, offset, go }) {
   const model = trailModel(deployer.track);
   const mine = { index: list.index - offset, itemProps: (i) => list.itemProps(i + offset) };
-  return jsx7(Section, { title: `${deployer.track.name} path`, children: jsxs6("div", { className: "hk-stack", children: [
-    jsx7(Prose, { text: "Set up, deploy and run Hermes for a small client. You do the real work:\n- Repair four broken client setups\n- Write a proposal\n- Answer nine hard cases\n- Run a real service for several days, then break it and recover it" }),
-    jsx7("p", { className: "hk-small", children: "The Guide Field Record needs a reviewer you choose to read and sign your evidence. Until someone signs, the path ends at Guide, awaiting review." }),
-    jsx7(TrailMap, {
+  return jsx11(Section, { title: `${deployer.track.name} path`, children: jsxs10("div", { className: "hk-stack", children: [
+    jsx11(Prose, { text: "Set up, deploy and run Hermes for a small client. You do the real work:\n- Repair four broken client setups\n- Write a proposal\n- Answer nine hard cases\n- Run a real service for several days, then break it and recover it" }),
+    jsx11("p", { className: "hk-small", children: "The Guide Field Record needs a reviewer you choose to read and sign your evidence. Until someone signs, the path ends at Guide, awaiting review." }),
+    jsx11(TrailMap, {
       models: [model],
       list: mine,
       onOpenTrack: () => go({ name: "path", id: "deployer" }),
       onOpenMission: (id) => go(partFor(id)),
-      foot: [jsx7("span", { className: "hk-small", key: "tip" }, deployer.certificate.label)]
+      foot: [jsx11("span", { className: "hk-small", key: "tip" }, deployer.certificate.label)]
     }),
-    jsx7("p", { className: "hk-small", children: "It records competence shown in labs and on your own setup. It is not years of client work." }),
-    jsx7("p", { className: "hk-small", children: deployer.about?.disclaimer || "" })
+    jsx11("p", { className: "hk-small", children: "It records competence shown in labs and on your own setup. It is not years of client work." }),
+    jsx11("p", { className: "hk-small", children: deployer.about?.disclaimer || "" })
   ] }) }, "deployer");
 }
 function bannerCamps(info, deployer) {
@@ -3461,12 +7301,16 @@ function bannerCamps(info, deployer) {
   if (deployer && deployer.track) camps.push({ label: deployer.track.name, done: deployer.certificate?.status === "issued" });
   return camps.slice(0, 5);
 }
-function bannerFacts(info, deployer) {
+function bannerFacts(info, deployer, foundations = 0) {
   const paths = info.tracks.length + (deployer && deployer.track ? 1 : 0);
-  return [plural2(info.total, "mission", "missions"), plural2(paths, "path", "paths"), "Checks on real work", "Stays on your computer"];
+  const first = foundations ? [plural2(foundations, "Foundations mission", "Foundations missions")] : [];
+  return [...first, `${plural2(info.total, "mission", "missions")} on ${plural2(paths, "trail", "trails")}`, "Checks on real work"];
 }
 function MapView({ data, go, deployer }) {
   const info = overview(data);
+  const foundations = foundationsViews.useFoundations();
+  const placedIds = new Set((data.tracks || []).flatMap((t) => (t.placed || []).map((m) => m.id)));
+  const fCount = (foundations.data?.missions || []).filter((m) => !m.trail && !placedIds.has(m.id)).length;
   const camps = bannerCamps(info, deployer);
   const models = info.tracks;
   const extra = deployer && deployer.track ? 1 : 0;
@@ -3474,79 +7318,89 @@ function MapView({ data, go, deployer }) {
     count: models.length + extra,
     onOpen: (i) => models[i] ? go({ name: "path", id: models[i].id }) : extra && go({ name: "path", id: "deployer" })
   });
-  return jsx7(Frame, { onKey: list.keyProps.onKeyDown, children: [
-    jsx7(Banner, {
-      eyebrow: "A field guide to Hermes",
-      promise: "Learn Hermes by doing real work on your own setup, one camp at a time, and keep a Field Record of everything you prove",
-      facts: bannerFacts(info, deployer),
-      camps,
-      summitDone: camps.length > 0 && camps.every((camp) => camp.done)
-    }, "head"),
-    jsx7("p", { className: "hk-lead", children: `${plural2(models.length + extra, "path", "paths")} up the mountain, each named for one of Hermes's old jobs. Every path climbs from Beginner to Advanced, then a capstone on your own problem, and ends at the summit with a Field Record of the work you did.` }, "lead"),
-    jsx7(GoalCard, { data }, "goal"),
-    jsxs6("div", { className: "fa-here", children: [
-      jsx7(WherePanel, { info, data }, "where"),
-      jsx7(NextStep, { next: data.next_up, info, go }, "next")
+  const banner = jsx11(Banner, {
+    promise: data.school_line || "Get good at Hermes by using it, learn all of what it can do, then learn to help other people use it.",
+    facts: bannerFacts(info, deployer, fCount),
+    camps,
+    summitDone: camps.length > 0 && camps.every((camp) => camp.done),
+    compact: true
+  }, "head");
+  return jsx11(Frame, { onKey: list.keyProps.onKeyDown, children: [
+    banner,
+    jsxs10("div", { className: "fa-top", children: [
+      jsx11("div", { className: "fa-top-map", children: jsx11("div", { children: [
+        jsx11(Section, {
+          title: "Trail map",
+          count: models.length + extra,
+          actions: jsx11(KeyHint, { keys: ["J", "K"], label: "to move between trails, Enter to open" }),
+          children: jsx11(TrailMap, {
+            models,
+            list,
+            onOpenTrack: (id) => go({ name: "path", id }),
+            onOpenMission: (id) => go({ name: "mission", id }),
+            lines: data.camp_lines || null,
+            summitLine: data.summit_line || "",
+            foot: [jsx11(Legend, {}, "legend"), jsx11("span", { className: "hk-small", children: "Click a trail, a waypoint or a flag to open it." }, "tip")]
+          })
+        }, "map")
+      ] }) }),
+      jsx11("div", { className: "fa-top-start", children: jsx11(foundationsViews.FirstFlightCard, { go, foundations, compact: true }) })
+    ] }, "top"),
+    extra ? jsx11(DeployerTrailPanel, { deployer, list, offset: models.length, go }, "deployer") : null,
+    jsx11("p", { className: "hk-lead", children: `${plural2(models.length + extra, "path", "paths")} up the mountain, each named for one of Hermes's old jobs. Every path climbs from Beginner to Advanced, then a capstone on your own problem, and ends at the summit with a Field Record of the work you did.` }, "lead"),
+    jsx11(GoalCard, { data }, "goal"),
+    jsxs10("div", { className: "fa-here", children: [
+      jsx11(WherePanel, { info, data }, "where"),
+      jsx11(NextStep, { next: data.next_up, info, go }, "next")
     ] }, "here"),
-    jsx7(ReviewQueue, { data, go }, "review"),
-    jsx7(ChangesPanel, { data, go }, "changes"),
-    jsx7(Section, {
-      title: "Trail map",
-      count: models.length + extra,
-      actions: jsx7(KeyHint, { keys: ["J", "K"], label: "to move between trails, Enter to open" }),
-      children: jsx7(TrailMap, {
-        models,
-        list,
-        onOpenTrack: (id) => go({ name: "path", id }),
-        onOpenMission: (id) => go({ name: "mission", id }),
-        foot: [jsx7(Legend, {}, "legend"), jsx7("span", { className: "hk-small", children: "Click a trail, a waypoint or a flag to open it." }, "tip")]
-      })
-    }, "map"),
-    extra ? jsx7(DeployerTrailPanel, { deployer, list, offset: models.length, go }, "deployer") : null,
-    jsxs6(Section, { title: "How the trail works", children: [
-      jsxs6("ol", { className: "fa-numbered", children: [
-        jsx7("li", { children: jsx7("span", { children: "Pick a trail and open its first mission. Each mission shows how long it takes before you start." }) }),
-        jsx7("li", { children: jsx7("span", { children: "Read a short lesson, then see a finished example, then fill the gaps in a half-finished one. The help fades, and then you do it on your own." }) }),
-        jsx7("li", { children: jsx7("span", { children: "Try it in your own Hermes, answer one question in your own words, and click Check my work. Each check reads something you made." }) }),
-        jsx7("li", { children: jsx7("span", { children: "When you miss, you see exactly what was missing, then a hint, then a worked example. You can retry as often as you like." }) }),
-        jsx7("li", { children: jsx7("span", { children: "Pass every mission and the capstone on a trail to reach its summit and create your Field Record for that path. Already know a level? Take the placement check on the path." }) })
+    jsx11(ReviewQueue, { data, go }, "review"),
+    jsx11(ChangesPanel, { data, go }, "changes"),
+    jsx11(foundationsViews.FoundationsCard, { go, foundations }, "foundations"),
+    jsxs10(Section, { title: "How the trail works", children: [
+      jsxs10("ol", { className: "fa-numbered", children: [
+        jsx11("li", { children: jsx11("span", { children: "Foundations, just above, works differently: each of its missions runs in a practice profile Field Academy makes, with a problem planted first. The steps below are for the paths." }) }),
+        jsx11("li", { children: jsx11("span", { children: "Pick a trail and open its first mission. Each mission shows how long it takes before you start." }) }),
+        jsx11("li", { children: jsx11("span", { children: "Read a short lesson, then see a finished example, then fill the gaps in a half-finished one. The help fades, and then you do it on your own." }) }),
+        jsx11("li", { children: jsx11("span", { children: "Try it in your own Hermes, answer one question in your own words, and click Check my work. Each check reads something you made." }) }),
+        jsx11("li", { children: jsx11("span", { children: "When you miss, you see exactly what was missing, then a hint, then a worked example. You can retry as often as you like." }) }),
+        jsx11("li", { children: jsx11("span", { children: "Pass every mission and the capstone on a trail to reach its summit and create your Field Record for that path. Already know a level? Take the placement check on the path." }) })
       ] }),
-      jsx7("p", { className: "hk-small", children: data.credential_note })
+      jsx11("p", { className: "hk-small", children: data.credential_note })
     ] }, "how")
   ] });
 }
 function Camp({ rung, track, go, rows, list }) {
   const missions = rung.missions.map((id) => track.missions.find((m) => m.id === id)).filter(Boolean);
-  return jsxs6("div", { className: "fa-camp", "data-status": rung.status, "data-current": rung.current ? "" : void 0, children: [
-    jsxs6("div", { className: "fa-camp-rail", children: [
-      jsx7("span", { className: "fa-num fa-num-l", "aria-hidden": "true", children: rung.number }),
-      jsx7(CampLine, { walked: rung.status === "passed" })
+  return jsxs10("div", { className: "fa-camp", "data-status": rung.status, "data-current": rung.current ? "" : void 0, children: [
+    jsxs10("div", { className: "fa-camp-rail", children: [
+      jsx11("span", { className: "fa-num fa-num-l", "aria-hidden": "true", children: rung.number }),
+      jsx11(CampLine, { walked: rung.status === "passed" })
     ] }),
-    jsxs6("div", { className: "fa-camp-body", children: [
-      jsxs6("div", { className: "fa-camp-head", children: [
-        jsxs6("div", { className: "hk-grow", style: { display: "grid", gap: 2 }, children: [
-          jsx7(Label, { children: `Camp ${rung.number}` }),
-          jsx7("h3", { className: "hk-h2", children: rung.name })
+    jsxs10("div", { className: "fa-camp-body", children: [
+      jsxs10("div", { className: "fa-camp-head", children: [
+        jsxs10("div", { className: "hk-grow", style: { display: "grid", gap: 2 }, children: [
+          jsx11(Label, { children: `Camp ${rung.number}` }),
+          jsx11("h3", { className: "hk-h2", children: rung.name })
         ] }),
-        rung.current ? jsxs6("span", { className: "fa-here-tag", children: [jsx7(TrailMark, { here: true, size: 14 }), "You are here"] }) : rung.status === "passed" ? jsx7(Pill, { tone: "good", icon: "check", children: "Passed" }) : jsx7("span", { className: "hk-small", children: `${rung.passed} of ${rung.total} passed` })
+        rung.current ? jsxs10("span", { className: "fa-here-tag", children: [jsx11(TrailMark, { here: true, size: 14 }), "You are here"] }) : rung.status === "passed" ? jsx11(Pill, { tone: "good", icon: "check", children: "Passed" }) : jsx11("span", { className: "hk-small", children: `${rung.passed} of ${rung.total} passed` })
       ] }),
-      jsx7("p", { children: rung.meaning }),
-      jsx7("div", { className: "fa-camp-rows", children: missions.map((mission) => {
+      jsx11("p", { children: rung.meaning }),
+      jsx11("div", { className: "fa-camp-rows", children: missions.map((mission) => {
         const i = rows.indexOf(mission.id);
         const here = mission.id === track.here;
-        return jsxs6("button", {
+        return jsxs10("button", {
           type: "button",
           className: "hk-rowbtn",
           onClick: () => go({ name: "mission", id: mission.id }),
           ...list.itemProps(i),
           children: [
-            jsx7(TrailMark, { status: markStatus(mission.status), here }),
-            jsxs6("span", { className: "hk-grow", children: [
-              jsx7("span", { style: { display: "block", fontWeight: 600 }, children: mission.title }),
-              jsx7("span", { className: "fa-row-meta", children: `${minutesWords(mission.minutes)} · ${statusWords(mission)}` })
+            jsx11(TrailMark, { status: markStatus(mission.status), here }),
+            jsxs10("span", { className: "hk-grow", children: [
+              jsx11("span", { style: { display: "block", fontWeight: 600 }, children: mission.title }),
+              jsx11("span", { className: "fa-row-meta", children: `${minutesWords(mission.minutes)} · ${statusWords(mission)}` })
             ] }),
-            here ? jsx7("span", { className: "fa-here-tag", children: "Next" }) : null,
-            jsx7(Codicon4, { name: "chevron-right", size: 13 })
+            here ? jsx11("span", { className: "fa-here-tag", children: "Next" }) : null,
+            jsx11(Codicon6, { name: "chevron-right", size: 13 })
           ]
         }, mission.id);
       }) })
@@ -3555,29 +7409,29 @@ function Camp({ rung, track, go, rows, list }) {
 }
 function SummitRow({ track }) {
   const status = track.certificate.status;
-  return jsxs6("div", { className: "fa-camp", "data-status": status === "issued" ? "passed" : void 0, children: [
-    jsx7("div", { className: "fa-camp-rail", children: jsx7("svg", { width: 26, height: 30, viewBox: "-9 -28 26 32", "aria-hidden": "true", children: jsxs6("g", { className: "fa-flag", "data-status": status, children: [
-      jsx7("path", { className: "fa-flag-cairn", d: "M-8 4 L-4 -1 L4 -1 L8 4 Z" }),
-      jsx7("line", { className: "fa-flag-pole", x1: 0, y1: 0, x2: 0, y2: -26 }),
-      jsx7("path", { className: "fa-flag-cloth", d: "M0 -26 L16 -21 L0 -15 Z" })
+  return jsxs10("div", { className: "fa-camp", "data-status": status === "issued" ? "passed" : void 0, children: [
+    jsx11("div", { className: "fa-camp-rail", children: jsx11("svg", { width: 26, height: 30, viewBox: "-9 -28 26 32", "aria-hidden": "true", children: jsxs10("g", { className: "fa-flag", "data-status": status, children: [
+      jsx11("path", { className: "fa-flag-cairn", d: "M-8 4 L-4 -1 L4 -1 L8 4 Z" }),
+      jsx11("line", { className: "fa-flag-pole", x1: 0, y1: 0, x2: 0, y2: -26 }),
+      jsx11("path", { className: "fa-flag-cloth", d: "M0 -26 L16 -21 L0 -15 Z" })
     ] }) }) }),
-    jsxs6("div", { className: "fa-camp-body", children: [
-      jsxs6("div", { className: "fa-camp-head", children: [
-        jsxs6("div", { className: "hk-grow", style: { display: "grid", gap: 2 }, children: [
-          jsx7(Label, { children: "Summit" }),
-          jsx7("h3", { className: "hk-h2", children: track.certificate.title || "Your Field Record" })
+    jsxs10("div", { className: "fa-camp-body", children: [
+      jsxs10("div", { className: "fa-camp-head", children: [
+        jsxs10("div", { className: "hk-grow", style: { display: "grid", gap: 2 }, children: [
+          jsx11(Label, { children: "Summit" }),
+          jsx11("h3", { className: "hk-h2", children: track.certificate.title || "Your Field Record" })
         ] }),
-        jsx7(CertificatePill, { certificate: track.certificate })
+        jsx11(CertificatePill, { certificate: track.certificate })
       ] }),
-      jsx7("div", { children: jsx7("button", { type: "button", className: "hk-link", onClick: () => scrollToId(`fa-route-${track.id}`), children: "See the route to your Field Record" }) })
+      jsx11("div", { children: jsx11("button", { type: "button", className: "hk-link", onClick: () => scrollToId(`fa-route-${track.id}`), children: "See the route to your Field Record" }) })
     ] })
   ] });
 }
 function CertificateRoute({ track, go }) {
   const route = track.certificate;
-  const [name, setName] = useState5("");
-  const [busy, setBusy] = useState5(false);
-  const [problem, setProblem] = useState5("");
+  const [name, setName] = useState9("");
+  const [busy, setBusy] = useState9(false);
+  const [problem, setProblem] = useState9("");
   const claim = async () => {
     if (!name.trim()) {
       setProblem("Type the name you want on your Field Record.");
@@ -3595,21 +7449,21 @@ function CertificateRoute({ track, go }) {
       setBusy(false);
     }
   };
-  return jsx7(Section, { id: `fa-route-${track.id}`, title: "Your route to the Field Record", actions: jsx7(CertificatePill, { certificate: route }), children: jsxs6("div", { className: "hk-stack", style: { gap: 10 }, children: [
-    jsx7("div", { className: "fa-panel", children: jsxs6("div", { className: "hk-row", style: { flexWrap: "nowrap", gap: 16 }, children: [
-      jsx7(CertificateBezel, { track, size: 72 }),
-      jsxs6("div", { className: "hk-grow hk-stack", style: { gap: 3 }, children: [
-        jsx7(Label, { children: "Summit" }),
-        jsx7("strong", { children: route.status === "issued" ? "Field Record created" : route.status === "ready" ? "Every mission passed" : `${plural2(route.remaining, "mission", "missions")} to go` }),
-        jsx7("p", { className: "hk-small", children: `${track.verified_missions} of ${track.missions.length} missions on this trail passed.` })
+  return jsx11(Section, { id: `fa-route-${track.id}`, title: "Your route to the Field Record", actions: jsx11(CertificatePill, { certificate: route }), children: jsxs10("div", { className: "hk-stack", style: { gap: 10 }, children: [
+    jsx11("div", { className: "fa-panel", children: jsxs10("div", { className: "hk-row", style: { flexWrap: "nowrap", gap: 16 }, children: [
+      jsx11(CertificateBezel, { track, size: 72 }),
+      jsxs10("div", { className: "hk-grow hk-stack", style: { gap: 3 }, children: [
+        jsx11(Label, { children: "Summit" }),
+        jsx11("strong", { children: route.status === "issued" ? "Field Record created" : route.status === "ready" ? "Every mission passed" : `${plural2(route.remaining, "mission", "missions")} to go` }),
+        jsx11("p", { className: "hk-small", children: `${track.verified_missions} of ${track.missions.length} missions on this trail passed.` })
       ] }),
-      route.status === "issued" ? jsx7(Button3, { onClick: () => go({ name: "certificate", id: track.id }), children: "View your Field Record" }) : route.status !== "ready" && track.here ? jsx7(Button3, { onClick: () => go({ name: "mission", id: track.here }), children: "Go to your next mission" }) : null
+      route.status === "issued" ? jsx11(Button7, { onClick: () => go({ name: "certificate", id: track.id }), children: "View your Field Record" }) : route.status !== "ready" && track.here ? jsx11(Button7, { onClick: () => go({ name: "mission", id: track.here }), children: "Go to your next mission" }) : null
     ] }) }),
-    route.status === "ready" ? jsxs6(Card, { tone: "warn", tint: true, className: "hk-enter", children: [
-      jsx7("h3", { className: "hk-h2", children: "Create your Field Record" }, "h"),
-      jsx7("p", { children: "Every mission on this path passed. Type your name the way you want it on your record. Field Academy writes the record on your computer, and it stays yours." }, "p"),
-      jsxs6("div", { className: "hk-actions", key: "a", children: [
-        jsx7("div", { style: { minWidth: "16rem", flex: 1 }, children: jsx7(Input2, {
+    route.status === "ready" ? jsxs10(Card, { tone: "warn", tint: true, className: "hk-enter", children: [
+      jsx11("h3", { className: "hk-h2", children: "Create your Field Record" }, "h"),
+      jsx11("p", { children: "Every mission on this path passed. Type your name the way you want it on your record. Field Academy writes the record on your computer, and it stays yours." }, "p"),
+      jsxs10("div", { className: "hk-actions", key: "a", children: [
+        jsx11("div", { style: { minWidth: "16rem", flex: 1 }, children: jsx11(Input6, {
           value: name,
           onChange: (event) => setName(event.target.value),
           placeholder: "Your name",
@@ -3618,34 +7472,34 @@ function CertificateRoute({ track, go }) {
             if (e.key === "Enter" && !e.nativeEvent?.isComposing) claim();
           }
         }) }),
-        jsx7(Button3, { loading: busy, onClick: claim, children: "Create your Field Record" })
+        jsx11(Button7, { loading: busy, onClick: claim, children: "Create your Field Record" })
       ] }),
-      problem ? jsx7(Result, { result: { passed: false, title: problem } }, "r") : null
+      problem ? jsx11(Result, { result: { passed: false, title: problem } }, "r") : null
     ] }) : null,
-    jsxs6(Card, { children: [
-      jsx7("h3", { className: "hk-h3", children: "What to do" }, "h"),
-      jsx7("ol", { className: "fa-numbered", children: route.steps.map(
-        (step) => jsx7("li", { children: jsxs6("div", { className: "hk-stack", style: { gap: 4 }, children: [jsx7("strong", { children: step.title }), jsx7(Prose, { text: step.detail })] }) }, step.title)
+    jsxs10(Card, { children: [
+      jsx11("h3", { className: "hk-h3", children: "What to do" }, "h"),
+      jsx11("ol", { className: "fa-numbered", children: route.steps.map(
+        (step) => jsx11("li", { children: jsxs10("div", { className: "hk-stack", style: { gap: 4 }, children: [jsx11("strong", { children: step.title }), jsx11(Prose, { text: step.detail })] }) }, step.title)
       ) }, "l")
     ] }),
-    jsxs6(Card, { children: [
-      jsx7("h3", { className: "hk-h3", children: "The proof each mission needs" }, "h"),
-      jsx7("p", { className: "hk-small", children: `Every mission also needs ${lowerFirst(route.proof[0]?.explain || "")}` }, "p"),
-      jsx7("div", { className: "hk-stack", children: route.proof.map(
-        (row) => jsxs6("div", { className: "hk-row", style: { flexWrap: "nowrap", alignItems: "flex-start" }, children: [
-          jsx7("span", { style: { paddingTop: 2 }, children: jsx7(TrailMark, { status: row.passed ? "passed" : "waiting" }) }),
-          jsxs6("div", { className: "hk-grow", children: [
-            jsx7("p", { children: jsx7("strong", { children: `${row.level_name}: ${row.title}` }) }),
-            jsx7("p", { className: "hk-small", children: row.passed ? `${row.check} Passed ${shortDate(row.passed_at)}.` : row.check })
+    jsxs10(Card, { children: [
+      jsx11("h3", { className: "hk-h3", children: "The proof each mission needs" }, "h"),
+      jsx11("p", { className: "hk-small", children: `Every mission also needs ${lowerFirst(route.proof[0]?.explain || "")}` }, "p"),
+      jsx11("div", { className: "hk-stack", children: route.proof.map(
+        (row) => jsxs10("div", { className: "hk-row", style: { flexWrap: "nowrap", alignItems: "flex-start" }, children: [
+          jsx11("span", { style: { paddingTop: 2 }, children: jsx11(TrailMark, { status: row.passed ? "passed" : "waiting" }) }),
+          jsxs10("div", { className: "hk-grow", children: [
+            jsx11("p", { children: jsx11("strong", { children: `${row.level_name}: ${row.title}` }) }),
+            jsx11("p", { className: "hk-small", children: row.passed ? `${row.check} Passed ${shortDate(row.passed_at)}.` : row.check })
           ] })
         ] }, row.mission_id)
       ) }, "l")
     ] }),
-    jsxs6(Card, { children: [
-      jsx7("h3", { className: "hk-h3", children: "What you receive" }, "h"),
-      jsx7("ul", { className: "fa-bullets", children: route.receive.map((line) => jsx7("li", { children: line }, line)) }, "l"),
-      jsx7("p", { className: "hk-small", children: `${route.shows} ${route.issuer}` }, "p"),
-      jsx7("p", { className: "hk-small", children: route.disclaimer }, "d")
+    jsxs10(Card, { children: [
+      jsx11("h3", { className: "hk-h3", children: "What you receive" }, "h"),
+      jsx11("ul", { className: "fa-bullets", children: route.receive.map((line) => jsx11("li", { children: line }, line)) }, "l"),
+      jsx11("p", { className: "hk-small", children: `${route.shows} ${route.issuer}` }, "p"),
+      jsx11("p", { className: "hk-small", children: route.disclaimer }, "d")
     ] })
   ] }) });
 }
@@ -3656,40 +7510,41 @@ function PlacementPanel({ track, go }) {
   const levels = taken?.results?.levels || {};
   const known = Object.keys(levels).filter((level) => levels[level].known);
   const applied = taken?.applied;
-  return jsx7(Section, { title: "Placement check", children: jsx7("div", { className: "fa-panel", children: jsxs6("div", { className: "hk-stack", style: { gap: 8 }, children: [
-    jsx7(Prose, { text: placement.intro }),
-    taken ? jsx7("p", { className: "hk-small", children: known.length ? `You took it ${shortDate(taken.taken_at)} and knew ${known.length === 1 ? "one level" : `${known.length} levels`}. ${applied ? `The reading and practice on ${applied.levels.join(", ")} missions are skipped. Each question and each check still counts.` : "You have not applied it yet."}` : `You took it ${shortDate(taken.taken_at)}. No level was known yet, so every mission starts with its lesson.` }) : jsx7("p", { className: "hk-small", children: `${placement.questions} questions, about ${placement.minutes} minutes.` }),
-    jsx7("div", { className: "hk-actions", children: jsx7(Button3, { variant: taken ? "secondary" : "default", onClick: () => go({ name: "placement", id: track.id }), children: taken ? "Open the placement check" : "Take the placement check" }) })
+  return jsx11(Section, { title: "Placement check", children: jsx11("div", { className: "fa-panel", children: jsxs10("div", { className: "hk-stack", style: { gap: 8 }, children: [
+    jsx11(Prose, { text: placement.intro }),
+    taken ? jsx11("p", { className: "hk-small", children: known.length ? `You took it ${shortDate(taken.taken_at)} and knew ${known.length === 1 ? "one level" : `${known.length} levels`}. ${applied ? `The reading and practice on ${applied.levels.join(", ")} missions are skipped. Each question and each check still counts.` : "You have not applied it yet."}` : `You took it ${shortDate(taken.taken_at)}. No level was known yet, so every mission starts with its lesson.` }) : jsx11("p", { className: "hk-small", children: `${placement.questions} questions, about ${placement.minutes} minutes.` }),
+    jsx11("div", { className: "hk-actions", children: jsx11(Button7, { variant: taken ? "secondary" : "default", onClick: () => go({ name: "placement", id: track.id }), children: taken ? "Open the placement check" : "Take the placement check" }) })
   ] }) }) }, "placement");
 }
-function PathView({ track, go }) {
+function PathView({ track: own, go }) {
+  const track = withPlaced(own);
   const model = trailModel(track);
   const rung = track.levels.find((item) => item.current);
   const rows = track.levels.flatMap((level) => level.missions.filter((id) => track.missions.some((m) => m.id === id)));
   const list = useListKeys({ count: rows.length, onOpen: (i) => rows[i] && go({ name: "mission", id: rows[i] }) });
-  return jsx7(Frame, { width: "narrow", up: () => go({ name: "map" }), onKey: list.keyProps.onKeyDown, children: [
-    jsx7(PageHeader, {
-      back: jsx7(Back, { label: "Trail map", onClick: () => go({ name: "map" }) }),
-      eyebrow: jsx7(Label, { children: track.eyebrow }),
+  return jsx11(Frame, { width: "narrow", up: () => go({ name: "map" }), onKey: list.keyProps.onKeyDown, children: [
+    jsx11(PageHeader, {
+      back: jsx11(Back, { label: "Trail map", onClick: () => go({ name: "map" }) }),
+      eyebrow: jsx11(Label, { children: track.eyebrow }),
       title: `${track.name} path`,
       lead: track.promise
     }, "head"),
-    track.lore ? jsx7("p", { className: "fa-lore", children: track.lore }, "lore") : null,
-    jsx7(ElevationProfile, {
+    track.lore ? jsx11("p", { className: "fa-lore", children: track.lore }, "lore") : null,
+    jsx11(ElevationProfile, {
       model,
       onOpenMission: (id) => go({ name: "mission", id }),
       onOpenSummit: () => scrollToId(`fa-route-${track.id}`),
       children: [
-        jsx7("p", { children: rung ? `You're at Camp ${rung.number}, ${rung.name}. ${track.verified_missions} of ${track.missions.length} missions passed.` : "Every mission on this path passed. The summit is yours." }, "where"),
-        jsx7(Legend, {}, "legend")
+        jsx11("p", { children: rung ? `You're at Camp ${rung.number}, ${rung.name}. ${track.verified_missions} of ${track.missions.length} missions passed.` : "Every mission on this path passed. The summit is yours." }, "where"),
+        jsx11(Legend, {}, "legend")
       ]
     }, "profile"),
-    jsx7(PlacementPanel, { track, go }, "placement"),
-    jsx7(Section, { title: "Camps on this trail", actions: jsx7(KeyHint, { keys: ["J", "K"], label: "to move, Enter to open" }), children: jsxs6("div", { className: "fa-camps", children: [
-      ...track.levels.map((item) => jsx7(Camp, { rung: item, track, go, rows, list }, item.id)),
-      jsx7(SummitRow, { track }, "summit")
+    jsx11(PlacementPanel, { track, go }, "placement"),
+    jsx11(Section, { title: "Camps on this trail", actions: jsx11(KeyHint, { keys: ["J", "K"], label: "to move, Enter to open" }), children: jsxs10("div", { className: "fa-camps", children: [
+      ...track.levels.map((item) => jsx11(Camp, { rung: item, track, go, rows, list }, item.id)),
+      jsx11(SummitRow, { track }, "summit")
     ] }) }, "levels"),
-    jsx7(CertificateRoute, { track, go }, "route")
+    jsx11(CertificateRoute, { track: own, go }, "route")
   ] });
 }
 var KIND = {
@@ -3713,8 +7568,8 @@ async function setStep(mission, step, status, onChanged) {
   onChanged();
 }
 async function sendInNewChat(text, fallbackMessage) {
-  host2.newChat();
-  const composer = host2.composer;
+  host5.newChat();
+  const composer = host5.composer;
   if (composer?.submit) {
     for (let tries = 0; tries < 24; tries++) {
       await new Promise((resolve) => setTimeout(resolve, 125));
@@ -3726,7 +7581,7 @@ async function sendInNewChat(text, fallbackMessage) {
     }
   }
   if (api?.os?.writeClipboard) await api.os.writeClipboard(text);
-  host2.notify({ kind: "info", message: fallbackMessage });
+  host5.notify({ kind: "info", message: fallbackMessage });
   return false;
 }
 async function startPracticeChat(prompt) {
@@ -3734,10 +7589,10 @@ async function startPracticeChat(prompt) {
 }
 function LessonStep({ mission, step, onChanged }) {
   const done = step.status === "done";
-  return jsxs6("div", { className: "hk-stack", children: [
-    step.picture ? jsx7(Picture, { id: step.picture }) : null,
-    step.lines?.length ? jsx7("ul", { className: "fa-takeaway", children: step.lines.map((line) => jsx7("li", { children: line }, line)) }) : null,
-    jsx7("div", { className: "hk-actions", children: jsx7(Button3, {
+  return jsxs10("div", { className: "hk-stack", children: [
+    step.picture ? jsx11(Picture, { id: step.picture }) : null,
+    step.lines?.length ? jsx11("ul", { className: "fa-takeaway", children: step.lines.map((line) => jsx11("li", { children: line }, line)) }) : null,
+    jsx11("div", { className: "hk-actions", children: jsx11(Button7, {
       variant: done ? "secondary" : "default",
       onClick: () => setStep(mission, step, done ? "ready" : "done", onChanged),
       children: done ? "Mark as not done" : "Got it"
@@ -3747,50 +7602,50 @@ function LessonStep({ mission, step, onChanged }) {
 function GoDeeper({ mission }) {
   const links = mission.watch || [];
   if (!links.length) return null;
-  return jsx7("div", { className: "fa-deeper", children: jsx7(Details, { label: `Go deeper: ${plural2(links.length, "guide or video", "guides and videos")} from the Hermes community`, children: jsxs6("div", { className: "hk-stack", style: { gap: 8 }, children: [
-    jsx7("p", { className: "hk-small", children: "Optional. Everything you need to pass is on this page." }),
-    jsx7(LinkList, { links })
+  return jsx11("div", { className: "fa-deeper", children: jsx11(Details, { label: `Go deeper: ${plural2(links.length, "guide or video", "guides and videos")} from the Hermes community`, children: jsxs10("div", { className: "hk-stack", style: { gap: 8 }, children: [
+    jsx11("p", { className: "hk-small", children: "Optional. Everything you need to pass is on this page." }),
+    jsx11(LinkList, { links })
   ] }) }) });
 }
 function Picture({ id }) {
-  if (id === "four-parts") return jsx7(FourParts, {});
+  if (id === "four-parts") return jsx11(FourParts, {});
   return null;
 }
 function FourParts() {
-  const box = (x, y, w, h, title, line, tone) => jsxs6("g", { className: "fa-pic-box", "data-tone": tone || void 0, children: [
-    jsx7("rect", { x, y, width: w, height: h, rx: 8 }),
-    jsx7("text", { className: "fa-pic-title", x: x + 14, y: y + 24, children: title }),
-    jsx7("text", { className: "fa-pic-line", x: x + 14, y: y + 44, children: line })
+  const box = (x, y, w, h, title, line, tone) => jsxs10("g", { className: "fa-pic-box", "data-tone": tone || void 0, children: [
+    jsx11("rect", { x, y, width: w, height: h, rx: 8 }),
+    jsx11("text", { className: "fa-pic-title", x: x + 14, y: y + 24, children: title }),
+    jsx11("text", { className: "fa-pic-line", x: x + 14, y: y + 44, children: line })
   ] });
-  return jsxs6("figure", { className: "fa-pic", children: [
-    jsxs6("svg", { viewBox: "0 0 640 236", role: "img", "aria-label": "The app and its sessions sit on top. Below, one computer holds a profile, and inside the profile the gateway runs scheduled jobs and answers your phone, even with the app closed.", children: [
+  return jsxs10("figure", { className: "fa-pic", children: [
+    jsxs10("svg", { viewBox: "0 0 640 236", role: "img", "aria-label": "The app and its sessions sit on top. Below, one computer holds a profile, and inside the profile the gateway runs scheduled jobs and answers your phone, even with the app closed.", children: [
       box(16, 14, 290, 60, "The app", "The window you type in. Close it any time."),
       box(334, 14, 290, 60, "A session", "One conversation. Saved, comes back later."),
-      jsxs6("g", { className: "fa-pic-frame", children: [
-        jsx7("rect", { x: 16, y: 96, width: 608, height: 126, rx: 10 }),
-        jsx7("text", { className: "fa-pic-cap", x: 30, y: 116, children: "One computer" })
+      jsxs10("g", { className: "fa-pic-frame", children: [
+        jsx11("rect", { x: 16, y: 96, width: 608, height: 126, rx: 10 }),
+        jsx11("text", { className: "fa-pic-cap", x: 30, y: 116, children: "One computer" })
       ] }),
       box(32, 128, 270, 80, "A profile", "Its own memory, skills and keys."),
       box(330, 128, 278, 80, "The gateway", "Runs jobs, answers your phone.", "blaze"),
-      jsx7("text", { className: "fa-pic-line", x: 344, y: 196, children: "Keeps going when the app is closed." }),
-      jsx7("path", { className: "fa-pic-link", d: "M302 168 L330 168" }),
-      jsx7("path", { className: "fa-pic-link", d: "M160 74 L160 128" })
+      jsx11("text", { className: "fa-pic-line", x: 344, y: 196, children: "Keeps going when the app is closed." }),
+      jsx11("path", { className: "fa-pic-link", d: "M302 168 L330 168" }),
+      jsx11("path", { className: "fa-pic-link", d: "M160 74 L160 128" })
     ] })
   ] });
 }
 function ExampleStep({ mission, step, onChanged }) {
   const done = step.status === "done";
   const gate = (mission.steps || []).find((item) => item.kind === "gate");
-  return jsxs6("div", { className: "hk-stack", children: [
-    jsx7("ol", { className: "fa-parts", children: (step.parts || []).map((part) => jsxs6("li", { className: "fa-part", children: [
-      jsx7("span", { className: "fa-sc fa-sc-blaze", children: part.label }),
-      jsx7("span", { children: part.text })
+  return jsxs10("div", { className: "hk-stack", children: [
+    jsx11("ol", { className: "fa-parts", children: (step.parts || []).map((part) => jsxs10("li", { className: "fa-part", children: [
+      jsx11("span", { className: "fa-sc fa-sc-blaze", children: part.label }),
+      jsx11("span", { children: part.text })
     ] }, part.label)) }),
-    step.document ? jsxs6("div", { className: "hk-stack", style: { gap: 6 }, children: [
-      jsx7(Label, { plain: true, children: `A finished ${gate?.check || "document"}` }),
-      jsx7("pre", { className: "fa-doc", children: step.document })
+    step.document ? jsxs10("div", { className: "hk-stack", style: { gap: 6 }, children: [
+      jsx11(Label, { plain: true, children: `A finished ${gate?.check || "document"}` }),
+      jsx11("pre", { className: "fa-doc", children: step.document })
     ] }) : null,
-    jsx7("div", { className: "hk-actions", children: jsx7(Button3, {
+    jsx11("div", { className: "hk-actions", children: jsx11(Button7, {
       variant: done ? "secondary" : "default",
       onClick: () => setStep(mission, step, done ? "ready" : "done", onChanged),
       children: done ? "Mark as not done" : "Got it"
@@ -3799,10 +7654,10 @@ function ExampleStep({ mission, step, onChanged }) {
 }
 function CompleteStep({ mission, step, onChanged }) {
   const saved = step.saved || { answers: {}, revealed: false, model: null };
-  const [answers, setAnswers] = useState5(saved.answers || {});
-  const [busy, setBusy] = useState5(false);
-  const [reply, setReply] = useState5(null);
-  const [problem, setProblem] = useState5("");
+  const [answers, setAnswers] = useState9(saved.answers || {});
+  const [busy, setBusy] = useState9(false);
+  const [reply, setReply] = useState9(null);
+  const [problem, setProblem] = useState9("");
   const model = reply?.model || (saved.revealed ? saved.model : null);
   const problems = reply && !reply.ok ? reply.problems || [] : [];
   const byGap = Object.fromEntries(problems.map((item) => [item.id, item.what]));
@@ -3824,10 +7679,10 @@ function CompleteStep({ mission, step, onChanged }) {
       setBusy(false);
     }
   };
-  return jsxs6("div", { className: "hk-stack", children: [
-    jsx7("div", { className: "fa-partial", children: (step.parts || []).map((part, index) => part.gap ? jsxs6("div", { className: "fa-gap", "data-problem": byGap[part.gap] ? "" : void 0, children: [
-      jsx7("label", { htmlFor: `fa-gap-${mission.id}-${part.gap}`, children: part.prompt }),
-      jsx7(Textarea2, {
+  return jsxs10("div", { className: "hk-stack", children: [
+    jsx11("div", { className: "fa-partial", children: (step.parts || []).map((part, index) => part.gap ? jsxs10("div", { className: "fa-gap", "data-problem": byGap[part.gap] ? "" : void 0, children: [
+      jsx11("label", { htmlFor: `fa-gap-${mission.id}-${part.gap}`, children: part.prompt }),
+      jsx11(Textarea5, {
         id: `fa-gap-${mission.id}-${part.gap}`,
         style: { minHeight: "4.5rem", width: "100%" },
         value: answers[part.gap] || "",
@@ -3835,31 +7690,31 @@ function CompleteStep({ mission, step, onChanged }) {
         placeholder: "Write your own answer here.",
         "aria-label": part.prompt
       }),
-      byGap[part.gap] ? jsx7("p", { role: "status", children: byGap[part.gap] }) : null
-    ] }, part.gap) : /(^|\n)#{1,3} /.test(part.text) ? jsx7("pre", { className: "fa-doc", children: part.text.replace(/^\n+|\n+$/g, "") }, `t${index}`) : jsx7(Prose, { text: part.text.replace(/\n?[^\n:]{1,40}:\s*$/, "") }, `t${index}`)) }),
-    problem ? jsx7(Result, { result: { passed: false, title: problem } }) : null,
-    problems.length ? jsx7(Result, { result: { passed: false, title: "A few gaps need more", detail: "Add to the gaps marked above, then compare again." } }) : null,
-    jsxs6("div", { className: "hk-actions", children: [
-      jsx7(Button3, { loading: busy, onClick: () => send(false), children: model ? "Compare again" : "Compare with the model answers" }),
-      reply && !reply.ok && reply.can_show && !model ? jsx7(Button3, { variant: "secondary", onClick: () => send(true), children: "Show the answers anyway" }) : null,
-      done ? jsx7("span", { className: "hk-small", children: "Done" }) : null
+      byGap[part.gap] ? jsx11("p", { role: "status", children: byGap[part.gap] }) : null
+    ] }, part.gap) : /(^|\n)#{1,3} /.test(part.text) ? jsx11("pre", { className: "fa-doc", children: part.text.replace(/^\n+|\n+$/g, "") }, `t${index}`) : jsx11(Prose, { text: part.text.replace(/\n?[^\n:]{1,40}:\s*$/, "") }, `t${index}`)) }),
+    problem ? jsx11(Result, { result: { passed: false, title: problem } }) : null,
+    problems.length ? jsx11(Result, { result: { passed: false, title: "A few gaps need more", detail: "Add to the gaps marked above, then compare again." } }) : null,
+    jsxs10("div", { className: "hk-actions", children: [
+      jsx11(Button7, { loading: busy, onClick: () => send(false), children: model ? "Compare again" : "Compare with the model answers" }),
+      reply && !reply.ok && reply.can_show && !model ? jsx11(Button7, { variant: "secondary", onClick: () => send(true), children: "Show the answers anyway" }) : null,
+      done ? jsx11("span", { className: "hk-small", children: "Done" }) : null
     ] }),
-    model ? jsxs6("div", { className: "hk-stack", style: { gap: 8 }, children: [
-      jsx7(Label, { children: "Your answers beside the model answers" }),
-      ...(step.parts || []).filter((part) => part.gap).map((part) => jsxs6("div", { className: "fa-compare", children: [
-        jsxs6("div", { children: [jsx7(Label, { plain: true, children: "Yours" }), jsx7("p", { className: "fa-wrap", children: (answers[part.gap] || saved.answers?.[part.gap] || "").trim() || "Left empty" })] }),
-        jsxs6("div", { children: [jsx7(Label, { plain: true, children: "Model answer" }), jsx7(Prose, { text: model[part.gap] })] })
+    model ? jsxs10("div", { className: "hk-stack", style: { gap: 8 }, children: [
+      jsx11(Label, { children: "Your answers beside the model answers" }),
+      ...(step.parts || []).filter((part) => part.gap).map((part) => jsxs10("div", { className: "fa-compare", children: [
+        jsxs10("div", { children: [jsx11(Label, { plain: true, children: "Yours" }), jsx11("p", { className: "fa-wrap", children: (answers[part.gap] || saved.answers?.[part.gap] || "").trim() || "Left empty" })] }),
+        jsxs10("div", { children: [jsx11(Label, { plain: true, children: "Model answer" }), jsx11(Prose, { text: model[part.gap] })] })
       ] }, part.gap)),
-      jsx7("p", { className: "hk-small", children: "Yours can differ and still be right. Look for what the model answer includes that yours leaves out." })
+      jsx11("p", { className: "hk-small", children: "Yours can differ and still be right. Look for what the model answer includes that yours leaves out." })
     ] }) : null
   ] });
 }
 function LabStep({ mission, step, onChanged }) {
   const done = step.status === "done";
-  return jsxs6("div", { className: "hk-actions", children: [
-    step.action === "route" ? jsx7(Button3, { onClick: () => host2.navigate(step.route), children: step.route_label || "Open it in Hermes" }) : null,
-    step.action === "coach" ? jsx7(Button3, { onClick: () => startPracticeChat(step.prompt), children: "Start a practice chat" }) : null,
-    jsx7(Button3, {
+  return jsxs10("div", { className: "hk-actions", children: [
+    step.action === "route" ? jsx11(Button7, { onClick: () => host5.navigate(step.route), children: step.route_label || "Open it in Hermes" }) : null,
+    step.action === "coach" ? jsx11(Button7, { onClick: () => startPracticeChat(step.prompt), children: "Start a practice chat" }) : null,
+    jsx11(Button7, {
       variant: "secondary",
       onClick: () => setStep(mission, step, done ? "ready" : "done", onChanged),
       children: done ? "Mark as not done" : "I did this"
@@ -3876,9 +7731,9 @@ function ExplainStep({ mission, step, onChanged }) {
   const threshold = step.threshold || 70;
   const passed = graded && saved.score >= threshold;
   const waiting = !graded && Boolean(saved.answer);
-  const [answer, setAnswer] = useState5("");
-  const [busy, setBusy] = useState5(false);
-  const [problem, setProblem] = useState5("");
+  const [answer, setAnswer] = useState9("");
+  const [busy, setBusy] = useState9(false);
+  const [problem, setProblem] = useState9("");
   const resend = async () => {
     if (busy) return;
     setBusy(true);
@@ -3893,12 +7748,12 @@ function ExplainStep({ mission, step, onChanged }) {
     }
   };
   if (passed) {
-    return jsxs6("div", { className: "hk-stack", children: [
-      jsxs6("div", { className: "hk-row", style: { flexWrap: "nowrap", gap: 12 }, children: [
-        jsx7(Ring, { value: saved.score / 100, size: 40, stroke: 4, tone: "good", label: String(saved.score), title: `${saved.score} out of 100` }),
-        jsx7("div", { className: "hk-grow", children: jsx7(Result, { result: { passed: true, title: `Passed with ${saved.score} out of 100`, detail: saved.feedback || "" } }) })
+    return jsxs10("div", { className: "hk-stack", children: [
+      jsxs10("div", { className: "hk-row", style: { flexWrap: "nowrap", gap: 12 }, children: [
+        jsx11(Ring, { value: saved.score / 100, size: 40, stroke: 4, tone: "good", label: String(saved.score), title: `${saved.score} out of 100` }),
+        jsx11("div", { className: "hk-grow", children: jsx11(Result, { result: { passed: true, title: `Passed with ${saved.score} out of 100`, detail: saved.feedback || "" } }) })
       ] }),
-      jsx7("p", { className: "hk-small", children: "Your pass stays. This question comes back in your Review queue, and your answers there change its strength, never the pass." })
+      jsx11("p", { className: "hk-small", children: "Your pass stays. This question comes back in your Review queue, and your answers there change its strength, never the pass." })
     ] });
   }
   const submit = async () => {
@@ -3912,7 +7767,7 @@ function ExplainStep({ mission, step, onChanged }) {
     try {
       const payload = await ctxRest(`/explain/${mission.id}/${step.id}`, {
         method: "POST",
-        body: { answer, session_id: host2.state.focusedSessionId?.get?.() || "" }
+        body: { answer, session_id: host5.state.focusedSessionId?.get?.() || "" }
       });
       await sendToHermes(payload?.prompt || "");
       setAnswer("");
@@ -3924,25 +7779,25 @@ function ExplainStep({ mission, step, onChanged }) {
       setBusy(false);
     }
   };
-  return jsxs6("div", { className: "hk-stack", children: [
-    graded ? jsxs6("div", { className: "hk-stack", children: [
-      jsxs6("div", { className: "hk-row", style: { flexWrap: "nowrap", gap: 12 }, children: [
-        jsx7(Ring, { value: saved.score / 100, size: 40, stroke: 4, tone: passed ? "good" : "warn", label: String(saved.score), title: `${saved.score} out of 100` }),
-        jsx7("div", { className: "hk-grow", children: jsx7(Result, { result: {
+  return jsxs10("div", { className: "hk-stack", children: [
+    graded ? jsxs10("div", { className: "hk-stack", children: [
+      jsxs10("div", { className: "hk-row", style: { flexWrap: "nowrap", gap: 12 }, children: [
+        jsx11(Ring, { value: saved.score / 100, size: 40, stroke: 4, tone: passed ? "good" : "warn", label: String(saved.score), title: `${saved.score} out of 100` }),
+        jsx11("div", { className: "hk-grow", children: jsx11(Result, { result: {
           passed,
           title: passed ? `Passed with ${saved.score} out of 100` : `${saved.score} out of 100. You need ${threshold} to pass`,
           detail: saved.feedback || ""
         } }) })
       ] }),
-      !passed ? jsx7(Feedback, { feedback: saved.ladder }) : null
+      !passed ? jsx11(Feedback, { feedback: saved.ladder }) : null
     ] }) : null,
-    waiting ? jsx7(Card, { tone: "info", children: jsxs6("div", { className: "hk-stack", style: { gap: 6 }, children: [
-      jsx7("strong", { children: "Your answer is waiting for its score" }),
-      jsx7("p", { children: "Hermes scores it in a chat and the score shows here. If the chat never got the request, send it again." }),
-      jsx7("div", { className: "hk-actions", children: jsx7(Button3, { variant: "secondary", loading: busy, onClick: resend, children: "Send for scoring again" }) })
+    waiting ? jsx11(Card, { tone: "info", children: jsxs10("div", { className: "hk-stack", style: { gap: 6 }, children: [
+      jsx11("strong", { children: "Your answer is waiting for its score" }),
+      jsx11("p", { children: "Hermes scores it in a chat and the score shows here. If the chat never got the request, send it again." }),
+      jsx11("div", { className: "hk-actions", children: jsx11(Button7, { variant: "secondary", loading: busy, onClick: resend, children: "Send for scoring again" }) })
     ] }) }) : null,
-    jsx7("p", { className: "hk-small", children: `Hermes scores your answer out of 100. ${threshold} or more passes, and you can try as many times as you like.` }),
-    jsx7(Textarea2, {
+    jsx11("p", { className: "hk-small", children: `Hermes scores your answer out of 100. ${threshold} or more passes, and you can try as many times as you like.` }),
+    jsx11(Textarea5, {
       style: { minHeight: "7rem", width: "100%" },
       value: answer,
       onChange: (event) => setAnswer(event.target.value),
@@ -3950,24 +7805,24 @@ function ExplainStep({ mission, step, onChanged }) {
       "aria-label": "Your answer",
       ...submitOnModEnter(submit)
     }),
-    problem ? jsx7(Result, { result: { passed: false, title: problem } }) : null,
-    jsxs6("div", { className: "hk-actions", children: [
-      jsx7(Button3, { loading: busy, onClick: submit, children: graded ? "Send for a new score" : "Send for scoring" }),
-      jsx7(KeyHint, { keys: [modKey(), "↵"], label: "to send" })
+    problem ? jsx11(Result, { result: { passed: false, title: problem } }) : null,
+    jsxs10("div", { className: "hk-actions", children: [
+      jsx11(Button7, { loading: busy, onClick: submit, children: graded ? "Send for a new score" : "Send for scoring" }),
+      jsx11(KeyHint, { keys: [modKey(), "↵"], label: "to send" })
     ] }),
-    jsx7(Details, { label: "What a strong answer covers", children: [
-      jsx7("p", { className: "hk-small", children: "Open this after you write yours." }, "p"),
-      jsx7("ul", { className: "fa-bullets", children: (step.covers || []).map((item) => jsx7("li", { children: item }, item)) }, "l")
+    jsx11(Details, { label: "What a strong answer covers", children: [
+      jsx11("p", { className: "hk-small", children: "Open this after you write yours." }, "p"),
+      jsx11("ul", { className: "fa-bullets", children: (step.covers || []).map((item) => jsx11("li", { children: item }, item)) }, "l")
     ] })
   ] });
 }
 function GateStep({ mission, step, onChanged }) {
-  const [result, setResult] = useState5(null);
-  const [path, setPath] = useState5("");
-  const [pasting, setPasting] = useState5(false);
-  const [pasted, setPasted] = useState5("");
-  const [values, setValues] = useState5({});
-  const [busy, setBusy] = useState5(false);
+  const [result, setResult] = useState9(null);
+  const [path, setPath] = useState9("");
+  const [pasting, setPasting] = useState9(false);
+  const [pasted, setPasted] = useState9("");
+  const [values, setValues] = useState9({});
+  const [busy, setBusy] = useState9(false);
   const isDocument = step.verify === "artifact";
   const done = step.status === "done";
   const inputs = step.inputs && step.inputs.length ? step.inputs : INPUTS_BY_CHECK[step.check] || [];
@@ -3977,7 +7832,7 @@ function GateStep({ mission, step, onChanged }) {
     try {
       const payload = await ctxRest(`/gate/${mission.id}/${step.id}`, {
         method: "POST",
-        body: { session_id: host2.state.focusedSessionId?.get?.() || "", ...extra }
+        body: { session_id: host5.state.focusedSessionId?.get?.() || "", ...extra }
       });
       setResult(payload.outcome);
       if (payload.outcome?.passed) {
@@ -4010,25 +7865,25 @@ function GateStep({ mission, step, onChanged }) {
     }
   };
   const feedback = result ? result.passed ? null : result.feedback : !done ? step.feedback : null;
-  return jsxs6("div", { className: "hk-stack", children: [
-    showRecheck ? jsx7(Card, { tone: "info", children: jsxs6("div", { className: "hk-stack", style: { gap: 3 }, children: [
-      jsx7("strong", { children: "This check changed since you passed" }),
-      jsx7("p", { children: "Run it again to re-verify this mission. Your pass stays whatever it finds." })
+  return jsxs10("div", { className: "hk-stack", children: [
+    showRecheck ? jsx11(Card, { tone: "info", children: jsxs10("div", { className: "hk-stack", style: { gap: 3 }, children: [
+      jsx11("strong", { children: "This check changed since you passed" }),
+      jsx11("p", { children: "Run it again to re-verify this mission. Your pass stays whatever it finds." })
     ] }) }) : null,
-    isDocument ? jsxs6("div", { className: "hk-stack", style: { gap: 6 }, children: [
-      jsx7(Label, { plain: true, children: "Sections it needs" }),
-      jsx7("div", { className: "hk-row", style: { gap: 4 }, children: (step.headings || []).map(
-        (heading) => jsx7(Pill, { tone: "idle", children: heading.charAt(0).toUpperCase() + heading.slice(1) }, heading)
+    isDocument ? jsxs10("div", { className: "hk-stack", style: { gap: 6 }, children: [
+      jsx11(Label, { plain: true, children: "Sections it needs" }),
+      jsx11("div", { className: "hk-row", style: { gap: 4 }, children: (step.headings || []).map(
+        (heading) => jsx11(Pill, { tone: "idle", children: heading.charAt(0).toUpperCase() + heading.slice(1) }, heading)
       ) }),
-      step.live ? jsx7("p", { className: "hk-small", children: "This check also reads Hermes: it looks at what this window is connected to." }) : null,
-      pasting ? jsx7(Textarea2, {
+      step.live ? jsx11("p", { className: "hk-small", children: "This check also reads Hermes: it looks at what this window is connected to." }) : null,
+      pasting ? jsx11(Textarea5, {
         value: pasted,
         onChange: (event) => setPasted(event.target.value),
         placeholder: "# Your document\n\n## First heading\nWhat goes under it...",
         "aria-label": "Your document, pasted",
         style: { minHeight: "10rem", width: "100%", fontFamily: "var(--hk-mono)" },
         ...submitOnModEnter(run)
-      }) : jsx7(Input2, {
+      }) : jsx11(Input6, {
         value: path,
         onChange: (event) => setPath(event.target.value),
         placeholder: "~/Documents/my-document.md",
@@ -4037,23 +7892,23 @@ function GateStep({ mission, step, onChanged }) {
           if (e.key === "Enter" && !e.nativeEvent?.isComposing) run();
         }
       }),
-      jsx7("button", { type: "button", className: "hk-link", style: { justifySelf: "start" }, onClick: () => setPasting(!pasting), children: pasting ? "Type where the file is saved instead" : "Hermes runs on another computer? Paste the document instead" })
-    ] }) : inputs.length ? jsx7("div", { className: "fa-inputs", children: inputs.map((input) => jsxs6("div", { className: "fa-field", style: input.multiline ? { gridColumn: "1 / -1" } : void 0, children: [
-      jsx7("label", { htmlFor: `fa-in-${mission.id}-${input.id}`, children: input.label }),
-      input.options ? jsxs6("select", {
+      jsx11("button", { type: "button", className: "hk-link", style: { justifySelf: "start" }, onClick: () => setPasting(!pasting), children: pasting ? "Type where the file is saved instead" : "Hermes runs on another computer? Paste the document instead" })
+    ] }) : inputs.length ? jsx11("div", { className: "fa-inputs", children: inputs.map((input) => jsxs10("div", { className: "fa-field", style: input.multiline ? { gridColumn: "1 / -1" } : void 0, children: [
+      jsx11("label", { htmlFor: `fa-in-${mission.id}-${input.id}`, children: input.label }),
+      input.options ? jsxs10("select", {
         id: `fa-in-${mission.id}-${input.id}`,
         className: "fa-select",
         value: values[input.id] || "",
         onChange: (event) => setValues({ ...values, [input.id]: event.target.value }),
-        children: [jsx7("option", { value: "", children: "Choose one" }, "none"), ...input.options.map((option) => jsx7("option", { value: option, children: option }, option))]
-      }) : input.multiline ? jsx7(Textarea2, {
+        children: [jsx11("option", { value: "", children: "Choose one" }, "none"), ...input.options.map((option) => jsx11("option", { value: option, children: option }, option))]
+      }) : input.multiline ? jsx11(Textarea5, {
         id: `fa-in-${mission.id}-${input.id}`,
         value: values[input.id] || "",
         placeholder: input.placeholder || "",
         style: { minHeight: "6rem", width: "100%" },
         onChange: (event) => setValues({ ...values, [input.id]: event.target.value }),
         ...submitOnModEnter(run)
-      }) : jsx7(Input2, {
+      }) : jsx11(Input6, {
         id: `fa-in-${mission.id}-${input.id}`,
         value: values[input.id] || "",
         placeholder: input.placeholder || "",
@@ -4063,12 +7918,12 @@ function GateStep({ mission, step, onChanged }) {
         }
       })
     ] }, input.id)) }) : null,
-    jsxs6("div", { className: "hk-actions", children: [
-      jsx7(Button3, { loading: busy, onClick: run, children: done ? "Check again" : "Check my work" }),
-      busy ? jsx7("span", { className: "hk-small", role: "status", children: "Reading your Hermes" }) : null
+    jsxs10("div", { className: "hk-actions", children: [
+      jsx11(Button7, { loading: busy, onClick: run, children: done ? "Check again" : "Check my work" }),
+      busy ? jsx11("span", { className: "hk-small", role: "status", children: "Reading your Hermes" }) : null
     ] }),
-    jsx7(Result, { result: feedback && result && (feedback.missing || []).length ? { ...result, detail: "" } : result }),
-    feedback ? jsx7(Feedback, { feedback }) : null
+    jsx11(Result, { result: feedback && result && (feedback.missing || []).length ? { ...result, detail: "" } : result }),
+    feedback ? jsx11(Feedback, { feedback }) : null
   ] });
 }
 function stepAnchor(mission, index) {
@@ -4079,26 +7934,26 @@ function StepNote({ mission, step, index, onChanged }) {
   const done = step.status === "done";
   const placed = step.status === "placed";
   const justDone = useJustChanged(done);
-  return jsxs6("li", { className: "fa-note", id: stepAnchor(mission, index), "data-done": done || placed ? "" : void 0, children: [
-    jsx7("div", { className: "fa-note-num", "aria-hidden": "true", children: jsx7("span", { className: "fa-num fa-num-l", children: index + 1 }) }),
-    jsxs6("div", { className: "fa-note-body", children: [
-      jsxs6("div", { className: "fa-note-kind", children: [
-        jsxs6("span", { className: "fa-sc fa-sc-blaze", style: { display: "inline-flex", gap: 6, alignItems: "center", flexWrap: "wrap" }, children: [
-          jsx7(Codicon4, { name: meta.icon, size: 13 }),
+  return jsxs10("li", { className: "fa-note", id: stepAnchor(mission, index), "data-done": done || placed ? "" : void 0, children: [
+    jsx11("div", { className: "fa-note-num", "aria-hidden": "true", children: jsx11("span", { className: "fa-num fa-num-l", children: index + 1 }) }),
+    jsxs10("div", { className: "fa-note-body", children: [
+      jsxs10("div", { className: "fa-note-kind", children: [
+        jsxs10("span", { className: "fa-sc fa-sc-blaze", style: { display: "inline-flex", gap: 6, alignItems: "center", flexWrap: "wrap" }, children: [
+          jsx11(Codicon6, { name: meta.icon, size: 13 }),
           `Step ${index + 1} · ${meta.label}`,
           step.minutes ? ` · ${minutesWords(step.minutes)}` : ""
         ] }),
-        done ? jsxs6("span", { className: `fa-done-tag ${justDone ? "hk-enter" : ""}`, children: [jsx7(Codicon4, { name: "check", size: 13 }), "Done"] }) : null,
-        placed ? jsxs6("span", { className: "fa-placed", children: [jsx7(Codicon4, { name: "arrow-right", size: 13 }), "Skipped by placement"] }) : null
+        done ? jsxs10("span", { className: `fa-done-tag ${justDone ? "hk-enter" : ""}`, children: [jsx11(Codicon6, { name: "check", size: 13 }), "Done"] }) : null,
+        placed ? jsxs10("span", { className: "fa-placed", children: [jsx11(Codicon6, { name: "arrow-right", size: 13 }), "Skipped by placement"] }) : null
       ] }),
-      jsx7("h3", { className: "hk-h2", children: step.title }),
-      step.body && !step.lines?.length ? jsx7(Prose, { text: step.body, className: "fa-note-text" }) : null,
-      step.kind === "lesson" ? jsx7(LessonStep, { mission, step, onChanged }) : null,
-      step.kind === "example" ? jsx7(ExampleStep, { mission, step, onChanged }) : null,
-      step.kind === "complete" ? jsx7(CompleteStep, { mission, step, onChanged }) : null,
-      step.kind === "lab" ? jsx7(LabStep, { mission, step, onChanged }) : null,
-      step.kind === "explain" ? jsx7(ExplainStep, { mission, step, onChanged }) : null,
-      step.kind === "gate" ? jsx7(GateStep, { mission, step, onChanged }) : null
+      jsx11("h3", { className: "hk-h2", children: step.title }),
+      step.body && !step.lines?.length ? jsx11(Prose, { text: step.body, className: "fa-note-text" }) : null,
+      step.kind === "lesson" ? jsx11(LessonStep, { mission, step, onChanged }) : null,
+      step.kind === "example" ? jsx11(ExampleStep, { mission, step, onChanged }) : null,
+      step.kind === "complete" ? jsx11(CompleteStep, { mission, step, onChanged }) : null,
+      step.kind === "lab" ? jsx11(LabStep, { mission, step, onChanged }) : null,
+      step.kind === "explain" ? jsx11(ExplainStep, { mission, step, onChanged }) : null,
+      step.kind === "gate" ? jsx11(GateStep, { mission, step, onChanged }) : null
     ] })
   ] });
 }
@@ -4106,26 +7961,26 @@ function StepStrip({ mission }) {
   const steps = mission.steps || [];
   const reading = compassReading(steps);
   const verified = mission.status === "verified";
-  return jsxs6("div", { className: "fa-strip hk-enter", children: [
-    jsx7(Compass, { steps }),
-    jsxs6("div", { className: "hk-stack", style: { gap: 8 }, children: [
-      jsxs6("div", { className: "hk-row", style: { gap: 12 }, children: [
-        jsxs6("span", { className: "fa-num fa-num-m", children: [reading.done, jsx7("small", { children: `of ${plural2(reading.total, "step", "steps")} done` })] }),
-        jsx7("span", { className: "hk-small", children: verified ? statusWords(mission) : `${minutesWords(mission.minutes)} in all` })
+  return jsxs10("div", { className: "fa-strip hk-enter", children: [
+    jsx11(Compass, { steps }),
+    jsxs10("div", { className: "hk-stack", style: { gap: 8 }, children: [
+      jsxs10("div", { className: "hk-row", style: { gap: 12 }, children: [
+        jsxs10("span", { className: "fa-num fa-num-m", children: [reading.done, jsx11("small", { children: `of ${plural2(reading.total, "step", "steps")} done` })] }),
+        jsx11("span", { className: "hk-small", children: verified ? statusWords(mission) : `${minutesWords(mission.minutes)} in all` })
       ] }),
-      jsx7("ol", { className: "fa-strip-steps", style: { "--fa-n": Math.max(1, steps.length) }, children: steps.map((step, i) => {
+      jsx11("ol", { className: "fa-strip-steps", style: { "--fa-n": Math.max(1, steps.length) }, children: steps.map((step, i) => {
         const state = ["done", "placed"].includes(step.status) ? "done" : i === reading.at ? "now" : "later";
         const meta = kindOf(mission, step);
-        return jsx7("li", { children: jsxs6("button", {
+        return jsx11("li", { children: jsxs10("button", {
           type: "button",
           className: "fa-strip-step",
           "data-state": state,
           onClick: () => scrollToId(stepAnchor(mission, i)),
           "aria-label": `Step ${i + 1}, ${meta.label}: ${state === "done" ? "done" : state === "now" ? "you are here" : "later"}`,
           children: [
-            jsx7("span", { className: "fa-num fa-num-m", children: i + 1 }),
-            jsx7("span", { className: "fa-sc", children: meta.short || meta.label }),
-            jsx7("span", { className: "fa-strip-state", children: state === "done" ? "Done" : state === "now" ? "You are here" : "Later" })
+            jsx11("span", { className: "fa-num fa-num-m", children: i + 1 }),
+            jsx11("span", { className: "fa-sc", children: meta.short || meta.label }),
+            jsx11("span", { className: "fa-strip-state", children: state === "done" ? "Done" : state === "now" ? "You are here" : "Later" })
           ]
         }) }, step.id);
       }) })
@@ -4133,8 +7988,8 @@ function StepStrip({ mission }) {
   ] });
 }
 function ChangeNote({ change, onChanged, goGate }) {
-  const [busy, setBusy] = useState5(false);
-  const [problem, setProblem] = useState5("");
+  const [busy, setBusy] = useState9(false);
+  const [problem, setProblem] = useState9("");
   const acknowledge = async () => {
     setBusy(true);
     setProblem("");
@@ -4148,11 +8003,11 @@ function ChangeNote({ change, onChanged, goGate }) {
       setBusy(false);
     }
   };
-  return jsx7(Card, { tone: "info", className: "hk-enter", children: jsxs6("div", { className: "hk-stack", style: { gap: 6 }, children: [
-    jsx7("strong", { children: `This mission changed after you passed it (version ${change.passed_version}, now ${change.version})` }),
-    jsx7("ul", { className: "fa-bullets", children: change.revisions.map((r) => jsx7("li", { children: r.summary }, r.summary)) }),
-    problem ? jsx7(Result, { result: { passed: false, title: problem } }) : null,
-    jsx7("div", { className: "hk-actions", children: change.needs === "check" ? jsx7(Button3, { onClick: goGate, children: "Go to the check and re-verify" }) : jsx7(Button3, { loading: busy, onClick: acknowledge, children: "I've read the changes" }) })
+  return jsx11(Card, { tone: "info", className: "hk-enter", children: jsxs10("div", { className: "hk-stack", style: { gap: 6 }, children: [
+    jsx11("strong", { children: `This mission changed after you passed it (version ${change.passed_version}, now ${change.version})` }),
+    jsx11("ul", { className: "fa-bullets", children: change.revisions.map((r) => jsx11("li", { children: r.summary }, r.summary)) }),
+    problem ? jsx11(Result, { result: { passed: false, title: problem } }) : null,
+    jsx11("div", { className: "hk-actions", children: change.needs === "check" ? jsx11(Button7, { onClick: goGate, children: "Go to the check and re-verify" }) : jsx11(Button7, { loading: busy, onClick: acknowledge, children: "I've read the changes" }) })
   ] }) });
 }
 function PassedBanner({ mission, track, go }) {
@@ -4160,61 +8015,61 @@ function PassedBanner({ mission, track, go }) {
   const next = track.missions.find((m) => m.id === track.here);
   const ready = track.certificate.status === "ready";
   const due = mission.review_due_at ? dueWords(mission.review_due_at) : "";
-  return jsx7(Card, { tone: "good", tint: true, className: "hk-enter", children: jsxs6("div", { className: "hk-banner", children: [
-    jsx7(BadgeIcon, { name: "pass-filled", tone: "good" }),
-    jsxs6("div", { className: "hk-grow hk-stack", style: { gap: 2 }, children: [
-      jsx7("strong", { children: `Passed ${shortDate(mission.passed_at)}` }),
-      jsx7("p", { children: next ? `Next waypoint: ${next.title} · ${next.level_name} · ${minutesWords(next.minutes)}` : ready ? "Every mission on this path passed. Your Field Record is ready to create at the summit." : "Every mission on this path passed." }),
-      due ? jsx7("p", { className: "hk-small", children: `This mission comes back for a short review. ${due}.` }) : null
+  return jsx11(Card, { tone: "good", tint: true, className: "hk-enter", children: jsxs10("div", { className: "hk-banner", children: [
+    jsx11(BadgeIcon, { name: "pass-filled", tone: "good" }),
+    jsxs10("div", { className: "hk-grow hk-stack", style: { gap: 2 }, children: [
+      jsx11("strong", { children: `Passed ${shortDate(mission.passed_at)}` }),
+      jsx11("p", { children: next ? `Next waypoint: ${next.title} · ${next.level_name} · ${minutesWords(next.minutes)}` : ready ? "Every mission on this path passed. Your Field Record is ready to create at the summit." : "Every mission on this path passed." }),
+      due ? jsx11("p", { className: "hk-small", children: `This mission comes back for a short review. ${due}.` }) : null
     ] }),
-    next ? jsx7(Button3, { onClick: () => go({ name: "mission", id: next.id }), children: "Start" }) : jsx7(Button3, { onClick: () => go({ name: "path", id: track.id }), children: ready ? "Create your Field Record" : "See your path" })
+    next ? jsx11(Button7, { onClick: () => go({ name: "mission", id: next.id }), children: "Start" }) : jsx11(Button7, { onClick: () => go({ name: "path", id: track.id }), children: ready ? "Create your Field Record" : "See your path" })
   ] }) });
 }
 function MissionView({ mission, track, go, onChanged, changes = [], focus }) {
   const gateIndex = (mission.steps || []).findIndex((step) => step.kind === "gate");
   const goGate = () => scrollToId(stepAnchor(mission, gateIndex));
-  useEffect3(() => {
+  useEffect7(() => {
     if (focus !== "gate" || gateIndex < 0) return void 0;
     const timer = setTimeout(goGate, 350);
     return () => clearTimeout(timer);
   }, [mission.id, focus]);
   const change = changes.find((item) => item.mission_id === mission.id);
-  return jsx7(Frame, { width: "narrow", up: () => go({ name: "path", id: track.id }), children: [
-    jsx7(PageHeader, {
-      back: jsx7(Back, { label: `${track.name} path`, onClick: () => go({ name: "path", id: track.id }) }),
-      eyebrow: jsx7(Label, { children: `Field note · ${track.name} path · ${mission.level_name} camp` }),
+  return jsx11(Frame, { width: "narrow", up: () => go({ name: "path", id: track.id }), children: [
+    jsx11(PageHeader, {
+      back: jsx11(Back, { label: `${track.name} path`, onClick: () => go({ name: "path", id: track.id }) }),
+      eyebrow: jsx11(Label, { children: `Field note · ${track.name} path · ${mission.level_name} camp` }),
       title: mission.title,
       lead: mission.promise
     }, "head"),
-    jsx7(StepStrip, { mission }, "strip"),
-    jsxs6("div", { className: "fa-outcome", children: [
-      jsx7(Label, { plain: true, children: "By the end" }),
-      jsx7("p", { children: mission.outcome })
+    jsx11(StepStrip, { mission }, "strip"),
+    jsxs10("div", { className: "fa-outcome", children: [
+      jsx11(Label, { plain: true, children: "By the end" }),
+      jsx11("p", { children: mission.outcome })
     ] }, "outcome"),
-    mission.use_text ? jsxs6("div", { className: "fa-use", children: [jsx7(Label, { plain: true, children: "Why this matters to you" }, "l"), jsx7("p", { children: mission.use_text }, "p")] }, "use") : null,
-    change ? jsx7(ChangeNote, { change, onChanged, goGate }, "change") : null,
-    jsx7(PassedBanner, { mission, track, go }, "passed"),
-    jsx7("ol", { className: "fa-notes", children: mission.steps.map(
-      (step, index) => jsx7(StepNote, { mission, step, index, onChanged }, step.id)
+    mission.use_text ? jsxs10("div", { className: "fa-use", children: [jsx11(Label, { plain: true, children: "Why this matters to you" }, "l"), jsx11("p", { children: mission.use_text }, "p")] }, "use") : null,
+    change ? jsx11(ChangeNote, { change, onChanged, goGate }, "change") : null,
+    jsx11(PassedBanner, { mission, track, go }, "passed"),
+    jsx11("ol", { className: "fa-notes", children: mission.steps.map(
+      (step, index) => jsx11(StepNote, { mission, step, index, onChanged }, step.id)
     ) }, "steps"),
-    jsx7(GoDeeper, { mission }, "deeper")
+    jsx11(GoDeeper, { mission }, "deeper")
   ] });
 }
 function CertificateView({ track, go }) {
   const issued = track.certificate.issued;
-  const [saved, setSaved] = useState5(null);
-  const [busy, setBusy] = useState5(false);
-  const [problem, setProblem] = useState5("");
+  const [saved, setSaved] = useState9(null);
+  const [busy, setBusy] = useState9(false);
+  const [problem, setProblem] = useState9("");
   const up = () => go({ name: "path", id: track.id });
   if (!issued) {
-    return jsx7(Frame, { width: "narrow", up, children: [
-      jsx7(Back, { label: `${track.name} path`, onClick: up }, "back"),
-      jsx7("div", { className: "fa-panel", key: "none", children: jsxs6("div", { className: "hk-row", style: { flexWrap: "nowrap", gap: 16 }, children: [
-        jsx7(CertificateBezel, { track, size: 72 }),
-        jsxs6("div", { className: "hk-stack", style: { gap: 3 }, children: [
-          jsx7(Label, { children: "Summit" }),
-          jsx7("h1", { className: "hk-h1", children: "No Field Record yet" }),
-          jsx7("p", { children: `Pass every mission on the ${track.name} path to create it.` })
+    return jsx11(Frame, { width: "narrow", up, children: [
+      jsx11(Back, { label: `${track.name} path`, onClick: up }, "back"),
+      jsx11("div", { className: "fa-panel", key: "none", children: jsxs10("div", { className: "hk-row", style: { flexWrap: "nowrap", gap: 16 }, children: [
+        jsx11(CertificateBezel, { track, size: 72 }),
+        jsxs10("div", { className: "hk-stack", style: { gap: 3 }, children: [
+          jsx11(Label, { children: "Summit" }),
+          jsx11("h1", { className: "hk-h1", children: "No Field Record yet" }),
+          jsx11("p", { children: `Pass every mission on the ${track.name} path to create it.` })
         ] })
       ] }) })
     ] });
@@ -4232,70 +8087,70 @@ function CertificateView({ track, go }) {
       setBusy(false);
     }
   };
-  return jsx7(Frame, { up, children: [
-    jsx7(Back, { label: `${track.name} path`, onClick: up }, "back"),
-    jsx7("article", { className: "fa-cert hk-enter", "aria-label": `Field Record for ${body.name}, self-issued with Field Academy`, children: jsxs6("div", { className: "fa-cert-inner", children: [
-      jsx7(Contours, { width: 900, height: 600, seed: 7 }),
-      jsx7(CertCorners, {}),
-      jsxs6("div", { className: "fa-cert-top", children: [
-        jsxs6("div", { style: { display: "grid", gap: 3 }, children: [
-          jsx7(Label, { children: "Field Record" }),
-          jsx7("span", { className: "fa-sc", children: "Self-issued learning record" })
+  return jsx11(Frame, { up, children: [
+    jsx11(Back, { label: `${track.name} path`, onClick: up }, "back"),
+    jsx11("article", { className: "fa-cert hk-enter", "aria-label": `Field Record for ${body.name}, self-issued with Field Academy`, children: jsxs10("div", { className: "fa-cert-inner", children: [
+      jsx11(Contours, { width: 900, height: 600, seed: 7 }),
+      jsx11(CertCorners, {}),
+      jsxs10("div", { className: "fa-cert-top", children: [
+        jsxs10("div", { style: { display: "grid", gap: 3 }, children: [
+          jsx11(Label, { children: "Field Record" }),
+          jsx11("span", { className: "fa-sc", children: "Self-issued learning record" })
         ] }),
-        jsxs6("div", { style: { display: "grid", gap: 3, justifyItems: "end", textAlign: "right" }, children: [
-          jsx7(Label, { plain: true, children: "Record number" }),
-          jsx7("span", { className: "fa-cert-number", children: body.number })
+        jsxs10("div", { style: { display: "grid", gap: 3, justifyItems: "end", textAlign: "right" }, children: [
+          jsx11(Label, { plain: true, children: "Record number" }),
+          jsx11("span", { className: "fa-cert-number", children: body.number })
         ] })
       ] }),
-      jsxs6("div", { className: "fa-cert-centre", children: [
-        jsx7(Label, { plain: true, children: "Kept by" }),
-        jsx7("p", { className: "fa-cert-name", children: body.name }),
-        jsx7(Label, { plain: true, children: "who passed every mission on the" }),
-        jsx7("h1", { className: "fa-cert-path", children: `${body.path} path` }),
-        jsx7("p", { className: "fa-cert-promise", children: body.path_promise }),
-        jsx7("p", { children: `Created ${longDate(body.issued_at)}, on the holder's own computer` })
+      jsxs10("div", { className: "fa-cert-centre", children: [
+        jsx11(Label, { plain: true, children: "Kept by" }),
+        jsx11("p", { className: "fa-cert-name", children: body.name }),
+        jsx11(Label, { plain: true, children: "who passed every mission on the" }),
+        jsx11("h1", { className: "fa-cert-path", children: `${body.path} path` }),
+        jsx11("p", { className: "fa-cert-promise", children: body.path_promise }),
+        jsx11("p", { children: `Created ${longDate(body.issued_at)}, on the holder's own computer` })
       ] }),
-      jsxs6("div", { className: "fa-cert-foot", children: [
-        jsxs6("div", { style: { display: "grid", gap: 6 }, children: [
-          jsx7(Label, { children: "Self-issued" }),
-          jsx7("p", { className: "fa-cert-issuer", children: display.disclaimer }),
-          jsx7("p", { className: "hk-small fa-cert-issuer", children: `${display.issuer} ${display.shows}` })
+      jsxs10("div", { className: "fa-cert-foot", children: [
+        jsxs10("div", { style: { display: "grid", gap: 6 }, children: [
+          jsx11(Label, { children: "Self-issued" }),
+          jsx11("p", { className: "fa-cert-issuer", children: display.disclaimer }),
+          jsx11("p", { className: "hk-small fa-cert-issuer", children: `${display.issuer} ${display.shows}` })
         ] }),
-        jsx7(Seal, { size: 124 })
+        jsx11(Seal, { size: 124 })
       ] })
     ] }) }, "cert"),
-    jsxs6("div", { className: "hk-actions", key: "save", children: [
-      jsx7(Button3, { loading: busy, onClick: save, children: "Save as a file" }),
+    jsxs10("div", { className: "hk-actions", key: "save", children: [
+      jsx11(Button7, { loading: busy, onClick: save, children: "Save as a file" }),
       // Neutral on purpose: the number catches accidental changes. Anyone can edit a record and make a new one.
-      jsx7(Pill, {
+      jsx11(Pill, {
         tone: issued.valid ? "idle" : "bad",
         icon: issued.valid ? "info" : "error",
         children: issued.valid ? "The record number shows no accidental changes" : "The record number doesn't match what's on the record"
       })
     ] }),
-    saved ? jsx7(Result, { result: { passed: true, title: "Saved", detail: "A readable copy and a data copy are on your computer.", facts: [
+    saved ? jsx11(Result, { result: { passed: true, title: "Saved", detail: "A readable copy and a data copy are on your computer.", facts: [
       { label: "Readable copy", value: saved.markdown },
       { label: "Data copy", value: saved.json }
     ] } }, "saved") : null,
-    problem ? jsx7(Result, { result: { passed: false, title: problem } }, "problem") : null,
-    jsx7(Section, { title: "The proof behind it", children: jsx7(Card, { flush: true, children: jsx7("div", { style: { overflowX: "auto", padding: "4px 14px 8px" }, children: jsxs6("table", { className: "fa-table", children: [
-      jsx7("thead", { children: jsxs6("tr", { children: [
-        jsx7("th", { children: "Camp" }),
-        jsx7("th", { children: "Mission" }),
-        jsx7("th", { children: "Passed" }),
-        jsx7("th", { children: "What the check found" }),
-        jsx7("th", { children: "Check" }),
-        jsx7("th", { children: "Question" }),
-        jsx7("th", { children: "Document" })
+    problem ? jsx11(Result, { result: { passed: false, title: problem } }, "problem") : null,
+    jsx11(Section, { title: "The proof behind it", children: jsx11(Card, { flush: true, children: jsx11("div", { style: { overflowX: "auto", padding: "4px 14px 8px" }, children: jsxs10("table", { className: "fa-table", children: [
+      jsx11("thead", { children: jsxs10("tr", { children: [
+        jsx11("th", { children: "Camp" }),
+        jsx11("th", { children: "Mission" }),
+        jsx11("th", { children: "Passed" }),
+        jsx11("th", { children: "What the check found" }),
+        jsx11("th", { children: "Check" }),
+        jsx11("th", { children: "Question" }),
+        jsx11("th", { children: "Document" })
       ] }) }),
-      jsx7("tbody", { children: body.missions.map((item) => jsxs6("tr", { children: [
-        jsx7("td", { children: item.level }),
-        jsx7("td", { children: jsx7("strong", { children: item.title }) }),
-        jsx7("td", { children: shortDate(item.passed_at) }),
-        jsx7("td", { children: item.checked_by ? jsxs6("span", { children: [item.check_result || item.check, jsx7("br", {}), jsx7("span", { className: "hk-small", children: item.checked_by })] }) : item.check_result || item.check }),
-        jsx7("td", { children: item.check_version ? `Version ${item.check_version}${item.reading_skipped ? ", reading skipped by placement" : ""}` : "" }),
-        jsx7("td", { children: item.question_score == null ? "" : `${item.question_score} of 100` }),
-        jsx7("td", { children: item.document ? jsxs6("span", { children: [item.document, jsx7("br", {}), jsx7("span", { className: "hk-mono", children: `SHA-256 ${String(item.fingerprint || "").slice(0, 16)}` })] }) : "" })
+      jsx11("tbody", { children: body.missions.map((item) => jsxs10("tr", { children: [
+        jsx11("td", { children: item.level }),
+        jsx11("td", { children: jsx11("strong", { children: item.title }) }),
+        jsx11("td", { children: shortDate(item.passed_at) }),
+        jsx11("td", { children: item.checked_by ? jsxs10("span", { children: [item.check_result || item.check, jsx11("br", {}), jsx11("span", { className: "hk-small", children: item.checked_by })] }) : item.check_result || item.check }),
+        jsx11("td", { children: item.check_version ? `Version ${item.check_version}${item.reading_skipped ? ", reading skipped by placement" : ""}` : "" }),
+        jsx11("td", { children: item.question_score == null ? "" : `${item.question_score} of 100` }),
+        jsx11("td", { children: item.document ? jsxs10("span", { children: [item.document, jsx11("br", {}), jsx11("span", { className: "hk-mono", children: `SHA-256 ${String(item.fingerprint || "").slice(0, 16)}` })] }) : "" })
       ] }, item.mission_id)) })
     ] }) }) }) }, "proof")
   ] });
@@ -4309,35 +8164,35 @@ var OUTCOME_WORDS = {
 function ReviewResults({ session, go }) {
   const results = session.results || [];
   const strong = results.filter((item) => item.passed).length;
-  return jsx7(Frame, { width: "narrow", up: () => go({ name: "map" }), children: [
-    jsx7(PageHeader, {
-      back: jsx7(Back, { label: "Trail map", onClick: () => go({ name: "map" }) }),
-      eyebrow: jsx7(Label, { children: "Review" }),
+  return jsx11(Frame, { width: "narrow", up: () => go({ name: "map" }), children: [
+    jsx11(PageHeader, {
+      back: jsx11(Back, { label: "Trail map", onClick: () => go({ name: "map" }) }),
+      eyebrow: jsx11(Label, { children: "Review" }),
       title: "Your review is scored",
       lead: `${strong} of ${plural2(results.length, "answer", "answers")} scored 70 or more. A miss comes back tomorrow, and an answer you hold comes back after a longer wait.`
     }, "head"),
-    ...results.map((item) => jsx7(Card, { children: jsxs6("div", { className: "hk-stack", style: { gap: 8 }, children: [
-      jsxs6("div", { className: "hk-row", style: { flexWrap: "nowrap", gap: 12 }, children: [
-        jsx7(Ring, { value: item.score / 100, size: 40, stroke: 4, tone: item.passed ? "good" : "warn", label: String(item.score), title: `${item.score} out of 100` }),
-        jsxs6("div", { className: "hk-grow hk-stack", style: { gap: 2 }, children: [
-          jsx7("strong", { children: item.title }),
-          jsx7("span", { className: "hk-small", children: [OUTCOME_WORDS[item.outcome], `Strength: ${item.strength_word}`, item.early ? "Your review schedule stays as it was" : `Next review: ${dueWords(item.next_due_at).replace("Due ", "").toLowerCase()}`].filter(Boolean).join(" · ") })
+    ...results.map((item) => jsx11(Card, { children: jsxs10("div", { className: "hk-stack", style: { gap: 8 }, children: [
+      jsxs10("div", { className: "hk-row", style: { flexWrap: "nowrap", gap: 12 }, children: [
+        jsx11(Ring, { value: item.score / 100, size: 40, stroke: 4, tone: item.passed ? "good" : "warn", label: String(item.score), title: `${item.score} out of 100` }),
+        jsxs10("div", { className: "hk-grow hk-stack", style: { gap: 2 }, children: [
+          jsx11("strong", { children: item.title }),
+          jsx11("span", { className: "hk-small", children: [OUTCOME_WORDS[item.outcome], `Strength: ${item.strength_word}`, item.early ? "Your review schedule stays as it was" : `Next review: ${dueWords(item.next_due_at).replace("Due ", "").toLowerCase()}`].filter(Boolean).join(" · ") })
         ] })
       ] }),
-      item.feedback ? jsx7(Prose, { text: item.feedback }) : null,
-      item.ladder ? jsx7(Feedback, { feedback: item.ladder }) : null,
-      jsx7("div", { children: jsx7("button", { type: "button", className: "hk-link", onClick: () => go({ name: "mission", id: item.mission_id }), children: "Open the mission" }) })
+      item.feedback ? jsx11(Prose, { text: item.feedback }) : null,
+      item.ladder ? jsx11(Feedback, { feedback: item.ladder }) : null,
+      jsx11("div", { children: jsx11("button", { type: "button", className: "hk-link", onClick: () => go({ name: "mission", id: item.mission_id }), children: "Open the mission" }) })
     ] }) }, item.mission_id)),
-    jsx7("div", { className: "hk-actions", children: jsx7(Button3, { onClick: () => go({ name: "map" }), children: "Back to the map" }) }, "done")
+    jsx11("div", { className: "hk-actions", children: jsx11(Button7, { onClick: () => go({ name: "map" }), children: "Back to the map" }) }, "done")
   ] });
 }
 function ReviewView({ practice, go }) {
-  const [session, setSession] = useState5(null);
-  const [error, setError] = useState5("");
-  const [answers, setAnswers] = useState5({});
-  const [busy, setBusy] = useState5(false);
-  const [problem, setProblem] = useState5("");
-  useEffect3(() => {
+  const [session, setSession] = useState9(null);
+  const [error, setError] = useState9("");
+  const [answers, setAnswers] = useState9({});
+  const [busy, setBusy] = useState9(false);
+  const [problem, setProblem] = useState9("");
+  useEffect7(() => {
     let live = true;
     ctxRest("/review/start", { method: "POST", body: { practice: Boolean(practice) } }).then((next) => {
       if (live) setSession(next);
@@ -4348,7 +8203,7 @@ function ReviewView({ practice, go }) {
       live = false;
     };
   }, []);
-  useEffect3(() => {
+  useEffect7(() => {
     if (!session || session.status !== "submitted") return void 0;
     const timer = setInterval(async () => {
       try {
@@ -4378,33 +8233,33 @@ function ReviewView({ practice, go }) {
   };
   const up = () => go({ name: "map" });
   if (error) {
-    return jsx7(Frame, { width: "narrow", up, children: [
-      jsx7(Back, { label: "Trail map", onClick: up }, "back"),
-      jsx7(Card, { key: "none", children: jsxs6("div", { className: "hk-stack", style: { gap: 8 }, children: [
-        jsx7("h1", { className: "hk-h2", children: "Nothing to review right now" }),
-        jsx7("p", { children: error }),
-        jsxs6("div", { className: "hk-actions", children: [
-          !practice ? jsx7(Button3, { onClick: () => go({ name: "review", practice: true }), children: "Practice early" }) : null,
-          jsx7(Button3, { variant: "secondary", onClick: up, children: "Back to the map" })
+    return jsx11(Frame, { width: "narrow", up, children: [
+      jsx11(Back, { label: "Trail map", onClick: up }, "back"),
+      jsx11(Card, { key: "none", children: jsxs10("div", { className: "hk-stack", style: { gap: 8 }, children: [
+        jsx11("h1", { className: "hk-h2", children: "Nothing to review right now" }),
+        jsx11("p", { children: error }),
+        jsxs10("div", { className: "hk-actions", children: [
+          !practice ? jsx11(Button7, { onClick: () => go({ name: "review", practice: true }), children: "Practice early" }) : null,
+          jsx11(Button7, { variant: "secondary", onClick: up, children: "Back to the map" })
         ] })
       ] }) })
     ] });
   }
-  if (!session) return jsx7(Frame, { width: "narrow", children: jsx7(SkeletonPage, { label: "Getting your review", cards: [{ title: true, lines: 4 }] }) });
-  if (session.status === "graded") return jsx7(ReviewResults, { session, go });
+  if (!session) return jsx11(Frame, { width: "narrow", children: jsx11(SkeletonPage, { label: "Getting your review", cards: [{ title: true, lines: 4 }] }) });
+  if (session.status === "graded") return jsx11(ReviewResults, { session, go });
   const submitted = session.status === "submitted";
   const ready = session.items.every((item) => (answers[item.mission_id] || "").trim().length >= 40);
-  return jsx7(Frame, { width: "narrow", up, children: [
-    jsx7(PageHeader, {
-      back: jsx7(Back, { label: "Trail map", onClick: up }),
-      eyebrow: jsx7(Label, { children: session.practice ? "Practice review" : "Review" }),
+  return jsx11(Frame, { width: "narrow", up, children: [
+    jsx11(PageHeader, {
+      back: jsx11(Back, { label: "Trail map", onClick: up }),
+      eyebrow: jsx11(Label, { children: session.practice ? "Practice review" : "Review" }),
       title: `${plural2(session.items.length, "question", "questions")} from missions you passed`,
       lead: session.practice ? "This is early practice. Your answers change your strength, and your review schedule stays as it is." : "Answer from memory, in your own words, before you look anything up. A sentence or two each is enough. Hermes scores them the way it scores a mission question."
     }, "head"),
-    ...session.items.map((item, index) => jsxs6("div", { className: "fa-q", children: [
-      jsx7(Label, { children: `Question ${index + 1} · ${item.title}` }),
-      jsx7(Prose, { text: item.question }),
-      jsx7(Textarea2, {
+    ...session.items.map((item, index) => jsxs10("div", { className: "fa-q", children: [
+      jsx11(Label, { children: `Question ${index + 1} · ${item.title}` }),
+      jsx11(Prose, { text: item.question }),
+      jsx11(Textarea5, {
         style: { minHeight: "6rem", width: "100%" },
         value: submitted ? session.answers[item.mission_id] || "" : answers[item.mission_id] || "",
         readOnly: submitted,
@@ -4413,28 +8268,28 @@ function ReviewView({ practice, go }) {
         "aria-label": `Your answer to question ${index + 1}`
       })
     ] }, item.mission_id)),
-    problem ? jsx7(Result, { result: { passed: false, title: problem } }, "problem") : null,
-    submitted ? jsx7(Card, { tone: "info", className: "hk-enter", children: jsxs6("div", { className: "hk-stack", style: { gap: 6 }, children: [
-      jsx7("strong", { children: "Waiting for Hermes to score your answers" }),
-      jsx7("p", { children: "Your answers went to your own Hermes, and the scores show here once it records them. If nothing happens after a minute, send the instruction again." }),
-      jsx7("div", { className: "hk-actions", children: jsx7(Button3, { variant: "secondary", loading: busy, onClick: () => send(session.answers), children: "Send it again" }) })
-    ] }) }, "wait") : jsxs6("div", { className: "hk-actions", children: [
-      jsx7(Button3, { loading: busy, disabled: !ready, onClick: () => send(answers), children: "Send for scoring" }),
-      ready ? null : jsx7("span", { className: "hk-small", children: "Write at least a sentence for each question." })
+    problem ? jsx11(Result, { result: { passed: false, title: problem } }, "problem") : null,
+    submitted ? jsx11(Card, { tone: "info", className: "hk-enter", children: jsxs10("div", { className: "hk-stack", style: { gap: 6 }, children: [
+      jsx11("strong", { children: "Waiting for Hermes to score your answers" }),
+      jsx11("p", { children: "Your answers went to your own Hermes, and the scores show here once it records them. If nothing happens after a minute, send the instruction again." }),
+      jsx11("div", { className: "hk-actions", children: jsx11(Button7, { variant: "secondary", loading: busy, onClick: () => send(session.answers), children: "Send it again" }) })
+    ] }) }, "wait") : jsxs10("div", { className: "hk-actions", children: [
+      jsx11(Button7, { loading: busy, disabled: !ready, onClick: () => send(answers), children: "Send for scoring" }),
+      ready ? null : jsx11("span", { className: "hk-small", children: "Write at least a sentence for each question." })
     ] }, "send")
   ] });
 }
 var LEVEL_LABEL = { beginner: "Beginner camp", intermediate: "Intermediate camp", advanced: "Advanced camp" };
 function PlacementView({ trackId, track, go }) {
-  const [spec, setSpec] = useState5(null);
-  const [error, setError] = useState5("");
-  const [picks, setPicks] = useState5({});
-  const [outcome, setOutcome] = useState5(null);
-  const [applied, setApplied] = useState5(null);
-  const [busy, setBusy] = useState5(false);
-  const [problem, setProblem] = useState5("");
+  const [spec, setSpec] = useState9(null);
+  const [error, setError] = useState9("");
+  const [picks, setPicks] = useState9({});
+  const [outcome, setOutcome] = useState9(null);
+  const [applied, setApplied] = useState9(null);
+  const [busy, setBusy] = useState9(false);
+  const [problem, setProblem] = useState9("");
   const up = () => go({ name: "path", id: trackId });
-  useEffect3(() => {
+  useEffect7(() => {
     let live = true;
     ctxRest(`/placement/${trackId}`).then((next) => {
       if (live) setSpec(next);
@@ -4445,8 +8300,8 @@ function PlacementView({ trackId, track, go }) {
       live = false;
     };
   }, [trackId]);
-  if (error) return jsx7(Frame, { width: "narrow", up, children: [jsx7(Back, { label: `${track?.name || "Path"} path`, onClick: up }, "back"), jsx7(Result, { result: { passed: false, title: error } }, "err")] });
-  if (!spec) return jsx7(Frame, { width: "narrow", children: jsx7(SkeletonPage, { label: "Getting the placement check", cards: [{ title: true, lines: 5 }] }) });
+  if (error) return jsx11(Frame, { width: "narrow", up, children: [jsx11(Back, { label: `${track?.name || "Path"} path`, onClick: up }, "back"), jsx11(Result, { result: { passed: false, title: error } }, "err")] });
+  if (!spec) return jsx11(Frame, { width: "narrow", children: jsx11(SkeletonPage, { label: "Getting the placement check", cards: [{ title: true, lines: 5 }] }) });
   const answered = spec.questions.every((q) => picks[q.id] !== void 0);
   const submit = async () => {
     if (busy) return;
@@ -4475,87 +8330,113 @@ function PlacementView({ trackId, track, go }) {
   };
   const results = outcome?.results;
   const known = outcome?.known_levels || [];
-  return jsx7(Frame, { width: "narrow", up, children: [
-    jsx7(PageHeader, {
-      back: jsx7(Back, { label: `${track?.name || "Path"} path`, onClick: up }),
-      eyebrow: jsx7(Label, { children: "Placement check" }),
+  return jsx11(Frame, { width: "narrow", up, children: [
+    jsx11(PageHeader, {
+      back: jsx11(Back, { label: `${track?.name || "Path"} path`, onClick: up }),
+      eyebrow: jsx11(Label, { children: "Placement check" }),
       title: spec.title,
       lead: spec.intro
     }, "head"),
     ...results ? [
-      jsx7(Card, { tone: known.length ? "good" : "info", tint: true, className: "hk-enter", children: jsxs6("div", { className: "hk-stack", style: { gap: 6 }, children: [
-        jsx7("strong", { children: known.length ? `You knew ${known.map((level) => LEVEL_LABEL[level].replace(" camp", "")).join(" and ")}` : "No level is clear yet" }),
-        jsx7("p", { children: known.length ? `Both questions right on a level skips that level's reading and practice. ${outcome.offer.keeps}` : "Start each mission with its lesson. You can take the check again later." }),
-        known.length && !applied ? jsx7("div", { className: "hk-actions", children: jsx7(Button3, { loading: busy, onClick: apply, children: `Skip the reading on ${plural2(outcome.offer.missions.length, "mission", "missions")}` }) }) : null,
-        applied ? jsx7(Result, { result: { passed: true, title: `Skipped the reading and practice on ${plural2(applied.steps_skipped, "step", "steps")}`, detail: "Each question and each check still counts, and your Field Record says the reading was skipped." } }) : null
+      jsx11(Card, { tone: known.length ? "good" : "info", tint: true, className: "hk-enter", children: jsxs10("div", { className: "hk-stack", style: { gap: 6 }, children: [
+        jsx11("strong", { children: known.length ? `You knew ${known.map((level) => LEVEL_LABEL[level].replace(" camp", "")).join(" and ")}` : "No level is clear yet" }),
+        jsx11("p", { children: known.length ? `Both questions right on a level skips that level's reading and practice. ${outcome.offer.keeps}` : "Start each mission with its lesson. You can take the check again later." }),
+        known.length && !applied ? jsx11("div", { className: "hk-actions", children: jsx11(Button7, { loading: busy, onClick: apply, children: `Skip the reading on ${plural2(outcome.offer.missions.length, "mission", "missions")}` }) }) : null,
+        applied ? jsx11(Result, { result: { passed: true, title: `Skipped the reading and practice on ${plural2(applied.steps_skipped, "step", "steps")}`, detail: "Each question and each check still counts, and your Field Record says the reading was skipped." } }) : null
       ] }) }, "outcome"),
       ...spec.questions.map((q, index) => {
         const found = results.questions.find((item) => item.id === q.id);
-        return jsx7("div", { className: "fa-q", children: jsxs6("div", { className: "hk-stack", style: { gap: 6 }, children: [
-          jsx7(Label, { children: `Question ${index + 1} · ${LEVEL_LABEL[q.level]} · ${found?.right ? "Right" : "Not this time"}` }),
-          jsx7(Prose, { text: q.question }),
-          jsx7("p", { children: `Your answer: ${q.options[found?.chosen] ?? "none"}` }),
-          jsx7(Prose, { text: found?.why })
+        return jsx11("div", { className: "fa-q", children: jsxs10("div", { className: "hk-stack", style: { gap: 6 }, children: [
+          jsx11(Label, { children: `Question ${index + 1} · ${LEVEL_LABEL[q.level]} · ${found?.right ? "Right" : "Not this time"}` }),
+          jsx11(Prose, { text: q.question }),
+          jsx11("p", { children: `Your answer: ${q.options[found?.chosen] ?? "none"}` }),
+          jsx11(Prose, { text: found?.why })
         ] }) }, q.id);
       }),
-      jsxs6("div", { className: "hk-actions", children: [
-        jsx7(Button3, { variant: "secondary", onClick: () => {
+      jsxs10("div", { className: "hk-actions", children: [
+        jsx11(Button7, { variant: "secondary", onClick: () => {
           setOutcome(null);
           setPicks({});
           setApplied(null);
         }, children: "Take it again" }),
-        jsx7(Button3, { onClick: up, children: `Back to the ${track?.name || ""} path` })
+        jsx11(Button7, { onClick: up, children: `Back to the ${track?.name || ""} path` })
       ] }, "after")
     ] : [
-      ...spec.questions.map((q, index) => jsxs6("fieldset", { className: "fa-q", children: [
-        jsx7("legend", { children: jsx7(Label, { children: `Question ${index + 1} · ${LEVEL_LABEL[q.level]}` }) }),
-        jsx7(Prose, { text: q.question }),
-        jsx7("div", { className: "fa-choices", children: q.options.map((option, i) => jsxs6("label", { className: "fa-choice", "data-picked": picks[q.id] === i ? "" : void 0, children: [
-          jsx7("input", { type: "radio", name: `fa-${q.id}`, checked: picks[q.id] === i, onChange: () => setPicks({ ...picks, [q.id]: i }) }),
-          jsx7("span", { children: option })
+      ...spec.questions.map((q, index) => jsxs10("fieldset", { className: "fa-q", children: [
+        jsx11("legend", { children: jsx11(Label, { children: `Question ${index + 1} · ${LEVEL_LABEL[q.level]}` }) }),
+        jsx11(Prose, { text: q.question }),
+        jsx11("div", { className: "fa-choices", children: q.options.map((option, i) => jsxs10("label", { className: "fa-choice", "data-picked": picks[q.id] === i ? "" : void 0, children: [
+          jsx11("input", { type: "radio", name: `fa-${q.id}`, checked: picks[q.id] === i, onChange: () => setPicks({ ...picks, [q.id]: i }) }),
+          jsx11("span", { children: option })
         ] }, option)) })
       ] }, q.id)),
-      problem ? jsx7(Result, { result: { passed: false, title: problem } }, "problem") : null,
-      jsxs6("div", { className: "hk-actions", children: [
-        jsx7(Button3, { loading: busy, disabled: !answered, onClick: submit, children: "See my result" }),
-        answered ? null : jsx7("span", { className: "hk-small", children: "Choose one option for every question." })
+      problem ? jsx11(Result, { result: { passed: false, title: problem } }, "problem") : null,
+      jsxs10("div", { className: "hk-actions", children: [
+        jsx11(Button7, { loading: busy, disabled: !answered, onClick: submit, children: "See my result" }),
+        answered ? null : jsx11("span", { className: "hk-small", children: "Choose one option for every question." })
       ] }, "send")
     ]
   ] });
 }
 function Offline({ error, onRetry }) {
-  return jsx7(Frame, { width: "narrow", children: jsx7(NotConnected, {
+  return jsx11(Frame, { width: "narrow", children: jsx11(NotConnected, {
     name: "Field Academy",
     error,
     onRetry,
-    steps: jsxs6("div", { className: "hk-stack", children: [
-      jsx7("p", { children: "The part of Field Academy that saves your progress isn't running." }),
-      jsx7("p", { children: "In Hermes, open Capabilities, then Plugins, and turn on Field Academy. Then quit Hermes and open it again." }),
-      jsx7("p", { children: "Or run this once in a terminal, then restart Hermes:" }),
-      jsx7("pre", { className: "fa-pre", children: "hermes plugins enable field-academy" })
+    steps: jsxs10("div", { className: "hk-stack", children: [
+      jsx11("p", { children: "The part of Field Academy that saves your progress isn't running." }),
+      jsx11("p", { children: "In Hermes, open Capabilities, then Plugins, and turn on Field Academy. Then quit Hermes and open it again." }),
+      jsx11("p", { children: "Or run this once in a terminal, then restart Hermes:" }),
+      jsx11("pre", { className: "fa-pre", children: "hermes plugins enable field-academy" })
     ] }),
     otherwise: "Your progress can't load right now. Try again in a minute."
   }) });
 }
 function DeployerUnavailable({ loading, error, go }) {
-  return jsx7(Frame, { width: "narrow", up: () => go({ name: "map" }), children: [
-    jsx7(PageHeader, { back: jsx7(Back, { label: "Trail map", onClick: () => go({ name: "map" }) }), eyebrow: jsx7(Label, { children: "For clients, in practice" }), title: "Deployer path", lead: loading ? "Loading." : "The part of Field Academy that saves your progress does not know this path yet." }, "head"),
-    loading ? null : jsx7(Card, { key: "why", tone: "warn", children: jsxs6("div", { className: "hk-stack", children: [
-      jsx7("p", { children: "The Deployer path needs Field Academy 0.6.0 or newer running inside Hermes. Quit Hermes and open it again to load it." }),
-      error ? jsx7("p", { className: "hk-small", children: errorText(error) }) : null
+  return jsx11(Frame, { width: "narrow", up: () => go({ name: "map" }), children: [
+    jsx11(PageHeader, { back: jsx11(Back, { label: "Trail map", onClick: () => go({ name: "map" }) }), eyebrow: jsx11(Label, { children: "For clients, in practice" }), title: "Deployer path", lead: loading ? "Loading." : "The part of Field Academy that saves your progress does not know this path yet." }, "head"),
+    loading ? null : jsx11(Card, { key: "why", tone: "warn", children: jsxs10("div", { className: "hk-stack", children: [
+      jsx11("p", { children: "The Deployer path needs Field Academy 0.6.0 or newer running inside Hermes. Quit Hermes and open it again to load it." }),
+      error ? jsx11("p", { className: "hk-small", children: errorText(error) }) : null
     ] }) })
   ] });
 }
+function AwayFromHome({ onRetry }) {
+  const target = knownHome();
+  return jsx11(Frame, { width: "narrow", children: jsx11(Card, { tone: "info", children: jsxs10("div", { className: "hk-stack", children: [
+    jsx11("p", { className: "hk-h3", style: { margin: 0 }, children: "You're in a practice profile" }),
+    jsx11("p", { style: { margin: 0 }, children: `The app is on ${activeProfile() || "a practice profile"} because a practice chat is open. Field Academy runs in ${target ? target.profile : "your own profile"}.` }),
+    jsx11("p", { style: { margin: 0 }, children: target ? `Pick ${target.profile} in the profile menu, then come back here. Your practice chat stays as it is.` : "Pick your own profile in the profile menu, then come back here. Your practice chat stays as it is." }),
+    jsx11("div", { className: "hk-actions", children: jsx11(Button7, { variant: "secondary", onClick: onRetry, children: "Try again" }) })
+  ] }) }) });
+}
 function Page2() {
+  const [homeReady, setHomeReady] = useState9(() => !isPracticeProfile(activeProfile()));
+  const [away, setAway] = useState9(false);
   const query = usePassport();
   const deployerQuery = useDeployer();
   const deployer = deployerQuery.data && deployerQuery.data.track ? deployerQuery.data : null;
-  const [view, setView] = useState5(() => readView());
-  useEffect3(() => {
+  const [view, setView] = useState9(() => readView());
+  const goHome = async () => {
+    const ok = await comeHome();
+    setAway(!ok);
+    setHomeReady(ok);
+    if (ok) {
+      refresh();
+      refreshDeployer();
+    }
+  };
+  useEffect7(() => {
+    if (!homeReady) goHome();
+  }, []);
+  useEffect7(() => {
     if (deployer) syncVersion(deployer);
   }, [Boolean(deployer)]);
-  const go = (next) => setView(next);
-  useEffect3(() => {
+  const go = (next) => {
+    const id = next && (next.name === "mission" ? next.id : next.name === "deployer" ? next.part : "");
+    setView(/^f\./.test(String(id || "")) ? { name: "f-mission", id } : next);
+  };
+  useEffect7(() => {
     const apply = (id) => {
       pendingMission = null;
       setView({ name: "mission", id });
@@ -4564,35 +8445,45 @@ function Page2() {
     return () => missionListeners.delete(apply);
   }, []);
   let body = null;
-  if (query.loading) {
-    body = jsx7(Frame, { children: jsx7(SkeletonPage, { label: "Loading your paths", cards: MAP_SHAPE }) });
+  if (away) {
+    body = jsx11(AwayFromHome, { onRetry: goHome });
+  } else if (!homeReady || query.loading) {
+    body = jsx11(Frame, { children: jsx11(SkeletonPage, { label: "Loading your paths", cards: MAP_SHAPE }) });
   } else if (query.error && !query.data) {
-    body = jsx7(Offline, { error: query.error, onRetry: () => query.refetch() });
+    body = jsx11(Offline, { error: query.error, onRetry: () => query.refetch() });
   } else {
     const data = query.data || {};
     const track = (data.tracks || []).find((item) => item.id === view.id);
-    if (view.name === "path" && view.id === "deployer") {
-      body = deployer ? jsx7(deployerViews.DeployerPath, { data: deployer, go }) : jsx7(DeployerUnavailable, { loading: deployerQuery.loading, error: deployerQuery.error, go });
+    if (view.name === "foundations") {
+      body = jsx11(foundationsViews.FoundationsPath, { go });
+    } else if (view.name === "f-record") {
+      body = jsx11(foundationsViews.FieldRecordView, { go });
+    } else if (view.name === "f-mission" && view.id) {
+      body = jsx11(foundationsViews.MissionLoop, { missionId: view.id, go, initialStep: view.step, testOut: view.testOut === true, firstFlight: view.firstFlight === true, harnessGrade: view.harnessGrade || null });
+    } else if (view.name === "sample") {
+      body = jsx11(foundationsViews.SampleRun, { go });
+    } else if (view.name === "path" && view.id === "deployer") {
+      body = deployer ? jsx11(deployerViews.DeployerPath, { data: deployer, go }) : jsx11(DeployerUnavailable, { loading: deployerQuery.loading, error: deployerQuery.error, go });
     } else if (view.name === "deployer") {
-      body = deployer ? jsx7(deployerViews.DeployerPart, { view, data: deployer, go }) : jsx7(DeployerUnavailable, { loading: deployerQuery.loading, error: deployerQuery.error, go });
+      body = deployer ? jsx11(deployerViews.DeployerPart, { view, data: deployer, go }) : jsx11(DeployerUnavailable, { loading: deployerQuery.loading, error: deployerQuery.error, go });
     } else if (view.name === "path" && track) {
-      body = jsx7(PathView, { track, go });
+      body = jsx11(PathView, { track, go });
     } else if (view.name === "certificate" && track) {
-      body = jsx7(CertificateView, { track, go });
+      body = jsx11(CertificateView, { track, go });
     } else if (view.name === "mission") {
       const found = findMission(data, view.id);
-      body = found.mission ? jsx7(MissionView, { mission: found.mission, track: found.track, go, onChanged: () => query.refetch(), changes: data.changes || [], focus: view.focus }) : jsx7(MapView, { data, go, deployer });
+      body = found.mission ? jsx11(MissionView, { mission: found.mission, track: found.track, go, onChanged: () => query.refetch(), changes: data.changes || [], focus: view.focus }) : jsx11(MapView, { data, go, deployer });
     } else if (view.name === "review") {
-      body = jsx7(ReviewView, { practice: view.practice, go });
+      body = jsx11(ReviewView, { practice: view.practice, go });
     } else if (view.name === "placement" && track) {
-      body = jsx7(PlacementView, { trackId: track.id, track, go });
+      body = jsx11(PlacementView, { trackId: track.id, track, go });
     } else {
-      body = jsx7(MapView, { data, go, deployer });
+      body = jsx11(MapView, { data, go, deployer });
     }
   }
-  return jsxs6("div", { className: "fa-root", style: { height: "100%", minHeight: 0, display: "grid", gridTemplateRows: "auto 1fr" }, children: [
-    query.stale ? jsx7("div", { className: "hk", style: { padding: "8px 24px 0" }, children: jsx7(StaleNotice, { error: query.error, updatedAt: query.updatedAt, onRetry: query.refetch }) }) : jsx7("span", {}),
-    jsx7("div", { style: { minHeight: 0 }, children: body }, `${view.name}:${view.id || ""}`)
+  return jsxs10("div", { className: "fa-root", style: { height: "100%", minHeight: 0, display: "grid", gridTemplateRows: "auto 1fr" }, children: [
+    query.stale ? jsx11("div", { className: "hk", style: { padding: "8px 24px 0" }, children: jsx11(StaleNotice, { error: query.error, updatedAt: query.updatedAt, onRetry: query.refetch }) }) : jsx11("span", {}),
+    jsx11("div", { style: { minHeight: 0 }, children: body }, `${view.name}:${view.id || ""}`)
   ] });
 }
 function StatusChip() {
@@ -4600,8 +8491,8 @@ function StatusChip() {
   const track = query.data?.tracks?.find((t) => t.id === query.data?.goal_track);
   const due = query.data?.reviews?.due_count || 0;
   const label = (track ? `Field Academy · ${track.name} ${track.verified_missions} of ${track.missions.length}` : "Field Academy") + (due ? ` · ${plural2(due, "review", "reviews")} due` : "");
-  return jsxs6("button", { type: "button", className: "hk fa-chip", onClick: () => host2.navigate(ROUTE), children: [
-    track ? jsx7(Ring, { value: track.missions.length ? track.verified_missions / track.missions.length : 0, size: 14, stroke: 2, tone: "info" }) : null,
+  return jsxs10("button", { type: "button", className: "hk fa-chip", onClick: () => host5.navigate(ROUTE), children: [
+    track ? jsx11(Ring, { value: track.missions.length ? track.verified_missions / track.missions.length : 0, size: 14, stroke: 2, tone: "info" }) : null,
     label
   ] });
 }
@@ -4611,11 +8502,11 @@ function PracticeOffer({ attrs }) {
   if (!MISSION_ID_RE.test(raw)) return null;
   const { mission } = findMission(query.data, raw);
   if (!mission) return null;
-  return jsx7("div", { className: "hk fa-offer", children: jsxs6(Card, { tone: "info", children: [
-    jsx7("p", { className: "hk-eyebrow", children: "Try this next" }, "e"),
-    jsx7("p", { className: "hk-h3", children: mission.title }, "t"),
-    jsx7("p", { children: mission.promise }, "p"),
-    jsx7("div", { className: "hk-actions", children: jsx7(Button3, { variant: "secondary", onClick: () => requestMission(raw), children: "Open this mission" }) }, "a")
+  return jsx11("div", { className: "hk fa-offer", children: jsxs10(Card, { tone: "info", children: [
+    jsx11("p", { className: "hk-eyebrow", children: "Try this next" }, "e"),
+    jsx11("p", { className: "hk-h3", children: mission.title }, "t"),
+    jsx11("p", { children: mission.promise }, "p"),
+    jsx11("div", { className: "hk-actions", children: jsx11(Button7, { variant: "secondary", onClick: () => requestMission(raw), children: "Open this mission" }) }, "a")
   ] }) });
 }
 var plugin_default = {
@@ -4630,19 +8521,20 @@ var plugin_default = {
       route: ROUTE,
       label: "Field Academy",
       codicon: "mortar-board",
-      css: CSS + FIELD_CSS + BANNER_CSS + DEPLOYER_CSS + PROSE_CSS,
-      render: () => jsx7(Page2, {}),
-      status: { side: "right", order: 118, render: () => jsx7(StatusChip, {}) },
+      css: CSS + FIELD_CSS + BANNER_CSS + DEPLOYER_CSS + PROSE_CSS + FOUNDATIONS_CSS + DESK_CSS,
+      render: () => jsx11(Page2, {}),
+      status: { side: "right", order: 118, render: () => jsx11(StatusChip, {}) },
       palette: [{
         id: "field-academy.open",
         label: "Field Academy",
-        detail: "Learn Hermes step by step and build your own Field Record",
+        // The palette calls detail() on every open (apps/desktop/src/app/command-palette/index.tsx, 0.22.0 to 0.23.0).
+        detail: () => "Learn Hermes step by step and build your own Field Record",
         keywords: ["learn", "field record", "training", "hermes", "academy", "path"],
-        run: () => host2.navigate(ROUTE)
+        run: () => host5.navigate(ROUTE)
       }],
-      keybinds: [{ id: "field-academy.open", label: "Field Academy: open your paths", run: () => host2.navigate(ROUTE) }],
+      keybinds: [{ id: "field-academy.open", label: "Field Academy: open your paths", run: () => host5.navigate(ROUTE) }],
       extra: [
-        { id: "practice", area: TRANSCRIPT_DIRECTIVE_AREA, data: { name: DIRECTIVE, render: ({ attrs }) => jsx7(PracticeOffer, { attrs }) } }
+        { id: "practice", area: TRANSCRIPT_DIRECTIVE_AREA, data: { name: DIRECTIVE, render: ({ attrs }) => jsx11(PracticeOffer, { attrs }) } }
       ]
     });
   }

@@ -1,0 +1,554 @@
+{
+ "summary": {
+  "when": "2026-11-09 10:13 CST",
+  "model": "sonnet",
+  "runs": 10,
+  "runs_with_bracket_pin": 10,
+  "whole_call_failures": 0,
+  "length_failures": 0,
+  "max_words": 20,
+  "median_seconds": 6.19,
+  "bracket": {
+   "from": "m3",
+   "to": "f-pending-1",
+   "words": "The chat showed Saved to memory, but the note is waiting for your approval and is not in MEMORY.md."
+  },
+  "facts": "The check facts (all true): the memory row in the chat is titled Saved to memory but its result says the save was staged for approval and not yet saved; a held save sits in the profile's pending/memory folder; MEMORY.md is unchanged (479 of 2,200 characters, no line holds the fact); the new chat did NOT use the fact (it asked which software Harbor Bakery uses); the fact the learner wanted saved is 'Harbor Bakery uses QuickBooks Online; the other five use Xero'."
+ },
+ "rows": [
+  {
+   "run": 1,
+   "state": "ready",
+   "error": "",
+   "seconds": 5.63,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "Saved rows open collapsed; expand one and read its first word, 'Staged', before trusting the 'Saved to memory' title.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "The new chat asked which software Harbor Bakery uses, so the fact never reached it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    },
+    {
+     "event_id": "m4",
+     "why": "This fresh chat is the test: ask something that needs the fact, and see if Hermes already knows it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "user",
+      "title": "You asked",
+      "text": "Draft this month's reconciliation checklist for Harbor Bakery."
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    19,
+    15,
+    19
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 1,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"Saved rows open collapsed; expand one and read its first word, 'Staged', before trusting the 'Saved to memory' title.\"},{\"event_id\":\"m5\",\"why\":\"The new chat asked which software Harbor Bakery uses, so the fact never reached it.\"},{\"event_id\":\"m4\",\"why\":\"This fresh chat is the test: ask something that needs the fact, and see if Hermes already knows it.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 5.61
+    }
+   ]
+  },
+  {
+   "run": 2,
+   "state": "ready",
+   "error": "",
+   "seconds": 5.53,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "Saved rows open collapsed; expand one and read its first word, 'Staged', before trusting the title above it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "The new chat asked which accounting software Harbor Bakery uses, so the fact never reached it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    },
+    {
+     "event_id": "c4",
+     "why": "A fresh chat starts with only what MEMORY.md holds, so this is where a missing note first shows.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "chat:new",
+      "title": "A new chat started",
+      "text": ""
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    18,
+    16,
+    18
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 1,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"Saved rows open collapsed; expand one and read its first word, 'Staged', before trusting the title above it.\"},{\"event_id\":\"m5\",\"why\":\"The new chat asked which accounting software Harbor Bakery uses, so the fact never reached it.\"},{\"event_id\":\"c4\",\"why\":\"A fresh chat starts with only what MEMORY.md holds, so this is where a missing note first shows.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 5.52
+    }
+   ]
+  },
+  {
+   "run": 3,
+   "state": "ready",
+   "error": "",
+   "seconds": 5.86,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "Saved rows open collapsed; expand one and read its first word, \"Staged\", before trusting the title.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "The new chat asked which accounting software Harbor Bakery uses, so the fact never reached it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    },
+    {
+     "event_id": "c4",
+     "why": "This fresh chat began after the save, so it could only use what MEMORY.md held, and that had nothing new.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "chat:new",
+      "title": "A new chat started",
+      "text": ""
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    16,
+    16,
+    20
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 1,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"Saved rows open collapsed; expand one and read its first word, \\\"Staged\\\", before trusting the title.\"},{\"event_id\":\"m5\",\"why\":\"The new chat asked which accounting software Harbor Bakery uses, so the fact never reached it.\"},{\"event_id\":\"c4\",\"why\":\"This fresh chat began after the save, so it could only use what MEMORY.md held, and that had nothing new.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 5.84
+    }
+   ]
+  },
+  {
+   "run": 4,
+   "state": "ready",
+   "error": "",
+   "seconds": 5.9,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "Saved rows open collapsed; expand one and read its first word, \"Staged\", before trusting the title above it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "The new chat asked which accounting software Harbor Bakery uses, so the fact never reached it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    },
+    {
+     "event_id": "c4",
+     "why": "A fresh chat starts from MEMORY.md alone, so it can only know what that file holds.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "chat:new",
+      "title": "A new chat started",
+      "text": ""
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    18,
+    16,
+    16
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 1,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"Saved rows open collapsed; expand one and read its first word, \\\"Staged\\\", before trusting the title above it.\"},{\"event_id\":\"m5\",\"why\":\"The new chat asked which accounting software Harbor Bakery uses, so the fact never reached it.\"},{\"event_id\":\"c4\",\"why\":\"A fresh chat starts from MEMORY.md alone, so it can only know what that file holds.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 5.89
+    }
+   ]
+  },
+  {
+   "run": 5,
+   "state": "ready",
+   "error": "",
+   "seconds": 5.2,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "Saved rows open collapsed, so expand one and read its first word, Staged, before trusting the title above it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "The new chat asked which software Harbor Bakery uses, so the fact never reached it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    19,
+    15
+   ],
+   "trimmed": 0,
+   "dropped": 1,
+   "tries": 1,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"Saved rows open collapsed, so expand one and read its first word, Staged, before trusting the title above it.\"},{\"event_id\":\"m5\",\"why\":\"The new chat asked which software Harbor Bakery uses, so the fact never reached it.\"},{\"event_id\":\"m4\",\"why\":\"This fresh chat is where to test a save: ask about Harbor Bakery and see if the answer uses the fact.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 5.19
+    }
+   ]
+  },
+  {
+   "run": 6,
+   "state": "ready",
+   "error": "",
+   "seconds": 6.19,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "Saved rows open collapsed, so expand one and read its first word before trusting the title above it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "The new chat asked which software Harbor Bakery uses, so the fact never reached it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    },
+    {
+     "event_id": "c4",
+     "why": "This fresh chat began with no memory of the fact, so the later answer could not draw on it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "chat:new",
+      "title": "A new chat started",
+      "text": ""
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    18,
+    15,
+    19
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 1,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"Saved rows open collapsed, so expand one and read its first word before trusting the title above it.\"},{\"event_id\":\"m5\",\"why\":\"The new chat asked which software Harbor Bakery uses, so the fact never reached it.\"},{\"event_id\":\"c4\",\"why\":\"This fresh chat began with no memory of the fact, so the later answer could not draw on it.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 6.16
+    }
+   ]
+  },
+  {
+   "run": 7,
+   "state": "ready",
+   "error": "",
+   "seconds": 8.94,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "Saved rows open collapsed; expand one and read its first word before trusting the title.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "Hermes asked which accounting software Harbor Bakery uses, so the new chat never had the QuickBooks fact.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    15,
+    17
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 1,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"Saved rows open collapsed; expand one and read its first word before trusting the title.\"},{\"event_id\":\"m5\",\"why\":\"Hermes asked which accounting software Harbor Bakery uses, so the new chat never had the QuickBooks fact.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 8.92
+    }
+   ]
+  },
+  {
+   "run": 8,
+   "state": "ready",
+   "error": "",
+   "seconds": 6.62,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "Saved rows open collapsed, so expand one and read its first word before trusting the title.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "The new chat had to ask which accounting software Harbor Bakery uses, so the fact never reached it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    16,
+    18
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 1,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"Saved rows open collapsed, so expand one and read its first word before trusting the title.\"},{\"event_id\":\"m5\",\"why\":\"The new chat had to ask which accounting software Harbor Bakery uses, so the fact never reached it.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 6.58
+    }
+   ]
+  },
+  {
+   "run": 9,
+   "state": "ready",
+   "error": "",
+   "seconds": 6.93,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "Saved rows open collapsed, so expand one and read its first word, \"Staged\", before trusting the title above it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "Hermes asked which software Harbor Bakery uses, so the fact from the earlier chat never reached this new one.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    },
+    {
+     "event_id": "c4",
+     "why": "This new chat began two minutes later with a blank start, so it could only use what MEMORY.md held.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "chat:new",
+      "title": "A new chat started",
+      "text": ""
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    19,
+    19,
+    19
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 1,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"Saved rows open collapsed, so expand one and read its first word, \\\"Staged\\\", before trusting the title above it.\"},{\"event_id\":\"m5\",\"why\":\"Hermes asked which software Harbor Bakery uses, so the fact from the earlier chat never reached this new one.\"},{\"event_id\":\"c4\",\"why\":\"This new chat began two minutes later with a blank start, so it could only use what MEMORY.md held.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 6.86
+    }
+   ]
+  },
+  {
+   "run": 10,
+   "state": "ready",
+   "error": "",
+   "seconds": 6.42,
+   "pins": [
+    {
+     "event_id": "m3",
+     "why": "Saved rows open collapsed; expand one and read its first word, 'Staged', before trusting the title above it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "tool:memory",
+      "title": "Saved to memory",
+      "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending."
+     }
+    },
+    {
+     "event_id": "m5",
+     "why": "The new chat asked which software Harbor Bakery uses, so the fact never reached it.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "assistant",
+      "title": "Hermes answered",
+      "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+     }
+    },
+    {
+     "event_id": "c4",
+     "why": "This fresh chat began with no QuickBooks note, so the later answer had nothing to draw on.",
+     "source": "model",
+     "kept": null,
+     "event": {
+      "kind": "chat:new",
+      "title": "A new chat started",
+      "text": ""
+     }
+    }
+   ],
+   "on_bracket": 1,
+   "words": [
+    18,
+    15,
+    17
+   ],
+   "trimmed": 0,
+   "dropped": 0,
+   "tries": 1,
+   "calls": [
+    {
+     "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"Saved rows open collapsed; expand one and read its first word, 'Staged', before trusting the title above it.\"},{\"event_id\":\"m5\",\"why\":\"The new chat asked which software Harbor Bakery uses, so the fact never reached it.\"},{\"event_id\":\"c4\",\"why\":\"This fresh chat began with no QuickBooks note, so the later answer had nothing to draw on.\"}]}",
+     "model": "claude-sonnet-5-5",
+     "seconds": 6.37
+    }
+   ]
+  }
+ ]
+}

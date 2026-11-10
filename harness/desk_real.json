@@ -1,0 +1,6125 @@
+{
+ "replay_before_compare": {
+  "attempt_id": 1,
+  "mission_id": "f.memory",
+  "lanes": [
+   {
+    "id": "chat",
+    "label": "In your chat"
+   },
+   {
+    "id": "files",
+    "label": "In Hermes's files"
+   }
+  ],
+  "bracket": null,
+  "snag_found_from": "staged_flag",
+  "events": [],
+  "started_at": null,
+  "ended_at": null,
+  "words": "Your replay opens on Compare, once the first check has run.",
+  "state": "not_ready"
+ },
+ "guide_check_fetching": {
+  "enabled": true,
+  "off_reason": null,
+  "off_words": "",
+  "step": "check",
+  "mission_id": "f.memory",
+  "starters": [
+   "What should I open first when a check misses?",
+   "Where does Hermes keep what it remembers, and how do I open it?",
+   "Why does a new chat matter for this check?"
+  ],
+  "help": {
+   "key": "own",
+   "words": "No hints used",
+   "hunt_helps": 0,
+   "all_helps": 0,
+   "used": []
+  },
+  "ladder": {
+   "nudge": {
+    "state": "fetching",
+    "text": "",
+    "started_at": 1794246623.3
+   },
+   "where": {
+    "available": true,
+    "text": ""
+   },
+   "reveal": {
+    "available": true,
+    "opens": "compare"
+   }
+  },
+  "explain": [],
+  "pins": [],
+  "do_it_with_me": null
+ },
+ "guide_check_ready": {
+  "enabled": true,
+  "off_reason": null,
+  "off_words": "",
+  "step": "check",
+  "mission_id": "f.memory",
+  "starters": [
+   "What should I open first when a check misses?",
+   "Where does Hermes keep what it remembers, and how do I open it?",
+   "Why does a new chat matter for this check?"
+  ],
+  "help": {
+   "key": "own",
+   "words": "No hints used",
+   "hunt_helps": 0,
+   "all_helps": 0,
+   "used": []
+  },
+  "ladder": {
+   "nudge": {
+    "event_id": "m3",
+    "model": "claude-sonnet-5-5",
+    "ms": 6617,
+    "source": "model",
+    "state": "ready",
+    "text": "",
+    "tokens": {
+     "input": 1922,
+     "output": 73,
+     "total": 1995
+    }
+   },
+   "where": {
+    "available": true,
+    "text": ""
+   },
+   "reveal": {
+    "available": true,
+    "opens": "compare"
+   }
+  },
+  "explain": [],
+  "pins": [],
+  "do_it_with_me": null
+ },
+ "help_nudge": {
+  "entry": {
+   "kind": "help",
+   "hash": "6dced3389cc282006082afa2f4b60e30cdf693bb6633a2ea98f62c94fac311bd",
+   "body": {
+    "kind": "nudge",
+    "rung": 1,
+    "step": "check",
+    "source": "model",
+    "mission": "f.memory",
+    "at": "2026-10-03T09:00:00+00:00"
+   }
+  },
+  "shown": {
+   "event_id": "m3",
+   "model": "claude-sonnet-5-5",
+   "ms": 6617,
+   "source": "model",
+   "state": "ready",
+   "text": "At 03:53 the memory tool row says \"Saved to memory\". Open that row and read what it says came back. Does it say your Harbor Bakery fact was really kept?",
+   "tokens": {
+    "input": 1922,
+    "output": 73,
+    "total": 1995
+   }
+  },
+  "help": {
+   "key": "one_nudge",
+   "words": "One hint used",
+   "hunt_helps": 1,
+   "all_helps": 1,
+   "used": [
+    {
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    }
+   ]
+  }
+ },
+ "ask_hunt": {
+  "state": "ok",
+  "sentences": [
+   {
+    "text": "A row titled \"Saved to memory\" with a check mark doesn't prove the fact was saved, so the answer isn't in the title.",
+    "source_ids": [
+     "idea-11",
+     "idea-27"
+    ]
+   },
+   {
+    "text": "In your chat, expand that memory row at 03:53 and read what it returned. A real save shows a percentage and a character count there.",
+    "source_ids": [
+     "idea-10",
+     "m3"
+    ]
+   },
+   {
+    "text": "Then press Show memory file and look for the Harbor Bakery line in the file itself.",
+    "source_ids": [
+     "idea-10"
+    ]
+   },
+   {
+    "text": "Compare what the row says and what the file shows with Hermes's question about the software in your new chat at 03:55.",
+    "source_ids": [
+     "m3",
+     "m5",
+     "idea-10"
+    ]
+   }
+  ],
+  "not_in_sources": false,
+  "draft_for_practice_chat": "",
+  "sends": false,
+  "model": "claude-sonnet-5-5",
+  "ms": 7917,
+  "held_back": false,
+  "tries": 2,
+  "help": {
+   "key": "hints",
+   "words": "2 hints used",
+   "hunt_helps": 2,
+   "all_helps": 2,
+   "used": [
+    {
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    }
+   ]
+  }
+ },
+ "help_where": {
+  "entry": {
+   "kind": "help",
+   "hash": "4018f76ff04bde2116a346cfe2ad002cb6226c667ce4dbea4982324b64a0600d",
+   "body": {
+    "kind": "where",
+    "rung": 2,
+    "step": "check",
+    "source": "course",
+    "mission": "f.memory",
+    "at": "2026-10-03T09:00:00+00:00"
+   }
+  },
+  "shown": {
+   "text": "Go back to the chat where you asked Hermes to remember the fact. Open the memory row and read every line of it, not just its title.",
+   "source": "course"
+  },
+  "help": {
+   "key": "hints",
+   "words": "3 hints used",
+   "hunt_helps": 3,
+   "all_helps": 3,
+   "used": [
+    {
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "where",
+     "rung": 2,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    }
+   ]
+  }
+ },
+ "replay": {
+  "attempt_id": 1,
+  "mission_id": "f.memory",
+  "lanes": [
+   {
+    "id": "chat",
+    "label": "In your chat"
+   },
+   {
+    "id": "files",
+    "label": "In Hermes's files"
+   }
+  ],
+  "bracket": {
+   "from": "m3",
+   "to": "f-pending-1",
+   "words": "The chat showed Saved to memory, but the note is waiting for your approval and is not in MEMORY.md."
+  },
+  "snag_found_from": "staged_flag",
+  "events": [
+   {
+    "event_id": "m1",
+    "lane": "chat",
+    "at": 1792400011.0,
+    "kind": "user",
+    "title": "You asked",
+    "text": "Save to memory: Harbor Bakery uses QuickBooks Online; the other five use Xero"
+   },
+   {
+    "event_id": "m2",
+    "lane": "chat",
+    "at": 1792400012.0,
+    "kind": "assistant",
+    "title": "Hermes called memory",
+    "text": "(called memory)"
+   },
+   {
+    "event_id": "m3",
+    "lane": "chat",
+    "at": 1792400013.0,
+    "kind": "tool:memory",
+    "title": "Saved to memory",
+    "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending.",
+    "staged": true,
+    "failed": false
+   },
+   {
+    "event_id": "f-pending-1",
+    "lane": "files",
+    "at": 1792400013.0,
+    "kind": "file:pending",
+    "title": "Held for your approval",
+    "text": "add Harbor Bakery uses QuickBooks Online; the other five use Xero",
+    "path": "pending/memory/e79e83a9.json",
+    "at_source": "the held save's own record",
+    "read_at": 1791018000.0
+   },
+   {
+    "event_id": "f-memory",
+    "lane": "files",
+    "at": 1792400013.0,
+    "kind": "file:memory",
+    "title": "MEMORY.md unchanged",
+    "text": "449 of 2,200 characters, as the check read it.",
+    "path": "memories/MEMORY.md",
+    "meter": {
+     "used": 449,
+     "limit": 2200,
+     "changed": false
+    },
+    "read_at": 1791018000.0
+   },
+   {
+    "event_id": "c4",
+    "lane": "chat",
+    "at": 1792400101.0,
+    "kind": "chat:new",
+    "title": "A new chat started",
+    "text": ""
+   },
+   {
+    "event_id": "m4",
+    "lane": "chat",
+    "at": 1792400101.0,
+    "kind": "user",
+    "title": "You asked",
+    "text": "Draft this month's reconciliation checklist for Harbor Bakery."
+   },
+   {
+    "event_id": "m5",
+    "lane": "chat",
+    "at": 1792400102.0,
+    "kind": "assistant",
+    "title": "Hermes answered",
+    "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?"
+   }
+  ],
+  "started_at": 1792400011.0,
+  "ended_at": 1792400102.0,
+  "words": "",
+  "state": "ready"
+ },
+ "pins_make": {
+  "state": "ready",
+  "pins": [
+   {
+    "event_id": "m3",
+    "why": "Saved rows open collapsed, so expand one and read its first word, 'Staged', before trusting the title above it.",
+    "source": "model",
+    "kept": null
+   },
+   {
+    "event_id": "m5",
+    "why": "A fresh chat asked which software Harbor Bakery uses, so the fact from your first chat never reached it.",
+    "source": "model",
+    "kept": null
+   },
+   {
+    "event_id": "c4",
+    "why": "This new chat started with a blank slate, which is the right place to test whether memory really carries over.",
+    "source": "model",
+    "kept": null
+   }
+  ],
+  "model": "claude-sonnet-5-5",
+  "ms": 4646,
+  "dropped": 0,
+  "trimmed": 0,
+  "bracket": {
+   "from": "m3",
+   "to": "f-pending-1",
+   "words": "The chat showed Saved to memory, but the note is waiting for your approval and is not in MEMORY.md."
+  },
+  "bracket_pinned": true,
+  "tries": 1
+ },
+ "help_explain": {
+  "entry": {
+   "kind": "help",
+   "hash": "83235ae712d64a7d0f7d71b6d0308ee59b8c719d670b8ae0a6da212d4ca64072",
+   "body": {
+    "kind": "explain",
+    "step": "compare",
+    "checks": [
+     "memory_line",
+     "fresh_use"
+    ],
+    "mission": "f.memory",
+    "at": "2026-10-03T09:00:00+00:00"
+   }
+  },
+  "shown": {
+   "explain": [
+    {
+     "check_id": "memory_line",
+     "model": "claude-sonnet-5-5",
+     "ms": 5100,
+     "sentences": [
+      "Field Academy made memory saves wait for approval.",
+      "Open the pending folder in the practice profile and read what is waiting there."
+     ],
+     "source": "model",
+     "state": "ready"
+    },
+    {
+     "check_id": "fresh_use",
+     "model": "claude-sonnet-5-5",
+     "ms": 5122,
+     "sentences": [
+      "Field Academy made memory saves wait for approval.",
+      "Open the pending folder in the practice profile and read what is waiting there."
+     ],
+     "source": "model",
+     "state": "ready"
+    }
+   ]
+  },
+  "help": {
+   "key": "hints",
+   "words": "3 hints used",
+   "hunt_helps": 3,
+   "all_helps": 4,
+   "used": [
+    {
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "where",
+     "rung": 2,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "explain",
+     "rung": null,
+     "step": "compare",
+     "at": "2026-10-03T09:00:00+00:00"
+    }
+   ]
+  }
+ },
+ "guide_compare": {
+  "enabled": true,
+  "off_reason": null,
+  "off_words": "",
+  "step": "compare",
+  "mission_id": "f.memory",
+  "starters": [
+   "Why did the chat look like the save worked?",
+   "Which line in the memory row should I have read?",
+   "What else can make a save look done when it isn't?"
+  ],
+  "help": {
+   "key": "hints",
+   "words": "3 hints used",
+   "hunt_helps": 3,
+   "all_helps": 4,
+   "used": [
+    {
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "where",
+     "rung": 2,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "explain",
+     "rung": null,
+     "step": "compare",
+     "at": "2026-10-03T09:00:00+00:00"
+    }
+   ]
+  },
+  "ladder": {
+   "nudge": {
+    "event_id": "m3",
+    "model": "claude-sonnet-5-5",
+    "ms": 6617,
+    "source": "model",
+    "state": "ready",
+    "text": "At 03:53 the memory tool row says \"Saved to memory\". Open that row and read what it says came back. Does it say your Harbor Bakery fact was really kept?",
+    "tokens": {
+     "input": 1922,
+     "output": 73,
+     "total": 1995
+    }
+   },
+   "where": {
+    "available": true,
+    "text": "Go back to the chat where you asked Hermes to remember the fact. Open the memory row and read every line of it, not just its title."
+   },
+   "reveal": {
+    "available": true,
+    "opens": "compare"
+   }
+  },
+  "explain": [
+   {
+    "check_id": "memory_line",
+    "model": "claude-sonnet-5-5",
+    "ms": 5100,
+    "sentences": [
+     "Field Academy made memory saves wait for approval.",
+     "Open the pending folder in the practice profile and read what is waiting there."
+    ],
+    "source": "model",
+    "state": "ready"
+   },
+   {
+    "check_id": "fresh_use",
+    "model": "claude-sonnet-5-5",
+    "ms": 5122,
+    "sentences": [
+     "Field Academy made memory saves wait for approval.",
+     "Open the pending folder in the practice profile and read what is waiting there."
+    ],
+    "source": "model",
+    "state": "ready"
+   }
+  ],
+  "pins": [
+   {
+    "event_id": "m3",
+    "kept": null,
+    "source": "model",
+    "why": "Saved rows open collapsed, so expand one and read its first word, 'Staged', before trusting the title above it."
+   },
+   {
+    "event_id": "m5",
+    "kept": null,
+    "source": "model",
+    "why": "A fresh chat asked which software Harbor Bakery uses, so the fact from your first chat never reached it."
+   },
+   {
+    "event_id": "c4",
+    "kept": null,
+    "source": "model",
+    "why": "This new chat started with a blank slate, which is the right place to test whether memory really carries over."
+   }
+  ],
+  "do_it_with_me": null
+ },
+ "ask_covered": {
+  "state": "ok",
+  "sentences": [
+   {
+    "text": "Memory approvals were on (memory.write_approval), so the save was only staged for approval and not written to MEMORY.md.",
+    "source_ids": [
+     "m3"
+    ]
+   },
+   {
+    "text": "The tool result said \"Not yet saved\" and pointed to /memory pending, and the line sits in the pending folder as an add, not in the memory file.",
+    "source_ids": [
+     "m3",
+     "f-pending-1"
+    ]
+   },
+   {
+    "text": "A staged save can still show the title Saved to memory with a check mark, because the tool reported success, so the row title alone doesn't prove the save.",
+    "source_ids": [
+     "idea-11",
+     "asof-6"
+    ]
+   },
+   {
+    "text": "Review the waiting save with /memory pending. The new chat didn't know the fact, which fits it never reaching the file.",
+    "source_ids": [
+     "idea-38",
+     "m5"
+    ]
+   }
+  ],
+  "not_in_sources": false,
+  "draft_for_practice_chat": "",
+  "sends": false,
+  "model": "claude-sonnet-5-5",
+  "ms": 5831,
+  "held_back": false,
+  "tries": 1,
+  "help": {
+   "key": "hints",
+   "words": "3 hints used",
+   "hunt_helps": 3,
+   "all_helps": 5,
+   "used": [
+    {
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "where",
+     "rung": 2,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "explain",
+     "rung": null,
+     "step": "compare",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "compare",
+     "at": "2026-10-03T09:00:00+00:00"
+    }
+   ]
+  }
+ },
+ "ask_not_covered": {
+  "state": "ok",
+  "sentences": [],
+  "not_in_sources": true,
+  "draft_for_practice_chat": "How do I connect Slack to Hermes?",
+  "sends": false,
+  "model": "claude-sonnet-5-5",
+  "ms": 4368,
+  "held_back": false,
+  "tries": 1,
+  "help": {
+   "key": "hints",
+   "words": "3 hints used",
+   "hunt_helps": 3,
+   "all_helps": 6,
+   "used": [
+    {
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "where",
+     "rung": 2,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "explain",
+     "rung": null,
+     "step": "compare",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "compare",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "compare",
+     "at": "2026-10-03T09:00:00+00:00"
+    }
+   ]
+  }
+ },
+ "guide_fix": {
+  "enabled": true,
+  "off_reason": null,
+  "off_words": "",
+  "step": "fix",
+  "mission_id": "f.memory",
+  "starters": [
+   "What do the two fix commands actually do?",
+   "How do I know the line really landed in MEMORY.md?",
+   "Should I turn this setting off, or keep it on and check each save?"
+  ],
+  "help": {
+   "key": "hints",
+   "words": "3 hints used",
+   "hunt_helps": 3,
+   "all_helps": 6,
+   "used": [
+    {
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "where",
+     "rung": 2,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "explain",
+     "rung": null,
+     "step": "compare",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "compare",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "compare",
+     "at": "2026-10-03T09:00:00+00:00"
+    }
+   ]
+  },
+  "ladder": {
+   "nudge": {
+    "event_id": "m3",
+    "model": "claude-sonnet-5-5",
+    "ms": 6617,
+    "source": "model",
+    "state": "ready",
+    "text": "At 03:53 the memory tool row says \"Saved to memory\". Open that row and read what it says came back. Does it say your Harbor Bakery fact was really kept?",
+    "tokens": {
+     "input": 1922,
+     "output": 73,
+     "total": 1995
+    }
+   },
+   "where": {
+    "available": true,
+    "text": "Go back to the chat where you asked Hermes to remember the fact. Open the memory row and read every line of it, not just its title."
+   },
+   "reveal": {
+    "available": true,
+    "opens": "compare"
+   }
+  },
+  "explain": [
+   {
+    "check_id": "memory_line",
+    "model": "claude-sonnet-5-5",
+    "ms": 5100,
+    "sentences": [
+     "Field Academy made memory saves wait for approval.",
+     "Open the pending folder in the practice profile and read what is waiting there."
+    ],
+    "source": "model",
+    "state": "ready"
+   },
+   {
+    "check_id": "fresh_use",
+    "model": "claude-sonnet-5-5",
+    "ms": 5122,
+    "sentences": [
+     "Field Academy made memory saves wait for approval.",
+     "Open the pending folder in the practice profile and read what is waiting there."
+    ],
+    "source": "model",
+    "state": "ready"
+   }
+  ],
+  "pins": [
+   {
+    "event_id": "m3",
+    "kept": null,
+    "source": "model",
+    "why": "Saved rows open collapsed, so expand one and read its first word, 'Staged', before trusting the title above it."
+   },
+   {
+    "event_id": "m5",
+    "kept": null,
+    "source": "model",
+    "why": "A fresh chat asked which software Harbor Bakery uses, so the fact from your first chat never reached it."
+   },
+   {
+    "event_id": "c4",
+    "kept": null,
+    "source": "model",
+    "why": "This new chat started with a blank slate, which is the right place to test whether memory really carries over."
+   }
+  ],
+  "do_it_with_me": {
+   "commands": [
+    "/memory pending",
+    "/memory approve e79e83a9"
+   ],
+   "why": {
+    "state": "ready",
+    "text": "The first command shows the list of saves waiting for your okay, and the second okays just the one save with that id, so it gets stored while others keep waiting.",
+    "source": "model"
+   },
+   "sends": false
+  }
+ },
+ "help_do_it_with_me": {
+  "entry": {
+   "kind": "help",
+   "hash": "2aab44cf0c4134cf55a3bc6db145fbd6b9a885078ea6ebd2d2501e86760eca7c",
+   "body": {
+    "kind": "do_it_with_me",
+    "step": "fix",
+    "mission": "f.memory",
+    "at": "2026-10-03T09:00:00+00:00"
+   }
+  },
+  "shown": {
+   "commands": [
+    "/memory pending",
+    "/memory approve e79e83a9"
+   ],
+   "why": {
+    "model": "claude-sonnet-5-5",
+    "ms": 2427,
+    "source": "model",
+    "state": "ready",
+    "text": "The first command shows the list of saves waiting for your okay, and the second okays just the one save with that id, so it gets stored while others keep waiting."
+   },
+   "sends": false
+  },
+  "help": {
+   "key": "hints",
+   "words": "3 hints used",
+   "hunt_helps": 3,
+   "all_helps": 7,
+   "used": [
+    {
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "where",
+     "rung": 2,
+     "step": "check",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "explain",
+     "rung": null,
+     "step": "compare",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "compare",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "ask",
+     "rung": null,
+     "step": "compare",
+     "at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "do_it_with_me",
+     "rung": null,
+     "step": "fix",
+     "at": "2026-10-03T09:00:00+00:00"
+    }
+   ]
+  }
+ },
+ "grade_ok": {
+  "state": "ok",
+  "level": 2,
+  "level_words": "Level 2 of 4",
+  "pass_level": 3,
+  "passed": false,
+  "right": "You spotted that a save can be staged for approval and not yet written, and you check the memory row for it.",
+  "missing": "Only one cause is really explained; the wrong-profile and full-memory causes are missing, and the file check has no reason attached.",
+  "add_next": "For each check, say what could have gone wrong and what you'd see, then add at least two more causes.",
+  "quote": "a save can be staged for approval and not written yet",
+  "answer": "First I would open the memory row in the chat and read every line, because a save can be staged for approval and not written yet. Then I would open MEMORY.md in the practice profile and look for the line. Last, I would start a fresh chat and ask about it without saying it again.",
+  "model": "claude-sonnet-5-5",
+  "ms": 7239,
+  "tokens": {
+   "input": 1931,
+   "output": 376,
+   "total": 2307
+  },
+  "ladder": {
+   "level": 1,
+   "misses": 1,
+   "missing": [
+    {
+     "id": "level",
+     "what": "You spotted that a save can be staged for approval and not yet written, and you check the memory row for it. Only one cause is really explained; the wrong-profile and full-memory causes are missing, and the file check has no reason attached. For each check, say what could have gone wrong and what you'd see, then add at least two more causes."
+    }
+   ],
+   "hint": "",
+   "example": "",
+   "focus": "level",
+   "retry": true,
+   "headline": "1 thing is missing. Start with the first one, then check again."
+  }
+ },
+ "first_flight_start": {
+  "attempt": {
+   "id": 1,
+   "mission_id": "f.memory",
+   "attempt_no": 1,
+   "level": "beginner",
+   "status": "open",
+   "started_at": "2026-10-03T09:00:00+00:00",
+   "frozen_at": "",
+   "finished_at": "",
+   "profile": ""
+  },
+  "steps": [
+   {
+    "id": "recall",
+    "status": "skipped"
+   },
+   {
+    "id": "claim",
+    "status": "skipped"
+   },
+   {
+    "id": "standard",
+    "status": "done"
+   },
+   {
+    "id": "predict",
+    "status": "open"
+   },
+   {
+    "id": "idea",
+    "status": "locked"
+   },
+   {
+    "id": "expert",
+    "status": "locked"
+   },
+   {
+    "id": "lab",
+    "status": "locked"
+   },
+   {
+    "id": "evidence",
+    "status": "locked"
+   },
+   {
+    "id": "check",
+    "status": "locked"
+   },
+   {
+    "id": "compare",
+    "status": "locked"
+   },
+   {
+    "id": "fix_transfer",
+    "status": "locked"
+   },
+   {
+    "id": "record",
+    "status": "locked"
+   }
+  ],
+  "entries": [
+   {
+    "kind": "first_flight",
+    "body": {
+     "plants_rule": "always write_approval",
+     "skips": [
+      "recall",
+      "claim"
+     ],
+     "snag": "chosen for first flight",
+     "words": "Began as a first flight; snag chosen for first flight"
+    },
+    "created_at": "2026-10-03T09:00:00+00:00"
+   },
+   {
+    "kind": "standard",
+    "body": {
+     "checks": [
+      {
+       "id": "s1",
+       "text": "The fact is in the memory file of the profile you used, as one short line."
+      },
+      {
+       "id": "s2",
+       "text": "A brand-new chat uses the fact without you mentioning it."
+      },
+      {
+       "id": "s3",
+       "text": "You can say which kind of memory holds it, and why that kind."
+      },
+      {
+       "id": "s4",
+       "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+      }
+     ]
+    },
+    "created_at": "2026-10-03T09:00:00+00:00"
+   }
+  ],
+  "standard_changes": [],
+  "lab": {
+   "profiles": [
+    "a"
+   ],
+   "body": "The box above lists two notes already in this profile's memory that its owner can't lose. Whatever happens to the other notes, those two stay.\n\n1. Pick one real fact Hermes should know about how you work: a deadline, a preference, a tool you use. Keep it to one line.\n2. Press **Open practice chat** and ask Hermes to save it to memory.\n3. Prove each of the four checks above. How you prove them is up to you. For a new chat, press **Open practice chat** again. For the file, press **Show memory file**; it shows both `MEMORY.md` and `USER.md`.\n\nThe practice setup has one snag waiting that can block your save or cost you a note. If the file and the new chat don't agree with what Hermes told you, find the reason before you press Check.\n\nWhen you're done, press **Save what I did** below. Then score yourself, and run the checks on the Check step.",
+   "after_try": {
+    "needed": [],
+    "done": true
+   }
+  },
+  "runs": {},
+  "explain": {
+   "submitted": 0,
+   "graded": 0,
+   "waiting": false,
+   "level": null,
+   "passed": null,
+   "feedback": "",
+   "pass_level": 3,
+   "answer": "",
+   "checked_by": "your Hermes graded it"
+  },
+  "record": null,
+  "recall_from": [
+   {
+    "mission": "f.loop",
+    "title": "Check whether Hermes really did what it says",
+    "order": 1,
+    "done": false
+   },
+   {
+    "mission": "f.cost",
+    "title": "See what a chat costs, and cut it",
+    "order": 2,
+    "done": false
+   }
+  ],
+  "test_out": {
+   "on": false,
+   "passed": null
+  },
+  "first_flight": {
+   "on": true,
+   "words": "Began as a first flight; snag chosen for first flight",
+   "skipped": [
+    "recall",
+    "claim"
+   ],
+   "snag": "chosen for first flight",
+   "guess": {
+    "question": "Where do you think Hermes will trip?",
+    "answers": [
+     {
+      "id": "save",
+      "label": "Saving the fact when I ask"
+     },
+     {
+      "id": "file",
+      "label": "Putting it in the right memory file"
+     },
+     {
+      "id": "new_chat",
+      "label": "Using it in a brand-new chat"
+     },
+     {
+      "id": "nowhere",
+      "label": "Nowhere. It will just work."
+     }
+    ],
+    "confidence": [
+     {
+      "id": "low",
+      "label": "Not sure"
+     },
+     {
+      "id": "medium",
+      "label": "Fairly sure"
+     },
+     {
+      "id": "high",
+      "label": "Sure"
+     }
+    ]
+   },
+   "guessed": null,
+   "guide": "opens after you score yourself"
+  },
+  "protected_notes": []
+ },
+ "first_flight_info": {
+  "mission_id": "f.memory",
+  "guess": {
+   "question": "Where do you think Hermes will trip?",
+   "answers": [
+    {
+     "id": "save",
+     "label": "Saving the fact when I ask"
+    },
+    {
+     "id": "file",
+     "label": "Putting it in the right memory file"
+    },
+    {
+     "id": "new_chat",
+     "label": "Using it in a brand-new chat"
+    },
+    {
+     "id": "nowhere",
+     "label": "Nowhere. It will just work."
+    }
+   ],
+   "confidence": [
+    {
+     "id": "low",
+     "label": "Not sure"
+    },
+    {
+     "id": "medium",
+     "label": "Fairly sure"
+    },
+    {
+     "id": "high",
+     "label": "Sure"
+    }
+   ]
+  },
+  "words": "Began as a first flight; snag chosen for first flight",
+  "guide": "The Field guide opens after you answer Did it work?"
+ },
+ "first_flight_guide_locked": {
+  "enabled": false,
+  "off_reason": "first_flight_locked",
+  "off_words": "The Field guide opens after you answer Did it work?",
+  "step": "predict",
+  "mission_id": "f.memory",
+  "starters": [],
+  "help": {
+   "key": "own",
+   "words": "No hints used",
+   "hunt_helps": 0,
+   "all_helps": 0,
+   "used": []
+  },
+  "ladder": {
+   "nudge": {
+    "state": "not_started",
+    "text": ""
+   },
+   "where": {
+    "available": false,
+    "text": ""
+   },
+   "reveal": {
+    "available": false
+   }
+  },
+  "explain": [],
+  "pins": [],
+  "do_it_with_me": null
+ },
+ "replay_empty": {
+  "attempt_id": 1,
+  "mission_id": "f.memory",
+  "lanes": [
+   {
+    "id": "chat",
+    "label": "In your chat"
+   },
+   {
+    "id": "files",
+    "label": "In Hermes's files"
+   }
+  ],
+  "bracket": null,
+  "snag_found_from": "staged_flag",
+  "events": [],
+  "started_at": null,
+  "ended_at": null,
+  "words": "Your replay fills in once you chat in your practice Hermes. Until then, watch a sample run.",
+  "state": "empty"
+ },
+ "replay_schema_changed": {
+  "attempt_id": 1,
+  "mission_id": "f.memory",
+  "lanes": [
+   {
+    "id": "chat",
+    "label": "In your chat"
+   },
+   {
+    "id": "files",
+    "label": "In Hermes's files"
+   }
+  ],
+  "bracket": null,
+  "snag_found_from": "staged_flag",
+  "events": [],
+  "started_at": null,
+  "ended_at": null,
+  "words": "Hermes changed how it stores chats. Your checks still work.",
+  "state": "schema_changed"
+ },
+ "run_log": {
+  "model": "claude-sonnet-5-5",
+  "writer": "claude -p --model sonnet (standing in for Hermes)",
+  "when": "2026-11-09T11:50:23-0600",
+  "attempt_id": 1,
+  "timings_s": {
+   "check_route": 0.03,
+   "nudge_ready_after_check": 6.79,
+   "help_nudge_press": 0.01,
+   "ask_hunt": 16.08,
+   "help_where_press": 0.0,
+   "explain_ready_after_compare_opened": 5.3,
+   "replay_route": 0.0,
+   "pins_make": 4.66,
+   "help_explain_press": 0.01,
+   "ask_covered": 5.85,
+   "ask_not_covered": 4.39,
+   "why_ready_after_compare_opened": 20.23,
+   "help_do_it_with_me_press": 0.0,
+   "grade": 7.26
+  },
+  "model_calls": [
+   {
+    "seconds": 6.61,
+    "model": "claude-sonnet-5-5",
+    "prompt_chars": 3072,
+    "reply": "{\"question\": \"At 03:53 the memory tool row says \\\"Saved to memory\\\". Open that row and read what it says came back. Does it say your Harbor Bakery fact was really kept?\", \"event_id\": \"m3\"}"
+   },
+   {
+    "seconds": 8.14,
+    "model": "claude-sonnet-5-5",
+    "prompt_chars": 10237,
+    "reply": "{\"sentences\":[{\"text\":\"The new chat didn't know the fact: it asked which accounting software Harbor Bakery uses. A new chat reads memory when it starts, so the fact most likely never reached the file.\",\"source_ids\":[\"m5\",\"idea-13\"]},{\"text\":\"The row was titled \\\"Saved to memory\\\", but that title proves nothing. A save still waiting for approval gets the same title and a check mark, and expanding the row would say it was staged and not saved yet.\",\"source_ids\":[\"m3\",\"idea-11\",\"asof-6\",\"asof-7\"]},{\"text\":\"The log doesn't show what the row returned, so I can't say for certain which problem it was"
+   },
+   {
+    "seconds": 7.92,
+    "model": "claude-sonnet-5-5",
+    "prompt_chars": 10613,
+    "reply": "{\"sentences\":[{\"text\":\"A row titled \\\"Saved to memory\\\" with a check mark doesn't prove the fact was saved, so the answer isn't in the title.\",\"source_ids\":[\"idea-11\",\"idea-27\"]},{\"text\":\"In your chat, expand that memory row at 03:53 and read what it returned. A real save shows a percentage and a character count there.\",\"source_ids\":[\"idea-10\",\"m3\"]},{\"text\":\"Then press Show memory file and look for the Harbor Bakery line in the file itself.\",\"source_ids\":[\"idea-10\"]},{\"text\":\"Compare what the row says and what the file shows with Hermes's question about the software in your new chat at 03:55."
+   },
+   {
+    "seconds": 2.43,
+    "model": "claude-sonnet-5-5",
+    "prompt_chars": 964,
+    "reply": "{\"why\":\"The first command shows the list of saves waiting for your okay, and the second okays just the one save with that id, so it gets stored while others keep waiting.\"}"
+   },
+   {
+    "seconds": 5.1,
+    "model": "claude-sonnet-5-5",
+    "prompt_chars": 1722,
+    "reply": "{\"sentences\": [\"Field Academy made memory saves wait for approval.\", \"Open the pending folder in the practice profile and read what is waiting there.\"]}"
+   },
+   {
+    "seconds": 5.12,
+    "model": "claude-sonnet-5-5",
+    "prompt_chars": 1693,
+    "reply": "{\"sentences\": [\"Field Academy made memory saves wait for approval.\", \"Open the pending folder in the practice profile and read what is waiting there.\"]}"
+   },
+   {
+    "seconds": 4.65,
+    "model": "claude-sonnet-5-5",
+    "prompt_chars": 4076,
+    "reply": "{\"pins\":[{\"event_id\":\"m3\",\"why\":\"Saved rows open collapsed, so expand one and read its first word, 'Staged', before trusting the title above it.\"},{\"event_id\":\"m5\",\"why\":\"A fresh chat asked which software Harbor Bakery uses, so the fact from your first chat never reached it.\"},{\"event_id\":\"c4\",\"why\":\"This new chat started with a blank slate, which is the right place to test whether memory really carries over.\"}]}"
+   },
+   {
+    "seconds": 5.83,
+    "model": "claude-sonnet-5-5",
+    "prompt_chars": 10408,
+    "reply": "{\"sentences\":[{\"text\":\"Memory approvals were on (memory.write_approval), so the save was only staged for approval and not written to MEMORY.md.\",\"source_ids\":[\"m3\"]},{\"text\":\"The tool result said \\\"Not yet saved\\\" and pointed to /memory pending, and the line sits in the pending folder as an add, not in the memory file.\",\"source_ids\":[\"m3\",\"f-pending-1\"]},{\"text\":\"A staged save can still show the title Saved to memory with a check mark, because the tool reported success, so the row title alone doesn't prove the save.\",\"source_ids\":[\"idea-11\",\"asof-6\"]},{\"text\":\"Review the waiting save with /mem"
+   },
+   {
+    "seconds": 4.37,
+    "model": "claude-sonnet-5-5",
+    "prompt_chars": 10400,
+    "reply": "{\"sentences\": [], \"not_in_sources\": true}"
+   },
+   {
+    "seconds": 7.24,
+    "model": "claude-sonnet-5-5",
+    "prompt_chars": 3282,
+    "reply": "{\"level\":2,\"right\":\"You spotted that a save can be staged for approval and not yet written, and you check the memory row for it.\",\"missing\":\"Only one cause is really explained; the wrong-profile and full-memory causes are missing, and the file check has no reason attached.\",\"add_next\":\"For each check, say what could have gone wrong and what you'd see, then add at least two more causes.\",\"quote\":\"a save can be staged for approval and not written yet\"}"
+   }
+  ]
+ },
+ "fixtures": {
+  "attempt_at_check": {
+   "attempt": {
+    "id": 1,
+    "mission_id": "f.memory",
+    "attempt_no": 1,
+    "level": "beginner",
+    "status": "lab",
+    "started_at": "2026-10-03T09:00:00+00:00",
+    "frozen_at": "2026-10-03T09:00:00+00:00",
+    "finished_at": "",
+    "profile": "academy-practice"
+   },
+   "steps": [
+    {
+     "id": "recall",
+     "status": "skipped"
+    },
+    {
+     "id": "claim",
+     "status": "skipped"
+    },
+    {
+     "id": "standard",
+     "status": "done"
+    },
+    {
+     "id": "predict",
+     "status": "done"
+    },
+    {
+     "id": "idea",
+     "status": "open"
+    },
+    {
+     "id": "expert",
+     "status": "open"
+    },
+    {
+     "id": "lab",
+     "status": "done"
+    },
+    {
+     "id": "evidence",
+     "status": "done"
+    },
+    {
+     "id": "check",
+     "status": "done"
+    },
+    {
+     "id": "compare",
+     "status": "open"
+    },
+    {
+     "id": "fix_transfer",
+     "status": "locked"
+    },
+    {
+     "id": "record",
+     "status": "locked"
+    }
+   ],
+   "entries": [
+    {
+     "kind": "first_flight",
+     "body": {
+      "plants_rule": "always write_approval",
+      "skips": [
+       "recall",
+       "claim"
+      ],
+      "snag": "chosen for first flight",
+      "words": "Began as a first flight; snag chosen for first flight"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "standard",
+     "body": {
+      "checks": [
+       {
+        "id": "s1",
+        "text": "The fact is in the memory file of the profile you used, as one short line."
+       },
+       {
+        "id": "s2",
+        "text": "A brand-new chat uses the fact without you mentioning it."
+       },
+       {
+        "id": "s3",
+        "text": "You can say which kind of memory holds it, and why that kind."
+       },
+       {
+        "id": "s4",
+        "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+       }
+      ]
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "prediction",
+     "body": {
+      "checks": {
+       "s1": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s2": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s3": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s4": {
+        "confidence": 90,
+        "expect_pass": true
+       }
+      },
+      "guess": {
+       "answer": "nowhere",
+       "confidence": "high"
+      },
+      "where_wrong": "Where do you think Hermes will trip? Nowhere. It will just work."
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "lab_note",
+     "body": {
+      "fact": "Harbor Bakery uses QuickBooks Online; the other five use Xero",
+      "for": "first",
+      "key_term": "QuickBooks"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "self_score",
+     "body": {
+      "checks": {
+       "s1": {
+        "pass": true
+       },
+       "s2": {
+        "pass": true
+       },
+       "s3": {
+        "pass": true
+       },
+       "s4": {
+        "pass": true
+       }
+      }
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    }
+   ],
+   "standard_changes": [],
+   "lab": {
+    "profiles": [
+     "a"
+    ],
+    "body": "The box above lists two notes already in this profile's memory that its owner can't lose. Whatever happens to the other notes, those two stay.\n\n1. Pick one real fact Hermes should know about how you work: a deadline, a preference, a tool you use. Keep it to one line.\n2. Press **Open practice chat** and ask Hermes to save it to memory.\n3. Prove each of the four checks above. How you prove them is up to you. For a new chat, press **Open practice chat** again. For the file, press **Show memory file**; it shows both `MEMORY.md` and `USER.md`.\n\nThe practice setup has one snag waiting that can block your save or cost you a note. If the file and the new chat don't agree with what Hermes told you, find the reason before you press Check.\n\nWhen you're done, press **Save what I did** below. Then score yourself, and run the checks on the Check step.",
+    "after_try": {
+     "needed": [],
+     "done": true
+    }
+   },
+   "runs": {
+    "first": {
+     "phase": "first",
+     "passed": false,
+     "checks": [
+      {
+       "id": "memory_line",
+       "checked_by": "Field Academy read it",
+       "passed": false,
+       "title": "Your fact isn't in memory",
+       "detail": "No line in the practice profile's memory files holds your fact.",
+       "facts": [
+        {
+         "label": "MEMORY.md",
+         "value": "449 of 2,200 characters, 5 lines"
+        },
+        {
+         "label": "USER.md",
+         "value": "0 of 1,375 characters, 0 lines"
+        }
+       ],
+       "missing": [
+        {
+         "id": "no_line",
+         "what": "No line in the practice profile's memory files holds your fact."
+        }
+       ],
+       "readable": true
+      },
+      {
+       "id": "fresh_use",
+       "checked_by": "Field Academy read it",
+       "passed": false,
+       "title": "No new chat used the fact",
+       "detail": "No line in memory holds the fact, so a new chat had nothing to use.",
+       "facts": [],
+       "missing": [
+        {
+         "id": "not_saved",
+         "what": "No line in memory holds the fact, so a new chat had nothing to use."
+        }
+       ],
+       "readable": true
+      },
+      {
+       "id": "notes_kept",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "The notes already in memory are still there",
+       "detail": "Every note already in memory is still there, including the two the page asked you to keep.",
+       "facts": [
+        {
+         "label": "Notes Field Academy set up",
+         "value": "5"
+        },
+        {
+         "label": "Still there as written",
+         "value": "5"
+        },
+        {
+         "label": "Shortened",
+         "value": "0"
+        },
+        {
+         "label": "Gone",
+         "value": "0"
+        }
+       ],
+       "missing": [],
+       "readable": true
+      }
+     ],
+     "hidden": {
+      "count": 1,
+      "passed": 0
+     },
+     "at": "2026-10-03T09:00:00+00:00",
+     "runs": 1
+    }
+   },
+   "explain": {
+    "submitted": 0,
+    "graded": 0,
+    "waiting": false,
+    "level": null,
+    "passed": null,
+    "feedback": "",
+    "pass_level": 3,
+    "answer": "",
+    "checked_by": "your Hermes graded it"
+   },
+   "compare": {
+    "grid": [
+     {
+      "id": "s1",
+      "text": "The fact is in the memory file of the profile you used, as one short line.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s2",
+      "text": "A brand-new chat uses the fact without you mentioning it.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s3",
+      "text": "You can say which kind of memory holds it, and why that kind.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": null,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "rubric",
+      "checked_by": "your Hermes graded it"
+     },
+     {
+      "id": "s4",
+      "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     }
+    ],
+    "calibration": {
+     "per_check": [
+      {
+       "id": "s1",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s2",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s3",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": null,
+       "hit": null,
+       "self_gap": null
+      },
+      {
+       "id": "s4",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      }
+     ],
+     "checked": 3,
+     "hit_rate": 0.0,
+     "brier": 0.81,
+     "predicted_passes": 4,
+     "self_passes": 4,
+     "actual_passes": 0,
+     "signed_gap": 3
+    },
+    "plants": [
+     {
+      "kind": "write_approval",
+      "fired": true,
+      "caught": false,
+      "facts": [
+       {
+        "label": "Saves waiting for approval",
+        "value": "1"
+       },
+       {
+        "label": "Saves Hermes staged in a chat",
+        "value": "1"
+       },
+       {
+        "label": "memory.write_approval",
+        "value": "on"
+       }
+      ]
+     }
+    ]
+   },
+   "evidence": [],
+   "record": null,
+   "recall_from": [
+    {
+     "mission": "f.loop",
+     "title": "Check whether Hermes really did what it says",
+     "order": 1,
+     "done": false
+    },
+    {
+     "mission": "f.cost",
+     "title": "See what a chat costs, and cut it",
+     "order": 2,
+     "done": false
+    }
+   ],
+   "test_out": {
+    "on": false,
+    "passed": null
+   },
+   "first_flight": {
+    "on": true,
+    "words": "Began as a first flight; snag chosen for first flight",
+    "skipped": [
+     "recall",
+     "claim"
+    ],
+    "snag": "chosen for first flight",
+    "guess": {
+     "question": "Where do you think Hermes will trip?",
+     "answers": [
+      {
+       "id": "save",
+       "label": "Saving the fact when I ask"
+      },
+      {
+       "id": "file",
+       "label": "Putting it in the right memory file"
+      },
+      {
+       "id": "new_chat",
+       "label": "Using it in a brand-new chat"
+      },
+      {
+       "id": "nowhere",
+       "label": "Nowhere. It will just work."
+      }
+     ],
+     "confidence": [
+      {
+       "id": "low",
+       "label": "Not sure"
+      },
+      {
+       "id": "medium",
+       "label": "Fairly sure"
+      },
+      {
+       "id": "high",
+       "label": "Sure"
+      }
+     ]
+    },
+    "guessed": {
+     "answer": "nowhere",
+     "confidence": "high"
+    },
+    "guide": "opens after you score yourself"
+   },
+   "protected_notes": [
+    "The walk-in fridge is logged at 6:30 and 14:30; anything above 4 C is reported at once.",
+    "Refunds over 400 dollars need the owner's yes before they are sent."
+   ]
+  },
+  "attempt_at_compare": {
+   "attempt": {
+    "id": 1,
+    "mission_id": "f.memory",
+    "attempt_no": 1,
+    "level": "beginner",
+    "status": "lab",
+    "started_at": "2026-10-03T09:00:00+00:00",
+    "frozen_at": "2026-10-03T09:00:00+00:00",
+    "finished_at": "",
+    "profile": "academy-practice"
+   },
+   "steps": [
+    {
+     "id": "recall",
+     "status": "skipped"
+    },
+    {
+     "id": "claim",
+     "status": "skipped"
+    },
+    {
+     "id": "standard",
+     "status": "done"
+    },
+    {
+     "id": "predict",
+     "status": "done"
+    },
+    {
+     "id": "idea",
+     "status": "open"
+    },
+    {
+     "id": "expert",
+     "status": "open"
+    },
+    {
+     "id": "lab",
+     "status": "done"
+    },
+    {
+     "id": "evidence",
+     "status": "done"
+    },
+    {
+     "id": "check",
+     "status": "done"
+    },
+    {
+     "id": "compare",
+     "status": "open"
+    },
+    {
+     "id": "fix_transfer",
+     "status": "locked"
+    },
+    {
+     "id": "record",
+     "status": "locked"
+    }
+   ],
+   "entries": [
+    {
+     "kind": "first_flight",
+     "body": {
+      "plants_rule": "always write_approval",
+      "skips": [
+       "recall",
+       "claim"
+      ],
+      "snag": "chosen for first flight",
+      "words": "Began as a first flight; snag chosen for first flight"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "standard",
+     "body": {
+      "checks": [
+       {
+        "id": "s1",
+        "text": "The fact is in the memory file of the profile you used, as one short line."
+       },
+       {
+        "id": "s2",
+        "text": "A brand-new chat uses the fact without you mentioning it."
+       },
+       {
+        "id": "s3",
+        "text": "You can say which kind of memory holds it, and why that kind."
+       },
+       {
+        "id": "s4",
+        "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+       }
+      ]
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "prediction",
+     "body": {
+      "checks": {
+       "s1": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s2": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s3": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s4": {
+        "confidence": 90,
+        "expect_pass": true
+       }
+      },
+      "guess": {
+       "answer": "nowhere",
+       "confidence": "high"
+      },
+      "where_wrong": "Where do you think Hermes will trip? Nowhere. It will just work."
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "lab_note",
+     "body": {
+      "fact": "Harbor Bakery uses QuickBooks Online; the other five use Xero",
+      "for": "first",
+      "key_term": "QuickBooks"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "self_score",
+     "body": {
+      "checks": {
+       "s1": {
+        "pass": true
+       },
+       "s2": {
+        "pass": true
+       },
+       "s3": {
+        "pass": true
+       },
+       "s4": {
+        "pass": true
+       }
+      }
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "kind": "nudge",
+      "mission": "f.memory",
+      "rung": 1,
+      "source": "model",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "covered": true,
+      "hunt": true,
+      "kind": "ask",
+      "mission": "f.memory",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "kind": "where",
+      "mission": "f.memory",
+      "rung": 2,
+      "source": "course",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    }
+   ],
+   "standard_changes": [],
+   "lab": {
+    "profiles": [
+     "a"
+    ],
+    "body": "The box above lists two notes already in this profile's memory that its owner can't lose. Whatever happens to the other notes, those two stay.\n\n1. Pick one real fact Hermes should know about how you work: a deadline, a preference, a tool you use. Keep it to one line.\n2. Press **Open practice chat** and ask Hermes to save it to memory.\n3. Prove each of the four checks above. How you prove them is up to you. For a new chat, press **Open practice chat** again. For the file, press **Show memory file**; it shows both `MEMORY.md` and `USER.md`.\n\nThe practice setup has one snag waiting that can block your save or cost you a note. If the file and the new chat don't agree with what Hermes told you, find the reason before you press Check.\n\nWhen you're done, press **Save what I did** below. Then score yourself, and run the checks on the Check step.",
+    "after_try": {
+     "needed": [],
+     "done": true
+    }
+   },
+   "runs": {
+    "first": {
+     "phase": "first",
+     "passed": false,
+     "checks": [
+      {
+       "id": "memory_line",
+       "checked_by": "Field Academy read it",
+       "passed": false,
+       "title": "Your fact isn't in memory",
+       "detail": "No line in the practice profile's memory files holds your fact.",
+       "facts": [
+        {
+         "label": "MEMORY.md",
+         "value": "449 of 2,200 characters, 5 lines"
+        },
+        {
+         "label": "USER.md",
+         "value": "0 of 1,375 characters, 0 lines"
+        }
+       ],
+       "missing": [
+        {
+         "id": "no_line",
+         "what": "No line in the practice profile's memory files holds your fact."
+        }
+       ],
+       "readable": true
+      },
+      {
+       "id": "fresh_use",
+       "checked_by": "Field Academy read it",
+       "passed": false,
+       "title": "No new chat used the fact",
+       "detail": "No line in memory holds the fact, so a new chat had nothing to use.",
+       "facts": [],
+       "missing": [
+        {
+         "id": "not_saved",
+         "what": "No line in memory holds the fact, so a new chat had nothing to use."
+        }
+       ],
+       "readable": true
+      },
+      {
+       "id": "notes_kept",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "The notes already in memory are still there",
+       "detail": "Every note already in memory is still there, including the two the page asked you to keep.",
+       "facts": [
+        {
+         "label": "Notes Field Academy set up",
+         "value": "5"
+        },
+        {
+         "label": "Still there as written",
+         "value": "5"
+        },
+        {
+         "label": "Shortened",
+         "value": "0"
+        },
+        {
+         "label": "Gone",
+         "value": "0"
+        }
+       ],
+       "missing": [],
+       "readable": true
+      }
+     ],
+     "hidden": {
+      "count": 1,
+      "passed": 0
+     },
+     "at": "2026-10-03T09:00:00+00:00",
+     "runs": 1
+    }
+   },
+   "explain": {
+    "submitted": 0,
+    "graded": 0,
+    "waiting": false,
+    "level": null,
+    "passed": null,
+    "feedback": "",
+    "pass_level": 3,
+    "answer": "",
+    "checked_by": "your Hermes graded it"
+   },
+   "compare": {
+    "grid": [
+     {
+      "id": "s1",
+      "text": "The fact is in the memory file of the profile you used, as one short line.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s2",
+      "text": "A brand-new chat uses the fact without you mentioning it.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s3",
+      "text": "You can say which kind of memory holds it, and why that kind.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": null,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "rubric",
+      "checked_by": "your Hermes graded it"
+     },
+     {
+      "id": "s4",
+      "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     }
+    ],
+    "calibration": {
+     "per_check": [
+      {
+       "id": "s1",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s2",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s3",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": null,
+       "hit": null,
+       "self_gap": null
+      },
+      {
+       "id": "s4",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      }
+     ],
+     "checked": 3,
+     "hit_rate": 0.0,
+     "brier": 0.81,
+     "predicted_passes": 4,
+     "self_passes": 4,
+     "actual_passes": 0,
+     "signed_gap": 3
+    },
+    "plants": [
+     {
+      "kind": "write_approval",
+      "fired": true,
+      "caught": false,
+      "facts": [
+       {
+        "label": "Saves waiting for approval",
+        "value": "1"
+       },
+       {
+        "label": "Saves Hermes staged in a chat",
+        "value": "1"
+       },
+       {
+        "label": "memory.write_approval",
+        "value": "on"
+       }
+      ]
+     }
+    ]
+   },
+   "evidence": [],
+   "record": null,
+   "recall_from": [
+    {
+     "mission": "f.loop",
+     "title": "Check whether Hermes really did what it says",
+     "order": 1,
+     "done": false
+    },
+    {
+     "mission": "f.cost",
+     "title": "See what a chat costs, and cut it",
+     "order": 2,
+     "done": false
+    }
+   ],
+   "test_out": {
+    "on": false,
+    "passed": null
+   },
+   "first_flight": {
+    "on": true,
+    "words": "Began as a first flight; snag chosen for first flight",
+    "skipped": [
+     "recall",
+     "claim"
+    ],
+    "snag": "chosen for first flight",
+    "guess": {
+     "question": "Where do you think Hermes will trip?",
+     "answers": [
+      {
+       "id": "save",
+       "label": "Saving the fact when I ask"
+      },
+      {
+       "id": "file",
+       "label": "Putting it in the right memory file"
+      },
+      {
+       "id": "new_chat",
+       "label": "Using it in a brand-new chat"
+      },
+      {
+       "id": "nowhere",
+       "label": "Nowhere. It will just work."
+      }
+     ],
+     "confidence": [
+      {
+       "id": "low",
+       "label": "Not sure"
+      },
+      {
+       "id": "medium",
+       "label": "Fairly sure"
+      },
+      {
+       "id": "high",
+       "label": "Sure"
+      }
+     ]
+    },
+    "guessed": {
+     "answer": "nowhere",
+     "confidence": "high"
+    },
+    "guide": "opens after you score yourself"
+   },
+   "protected_notes": [
+    "The walk-in fridge is logged at 6:30 and 14:30; anything above 4 C is reported at once.",
+    "Refunds over 400 dollars need the owner's yes before they are sent."
+   ]
+  },
+  "attempt_at_fix": {
+   "attempt": {
+    "id": 1,
+    "mission_id": "f.memory",
+    "attempt_no": 1,
+    "level": "beginner",
+    "status": "lab",
+    "started_at": "2026-10-03T09:00:00+00:00",
+    "frozen_at": "2026-10-03T09:00:00+00:00",
+    "finished_at": "",
+    "profile": "academy-practice"
+   },
+   "steps": [
+    {
+     "id": "recall",
+     "status": "skipped"
+    },
+    {
+     "id": "claim",
+     "status": "skipped"
+    },
+    {
+     "id": "standard",
+     "status": "done"
+    },
+    {
+     "id": "predict",
+     "status": "done"
+    },
+    {
+     "id": "idea",
+     "status": "open"
+    },
+    {
+     "id": "expert",
+     "status": "open"
+    },
+    {
+     "id": "lab",
+     "status": "done"
+    },
+    {
+     "id": "evidence",
+     "status": "done"
+    },
+    {
+     "id": "check",
+     "status": "done"
+    },
+    {
+     "id": "compare",
+     "status": "done"
+    },
+    {
+     "id": "fix_transfer",
+     "status": "open"
+    },
+    {
+     "id": "record",
+     "status": "locked"
+    }
+   ],
+   "entries": [
+    {
+     "kind": "first_flight",
+     "body": {
+      "plants_rule": "always write_approval",
+      "skips": [
+       "recall",
+       "claim"
+      ],
+      "snag": "chosen for first flight",
+      "words": "Began as a first flight; snag chosen for first flight"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "standard",
+     "body": {
+      "checks": [
+       {
+        "id": "s1",
+        "text": "The fact is in the memory file of the profile you used, as one short line."
+       },
+       {
+        "id": "s2",
+        "text": "A brand-new chat uses the fact without you mentioning it."
+       },
+       {
+        "id": "s3",
+        "text": "You can say which kind of memory holds it, and why that kind."
+       },
+       {
+        "id": "s4",
+        "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+       }
+      ]
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "prediction",
+     "body": {
+      "checks": {
+       "s1": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s2": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s3": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s4": {
+        "confidence": 90,
+        "expect_pass": true
+       }
+      },
+      "guess": {
+       "answer": "nowhere",
+       "confidence": "high"
+      },
+      "where_wrong": "Where do you think Hermes will trip? Nowhere. It will just work."
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "lab_note",
+     "body": {
+      "fact": "Harbor Bakery uses QuickBooks Online; the other five use Xero",
+      "for": "first",
+      "key_term": "QuickBooks"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "self_score",
+     "body": {
+      "checks": {
+       "s1": {
+        "pass": true
+       },
+       "s2": {
+        "pass": true
+       },
+       "s3": {
+        "pass": true
+       },
+       "s4": {
+        "pass": true
+       }
+      }
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "kind": "nudge",
+      "mission": "f.memory",
+      "rung": 1,
+      "source": "model",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "covered": true,
+      "hunt": true,
+      "kind": "ask",
+      "mission": "f.memory",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "kind": "where",
+      "mission": "f.memory",
+      "rung": 2,
+      "source": "course",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "checks": [
+       "memory_line",
+       "fresh_use"
+      ],
+      "kind": "explain",
+      "mission": "f.memory",
+      "step": "compare"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "covered": true,
+      "hunt": false,
+      "kind": "ask",
+      "mission": "f.memory",
+      "step": "compare"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "covered": false,
+      "hunt": false,
+      "kind": "ask",
+      "mission": "f.memory",
+      "step": "compare"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "gap_note",
+     "body": {
+      "text": "I trusted Saved to memory. Expanded, the row said the save was staged for approval."
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    }
+   ],
+   "standard_changes": [],
+   "lab": {
+    "profiles": [
+     "a"
+    ],
+    "body": "The box above lists two notes already in this profile's memory that its owner can't lose. Whatever happens to the other notes, those two stay.\n\n1. Pick one real fact Hermes should know about how you work: a deadline, a preference, a tool you use. Keep it to one line.\n2. Press **Open practice chat** and ask Hermes to save it to memory.\n3. Prove each of the four checks above. How you prove them is up to you. For a new chat, press **Open practice chat** again. For the file, press **Show memory file**; it shows both `MEMORY.md` and `USER.md`.\n\nThe practice setup has one snag waiting that can block your save or cost you a note. If the file and the new chat don't agree with what Hermes told you, find the reason before you press Check.\n\nWhen you're done, press **Save what I did** below. Then score yourself, and run the checks on the Check step.",
+    "after_try": {
+     "needed": [],
+     "done": true
+    }
+   },
+   "runs": {
+    "first": {
+     "phase": "first",
+     "passed": false,
+     "checks": [
+      {
+       "id": "memory_line",
+       "checked_by": "Field Academy read it",
+       "passed": false,
+       "title": "Your fact isn't in memory",
+       "detail": "No line in the practice profile's memory files holds your fact.",
+       "facts": [
+        {
+         "label": "MEMORY.md",
+         "value": "449 of 2,200 characters, 5 lines"
+        },
+        {
+         "label": "USER.md",
+         "value": "0 of 1,375 characters, 0 lines"
+        }
+       ],
+       "missing": [
+        {
+         "id": "no_line",
+         "what": "No line in the practice profile's memory files holds your fact."
+        }
+       ],
+       "readable": true
+      },
+      {
+       "id": "fresh_use",
+       "checked_by": "Field Academy read it",
+       "passed": false,
+       "title": "No new chat used the fact",
+       "detail": "No line in memory holds the fact, so a new chat had nothing to use.",
+       "facts": [],
+       "missing": [
+        {
+         "id": "not_saved",
+         "what": "No line in memory holds the fact, so a new chat had nothing to use."
+        }
+       ],
+       "readable": true
+      },
+      {
+       "id": "notes_kept",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "The notes already in memory are still there",
+       "detail": "Every note already in memory is still there, including the two the page asked you to keep.",
+       "facts": [
+        {
+         "label": "Notes Field Academy set up",
+         "value": "5"
+        },
+        {
+         "label": "Still there as written",
+         "value": "5"
+        },
+        {
+         "label": "Shortened",
+         "value": "0"
+        },
+        {
+         "label": "Gone",
+         "value": "0"
+        }
+       ],
+       "missing": [],
+       "readable": true
+      }
+     ],
+     "hidden": {
+      "count": 1,
+      "passed": 0
+     },
+     "at": "2026-10-03T09:00:00+00:00",
+     "runs": 1
+    }
+   },
+   "explain": {
+    "submitted": 0,
+    "graded": 0,
+    "waiting": false,
+    "level": null,
+    "passed": null,
+    "feedback": "",
+    "pass_level": 3,
+    "answer": "",
+    "checked_by": "your Hermes graded it"
+   },
+   "compare": {
+    "grid": [
+     {
+      "id": "s1",
+      "text": "The fact is in the memory file of the profile you used, as one short line.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s2",
+      "text": "A brand-new chat uses the fact without you mentioning it.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s3",
+      "text": "You can say which kind of memory holds it, and why that kind.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": null,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "rubric",
+      "checked_by": "your Hermes graded it"
+     },
+     {
+      "id": "s4",
+      "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     }
+    ],
+    "calibration": {
+     "per_check": [
+      {
+       "id": "s1",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s2",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s3",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": null,
+       "hit": null,
+       "self_gap": null
+      },
+      {
+       "id": "s4",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      }
+     ],
+     "checked": 3,
+     "hit_rate": 0.0,
+     "brier": 0.81,
+     "predicted_passes": 4,
+     "self_passes": 4,
+     "actual_passes": 0,
+     "signed_gap": 3
+    },
+    "plants": [
+     {
+      "kind": "write_approval",
+      "fired": true,
+      "caught": false,
+      "facts": [
+       {
+        "label": "Saves waiting for approval",
+        "value": "1"
+       },
+       {
+        "label": "Saves Hermes staged in a chat",
+        "value": "1"
+       },
+       {
+        "label": "memory.write_approval",
+        "value": "on"
+       }
+      ]
+     }
+    ]
+   },
+   "evidence": [],
+   "record": null,
+   "recall_from": [
+    {
+     "mission": "f.loop",
+     "title": "Check whether Hermes really did what it says",
+     "order": 1,
+     "done": false
+    },
+    {
+     "mission": "f.cost",
+     "title": "See what a chat costs, and cut it",
+     "order": 2,
+     "done": false
+    }
+   ],
+   "test_out": {
+    "on": false,
+    "passed": null
+   },
+   "first_flight": {
+    "on": true,
+    "words": "Began as a first flight; snag chosen for first flight",
+    "skipped": [
+     "recall",
+     "claim"
+    ],
+    "snag": "chosen for first flight",
+    "guess": {
+     "question": "Where do you think Hermes will trip?",
+     "answers": [
+      {
+       "id": "save",
+       "label": "Saving the fact when I ask"
+      },
+      {
+       "id": "file",
+       "label": "Putting it in the right memory file"
+      },
+      {
+       "id": "new_chat",
+       "label": "Using it in a brand-new chat"
+      },
+      {
+       "id": "nowhere",
+       "label": "Nowhere. It will just work."
+      }
+     ],
+     "confidence": [
+      {
+       "id": "low",
+       "label": "Not sure"
+      },
+      {
+       "id": "medium",
+       "label": "Fairly sure"
+      },
+      {
+       "id": "high",
+       "label": "Sure"
+      }
+     ]
+    },
+    "guessed": {
+     "answer": "nowhere",
+     "confidence": "high"
+    },
+    "guide": "opens after you score yourself"
+   },
+   "protected_notes": [
+    "The walk-in fridge is logged at 6:30 and 14:30; anything above 4 C is reported at once.",
+    "Refunds over 400 dollars need the owner's yes before they are sent."
+   ]
+  },
+  "attempt_after_grade": {
+   "attempt": {
+    "id": 1,
+    "mission_id": "f.memory",
+    "attempt_no": 1,
+    "level": "beginner",
+    "status": "lab",
+    "started_at": "2026-10-03T09:00:00+00:00",
+    "frozen_at": "2026-10-03T09:00:00+00:00",
+    "finished_at": "",
+    "profile": "academy-practice"
+   },
+   "steps": [
+    {
+     "id": "recall",
+     "status": "skipped"
+    },
+    {
+     "id": "claim",
+     "status": "skipped"
+    },
+    {
+     "id": "standard",
+     "status": "done"
+    },
+    {
+     "id": "predict",
+     "status": "done"
+    },
+    {
+     "id": "idea",
+     "status": "open"
+    },
+    {
+     "id": "expert",
+     "status": "open"
+    },
+    {
+     "id": "lab",
+     "status": "done"
+    },
+    {
+     "id": "evidence",
+     "status": "done"
+    },
+    {
+     "id": "check",
+     "status": "done"
+    },
+    {
+     "id": "compare",
+     "status": "done"
+    },
+    {
+     "id": "fix_transfer",
+     "status": "open"
+    },
+    {
+     "id": "record",
+     "status": "locked"
+    }
+   ],
+   "entries": [
+    {
+     "kind": "first_flight",
+     "body": {
+      "plants_rule": "always write_approval",
+      "skips": [
+       "recall",
+       "claim"
+      ],
+      "snag": "chosen for first flight",
+      "words": "Began as a first flight; snag chosen for first flight"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "standard",
+     "body": {
+      "checks": [
+       {
+        "id": "s1",
+        "text": "The fact is in the memory file of the profile you used, as one short line."
+       },
+       {
+        "id": "s2",
+        "text": "A brand-new chat uses the fact without you mentioning it."
+       },
+       {
+        "id": "s3",
+        "text": "You can say which kind of memory holds it, and why that kind."
+       },
+       {
+        "id": "s4",
+        "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+       }
+      ]
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "prediction",
+     "body": {
+      "checks": {
+       "s1": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s2": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s3": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s4": {
+        "confidence": 90,
+        "expect_pass": true
+       }
+      },
+      "guess": {
+       "answer": "nowhere",
+       "confidence": "high"
+      },
+      "where_wrong": "Where do you think Hermes will trip? Nowhere. It will just work."
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "lab_note",
+     "body": {
+      "fact": "Harbor Bakery uses QuickBooks Online; the other five use Xero",
+      "for": "first",
+      "key_term": "QuickBooks"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "self_score",
+     "body": {
+      "checks": {
+       "s1": {
+        "pass": true
+       },
+       "s2": {
+        "pass": true
+       },
+       "s3": {
+        "pass": true
+       },
+       "s4": {
+        "pass": true
+       }
+      }
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "kind": "nudge",
+      "mission": "f.memory",
+      "rung": 1,
+      "source": "model",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "covered": true,
+      "hunt": true,
+      "kind": "ask",
+      "mission": "f.memory",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "kind": "where",
+      "mission": "f.memory",
+      "rung": 2,
+      "source": "course",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "checks": [
+       "memory_line",
+       "fresh_use"
+      ],
+      "kind": "explain",
+      "mission": "f.memory",
+      "step": "compare"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "covered": true,
+      "hunt": false,
+      "kind": "ask",
+      "mission": "f.memory",
+      "step": "compare"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "covered": false,
+      "hunt": false,
+      "kind": "ask",
+      "mission": "f.memory",
+      "step": "compare"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "gap_note",
+     "body": {
+      "text": "I trusted Saved to memory. Expanded, the row said the save was staged for approval."
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "kind": "do_it_with_me",
+      "mission": "f.memory",
+      "step": "fix"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    }
+   ],
+   "standard_changes": [],
+   "lab": {
+    "profiles": [
+     "a"
+    ],
+    "body": "The box above lists two notes already in this profile's memory that its owner can't lose. Whatever happens to the other notes, those two stay.\n\n1. Pick one real fact Hermes should know about how you work: a deadline, a preference, a tool you use. Keep it to one line.\n2. Press **Open practice chat** and ask Hermes to save it to memory.\n3. Prove each of the four checks above. How you prove them is up to you. For a new chat, press **Open practice chat** again. For the file, press **Show memory file**; it shows both `MEMORY.md` and `USER.md`.\n\nThe practice setup has one snag waiting that can block your save or cost you a note. If the file and the new chat don't agree with what Hermes told you, find the reason before you press Check.\n\nWhen you're done, press **Save what I did** below. Then score yourself, and run the checks on the Check step.",
+    "after_try": {
+     "needed": [],
+     "done": true
+    }
+   },
+   "runs": {
+    "first": {
+     "phase": "first",
+     "passed": false,
+     "checks": [
+      {
+       "id": "memory_line",
+       "checked_by": "Field Academy read it",
+       "passed": false,
+       "title": "Your fact isn't in memory",
+       "detail": "No line in the practice profile's memory files holds your fact.",
+       "facts": [
+        {
+         "label": "MEMORY.md",
+         "value": "449 of 2,200 characters, 5 lines"
+        },
+        {
+         "label": "USER.md",
+         "value": "0 of 1,375 characters, 0 lines"
+        }
+       ],
+       "missing": [
+        {
+         "id": "no_line",
+         "what": "No line in the practice profile's memory files holds your fact."
+        }
+       ],
+       "readable": true
+      },
+      {
+       "id": "fresh_use",
+       "checked_by": "Field Academy read it",
+       "passed": false,
+       "title": "No new chat used the fact",
+       "detail": "No line in memory holds the fact, so a new chat had nothing to use.",
+       "facts": [],
+       "missing": [
+        {
+         "id": "not_saved",
+         "what": "No line in memory holds the fact, so a new chat had nothing to use."
+        }
+       ],
+       "readable": true
+      },
+      {
+       "id": "notes_kept",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "The notes already in memory are still there",
+       "detail": "Every note already in memory is still there, including the two the page asked you to keep.",
+       "facts": [
+        {
+         "label": "Notes Field Academy set up",
+         "value": "5"
+        },
+        {
+         "label": "Still there as written",
+         "value": "5"
+        },
+        {
+         "label": "Shortened",
+         "value": "0"
+        },
+        {
+         "label": "Gone",
+         "value": "0"
+        }
+       ],
+       "missing": [],
+       "readable": true
+      }
+     ],
+     "hidden": {
+      "count": 1,
+      "passed": 0
+     },
+     "at": "2026-10-03T09:00:00+00:00",
+     "runs": 1
+    }
+   },
+   "explain": {
+    "submitted": 1,
+    "graded": 1,
+    "waiting": false,
+    "level": 2,
+    "passed": false,
+    "feedback": "You spotted that a save can be staged for approval and not yet written, and you check the memory row for it. Only one cause is really explained; the wrong-profile and full-memory causes are missing, and the file check has no reason attached. For each check, say what could have gone wrong and what you'd see, then add at least two more causes.",
+    "pass_level": 3,
+    "answer": "First I would open the memory row in the chat and read every line, because a save can be staged for approval and not written yet. Then I would open MEMORY.md in the practice profile and look for the line. Last, I would start a fresh chat and ask about it without saying it again.",
+    "checked_by": "your Hermes graded it"
+   },
+   "compare": {
+    "grid": [
+     {
+      "id": "s1",
+      "text": "The fact is in the memory file of the profile you used, as one short line.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s2",
+      "text": "A brand-new chat uses the fact without you mentioning it.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s3",
+      "text": "You can say which kind of memory holds it, and why that kind.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": 2,
+      "passed_after_fix": false,
+      "proves_by": "rubric",
+      "checked_by": "your Hermes graded it"
+     },
+     {
+      "id": "s4",
+      "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": null,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     }
+    ],
+    "calibration": {
+     "per_check": [
+      {
+       "id": "s1",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s2",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s3",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s4",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      }
+     ],
+     "checked": 4,
+     "hit_rate": 0.0,
+     "brier": 0.81,
+     "predicted_passes": 4,
+     "self_passes": 4,
+     "actual_passes": 0,
+     "signed_gap": 4
+    },
+    "plants": [
+     {
+      "kind": "write_approval",
+      "fired": true,
+      "caught": false,
+      "facts": [
+       {
+        "label": "Saves waiting for approval",
+        "value": "1"
+       },
+       {
+        "label": "Saves Hermes staged in a chat",
+        "value": "1"
+       },
+       {
+        "label": "memory.write_approval",
+        "value": "on"
+       }
+      ]
+     }
+    ]
+   },
+   "evidence": [],
+   "record": null,
+   "recall_from": [
+    {
+     "mission": "f.loop",
+     "title": "Check whether Hermes really did what it says",
+     "order": 1,
+     "done": false
+    },
+    {
+     "mission": "f.cost",
+     "title": "See what a chat costs, and cut it",
+     "order": 2,
+     "done": false
+    }
+   ],
+   "test_out": {
+    "on": false,
+    "passed": null
+   },
+   "first_flight": {
+    "on": true,
+    "words": "Began as a first flight; snag chosen for first flight",
+    "skipped": [
+     "recall",
+     "claim"
+    ],
+    "snag": "chosen for first flight",
+    "guess": {
+     "question": "Where do you think Hermes will trip?",
+     "answers": [
+      {
+       "id": "save",
+       "label": "Saving the fact when I ask"
+      },
+      {
+       "id": "file",
+       "label": "Putting it in the right memory file"
+      },
+      {
+       "id": "new_chat",
+       "label": "Using it in a brand-new chat"
+      },
+      {
+       "id": "nowhere",
+       "label": "Nowhere. It will just work."
+      }
+     ],
+     "confidence": [
+      {
+       "id": "low",
+       "label": "Not sure"
+      },
+      {
+       "id": "medium",
+       "label": "Fairly sure"
+      },
+      {
+       "id": "high",
+       "label": "Sure"
+      }
+     ]
+    },
+    "guessed": {
+     "answer": "nowhere",
+     "confidence": "high"
+    },
+    "guide": "opens after you score yourself"
+   },
+   "protected_notes": [
+    "The walk-in fridge is logged at 6:30 and 14:30; anything above 4 C is reported at once.",
+    "Refunds over 400 dollars need the owner's yes before they are sent."
+   ]
+  },
+  "attempt_after_fix": {
+   "attempt": {
+    "id": 1,
+    "mission_id": "f.memory",
+    "attempt_no": 1,
+    "level": "beginner",
+    "status": "lab",
+    "started_at": "2026-10-03T09:00:00+00:00",
+    "frozen_at": "2026-10-03T09:00:00+00:00",
+    "finished_at": "",
+    "profile": "academy-practice"
+   },
+   "steps": [
+    {
+     "id": "recall",
+     "status": "skipped"
+    },
+    {
+     "id": "claim",
+     "status": "skipped"
+    },
+    {
+     "id": "standard",
+     "status": "done"
+    },
+    {
+     "id": "predict",
+     "status": "done"
+    },
+    {
+     "id": "idea",
+     "status": "open"
+    },
+    {
+     "id": "expert",
+     "status": "open"
+    },
+    {
+     "id": "lab",
+     "status": "done"
+    },
+    {
+     "id": "evidence",
+     "status": "done"
+    },
+    {
+     "id": "check",
+     "status": "done"
+    },
+    {
+     "id": "compare",
+     "status": "done"
+    },
+    {
+     "id": "fix_transfer",
+     "status": "open"
+    },
+    {
+     "id": "record",
+     "status": "locked"
+    }
+   ],
+   "entries": [
+    {
+     "kind": "first_flight",
+     "body": {
+      "plants_rule": "always write_approval",
+      "skips": [
+       "recall",
+       "claim"
+      ],
+      "snag": "chosen for first flight",
+      "words": "Began as a first flight; snag chosen for first flight"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "standard",
+     "body": {
+      "checks": [
+       {
+        "id": "s1",
+        "text": "The fact is in the memory file of the profile you used, as one short line."
+       },
+       {
+        "id": "s2",
+        "text": "A brand-new chat uses the fact without you mentioning it."
+       },
+       {
+        "id": "s3",
+        "text": "You can say which kind of memory holds it, and why that kind."
+       },
+       {
+        "id": "s4",
+        "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+       }
+      ]
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "prediction",
+     "body": {
+      "checks": {
+       "s1": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s2": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s3": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s4": {
+        "confidence": 90,
+        "expect_pass": true
+       }
+      },
+      "guess": {
+       "answer": "nowhere",
+       "confidence": "high"
+      },
+      "where_wrong": "Where do you think Hermes will trip? Nowhere. It will just work."
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "lab_note",
+     "body": {
+      "fact": "Harbor Bakery uses QuickBooks Online; the other five use Xero",
+      "for": "first",
+      "key_term": "QuickBooks"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "self_score",
+     "body": {
+      "checks": {
+       "s1": {
+        "pass": true
+       },
+       "s2": {
+        "pass": true
+       },
+       "s3": {
+        "pass": true
+       },
+       "s4": {
+        "pass": true
+       }
+      }
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "kind": "nudge",
+      "mission": "f.memory",
+      "rung": 1,
+      "source": "model",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "covered": true,
+      "hunt": true,
+      "kind": "ask",
+      "mission": "f.memory",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "kind": "where",
+      "mission": "f.memory",
+      "rung": 2,
+      "source": "course",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "checks": [
+       "memory_line",
+       "fresh_use"
+      ],
+      "kind": "explain",
+      "mission": "f.memory",
+      "step": "compare"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "covered": true,
+      "hunt": false,
+      "kind": "ask",
+      "mission": "f.memory",
+      "step": "compare"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "covered": false,
+      "hunt": false,
+      "kind": "ask",
+      "mission": "f.memory",
+      "step": "compare"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "gap_note",
+     "body": {
+      "text": "I trusted Saved to memory. Expanded, the row said the save was staged for approval."
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "kind": "do_it_with_me",
+      "mission": "f.memory",
+      "step": "fix"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "fix_note",
+     "body": {
+      "text": "Ran /memory pending, then approved the one held save by its id, then checked the file and a new chat."
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    }
+   ],
+   "standard_changes": [],
+   "lab": {
+    "profiles": [
+     "a"
+    ],
+    "body": "The box above lists two notes already in this profile's memory that its owner can't lose. Whatever happens to the other notes, those two stay.\n\n1. Pick one real fact Hermes should know about how you work: a deadline, a preference, a tool you use. Keep it to one line.\n2. Press **Open practice chat** and ask Hermes to save it to memory.\n3. Prove each of the four checks above. How you prove them is up to you. For a new chat, press **Open practice chat** again. For the file, press **Show memory file**; it shows both `MEMORY.md` and `USER.md`.\n\nThe practice setup has one snag waiting that can block your save or cost you a note. If the file and the new chat don't agree with what Hermes told you, find the reason before you press Check.\n\nWhen you're done, press **Save what I did** below. Then score yourself, and run the checks on the Check step.",
+    "after_try": {
+     "needed": [],
+     "done": true
+    }
+   },
+   "runs": {
+    "first": {
+     "phase": "first",
+     "passed": false,
+     "checks": [
+      {
+       "id": "memory_line",
+       "checked_by": "Field Academy read it",
+       "passed": false,
+       "title": "Your fact isn't in memory",
+       "detail": "No line in the practice profile's memory files holds your fact.",
+       "facts": [
+        {
+         "label": "MEMORY.md",
+         "value": "449 of 2,200 characters, 5 lines"
+        },
+        {
+         "label": "USER.md",
+         "value": "0 of 1,375 characters, 0 lines"
+        }
+       ],
+       "missing": [
+        {
+         "id": "no_line",
+         "what": "No line in the practice profile's memory files holds your fact."
+        }
+       ],
+       "readable": true
+      },
+      {
+       "id": "fresh_use",
+       "checked_by": "Field Academy read it",
+       "passed": false,
+       "title": "No new chat used the fact",
+       "detail": "No line in memory holds the fact, so a new chat had nothing to use.",
+       "facts": [],
+       "missing": [
+        {
+         "id": "not_saved",
+         "what": "No line in memory holds the fact, so a new chat had nothing to use."
+        }
+       ],
+       "readable": true
+      },
+      {
+       "id": "notes_kept",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "The notes already in memory are still there",
+       "detail": "Every note already in memory is still there, including the two the page asked you to keep.",
+       "facts": [
+        {
+         "label": "Notes Field Academy set up",
+         "value": "5"
+        },
+        {
+         "label": "Still there as written",
+         "value": "5"
+        },
+        {
+         "label": "Shortened",
+         "value": "0"
+        },
+        {
+         "label": "Gone",
+         "value": "0"
+        }
+       ],
+       "missing": [],
+       "readable": true
+      }
+     ],
+     "hidden": {
+      "count": 1,
+      "passed": 0
+     },
+     "at": "2026-10-03T09:00:00+00:00",
+     "runs": 1
+    },
+    "after_fix": {
+     "phase": "after_fix",
+     "passed": true,
+     "checks": [
+      {
+       "id": "memory_line",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "Your fact is in MEMORY.md",
+       "detail": "Found in memories/MEMORY.md: one line of 61 characters.",
+       "facts": [
+        {
+         "label": "MEMORY.md",
+         "value": "513 of 2,200 characters, 6 lines"
+        },
+        {
+         "label": "USER.md",
+         "value": "0 of 1,375 characters, 0 lines"
+        }
+       ],
+       "missing": [],
+       "readable": true
+      },
+      {
+       "id": "fresh_use",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "A new chat used the fact on its own",
+       "detail": "In a chat that started after the save, Hermes used it before you mentioned it.",
+       "facts": [
+        {
+         "label": "Saved at",
+         "value": "October 19, 2026, 08:53:32 UTC, from the memory call"
+        },
+        {
+         "label": "Chats started after the save",
+         "value": "2"
+        },
+        {
+         "label": "The chat that used it started",
+         "value": "November 9, 2026, 17:52:13 UTC"
+        }
+       ],
+       "missing": [],
+       "readable": true
+      },
+      {
+       "id": "notes_kept",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "The notes already in memory are still there",
+       "detail": "Every note already in memory is still there, including the two the page asked you to keep.",
+       "facts": [
+        {
+         "label": "Notes Field Academy set up",
+         "value": "5"
+        },
+        {
+         "label": "Still there as written",
+         "value": "5"
+        },
+        {
+         "label": "Shortened",
+         "value": "0"
+        },
+        {
+         "label": "Gone",
+         "value": "0"
+        }
+       ],
+       "missing": [],
+       "readable": true
+      }
+     ],
+     "hidden": {
+      "count": 1,
+      "passed": 1
+     },
+     "at": "2026-10-03T09:00:00+00:00",
+     "runs": 1
+    }
+   },
+   "explain": {
+    "submitted": 1,
+    "graded": 1,
+    "waiting": false,
+    "level": 2,
+    "passed": false,
+    "feedback": "You spotted that a save can be staged for approval and not yet written, and you check the memory row for it. Only one cause is really explained; the wrong-profile and full-memory causes are missing, and the file check has no reason attached. For each check, say what could have gone wrong and what you'd see, then add at least two more causes.",
+    "pass_level": 3,
+    "answer": "First I would open the memory row in the chat and read every line, because a save can be staged for approval and not written yet. Then I would open MEMORY.md in the practice profile and look for the line. Last, I would start a fresh chat and ask about it without saying it again.",
+    "checked_by": "your Hermes graded it"
+   },
+   "compare": {
+    "grid": [
+     {
+      "id": "s1",
+      "text": "The fact is in the memory file of the profile you used, as one short line.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": true,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s2",
+      "text": "A brand-new chat uses the fact without you mentioning it.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": true,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s3",
+      "text": "You can say which kind of memory holds it, and why that kind.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": 2,
+      "passed_after_fix": false,
+      "proves_by": "rubric",
+      "checked_by": "your Hermes graded it"
+     },
+     {
+      "id": "s4",
+      "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": true,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     }
+    ],
+    "calibration": {
+     "per_check": [
+      {
+       "id": "s1",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s2",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s3",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s4",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      }
+     ],
+     "checked": 4,
+     "hit_rate": 0.0,
+     "brier": 0.81,
+     "predicted_passes": 4,
+     "self_passes": 4,
+     "actual_passes": 0,
+     "signed_gap": 4
+    },
+    "plants": [
+     {
+      "kind": "write_approval",
+      "fired": true,
+      "caught": true,
+      "facts": [
+       {
+        "label": "Saves waiting for approval",
+        "value": "0"
+       },
+       {
+        "label": "Saves Hermes staged in a chat",
+        "value": "1"
+       },
+       {
+        "label": "memory.write_approval",
+        "value": "on"
+       }
+      ]
+     }
+    ]
+   },
+   "evidence": [
+    {
+     "id": 4,
+     "check_id": "fresh_use",
+     "kind": "session",
+     "rel_path": "state.db",
+     "excerpt": "1. Export the bank feed from QuickBooks Online.",
+     "sha256": "d963abce075d3f93d34a6379ba7683ec031b0aa66e237d9f3cff38769f7f35de",
+     "read_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "id": 3,
+     "check_id": "memory_line",
+     "kind": "memory",
+     "rel_path": "memories/MEMORY.md",
+     "excerpt": "Harbor Bakery uses QuickBooks Online; the other five use Xero",
+     "sha256": "8852d9810ba03ae18f7575487348044336aedb7dae5877ad1d627ee888f8e7ad",
+     "read_at": "2026-10-03T09:00:00+00:00"
+    }
+   ],
+   "record": null,
+   "recall_from": [
+    {
+     "mission": "f.loop",
+     "title": "Check whether Hermes really did what it says",
+     "order": 1,
+     "done": false
+    },
+    {
+     "mission": "f.cost",
+     "title": "See what a chat costs, and cut it",
+     "order": 2,
+     "done": false
+    }
+   ],
+   "test_out": {
+    "on": false,
+    "passed": null
+   },
+   "first_flight": {
+    "on": true,
+    "words": "Began as a first flight; snag chosen for first flight",
+    "skipped": [
+     "recall",
+     "claim"
+    ],
+    "snag": "chosen for first flight",
+    "guess": {
+     "question": "Where do you think Hermes will trip?",
+     "answers": [
+      {
+       "id": "save",
+       "label": "Saving the fact when I ask"
+      },
+      {
+       "id": "file",
+       "label": "Putting it in the right memory file"
+      },
+      {
+       "id": "new_chat",
+       "label": "Using it in a brand-new chat"
+      },
+      {
+       "id": "nowhere",
+       "label": "Nowhere. It will just work."
+      }
+     ],
+     "confidence": [
+      {
+       "id": "low",
+       "label": "Not sure"
+      },
+      {
+       "id": "medium",
+       "label": "Fairly sure"
+      },
+      {
+       "id": "high",
+       "label": "Sure"
+      }
+     ]
+    },
+    "guessed": {
+     "answer": "nowhere",
+     "confidence": "high"
+    },
+    "guide": "opens after you score yourself"
+   },
+   "protected_notes": [
+    "The walk-in fridge is logged at 6:30 and 14:30; anything above 4 C is reported at once.",
+    "Refunds over 400 dollars need the owner's yes before they are sent."
+   ]
+  },
+  "record_preview": {
+   "ready": true,
+   "added": null,
+   "entry": {
+    "mission": "f.memory",
+    "mission_title": "Save a fact to memory and check it stuck",
+    "level": "beginner",
+    "attempt_no": 1,
+    "claim": "",
+    "claim_author": "",
+    "standard": [
+     {
+      "id": "s1",
+      "text": "The fact is in the memory file of the profile you used, as one short line."
+     },
+     {
+      "id": "s2",
+      "text": "A brand-new chat uses the fact without you mentioning it."
+     },
+     {
+      "id": "s3",
+      "text": "You can say which kind of memory holds it, and why that kind."
+     },
+     {
+      "id": "s4",
+      "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+     }
+    ],
+    "standard_frozen_at": "2026-10-03T09:00:00+00:00",
+    "standard_changes": [],
+    "prediction": {
+     "checks": {
+      "s1": {
+       "confidence": 90,
+       "expect_pass": true
+      },
+      "s2": {
+       "confidence": 90,
+       "expect_pass": true
+      },
+      "s3": {
+       "confidence": 90,
+       "expect_pass": true
+      },
+      "s4": {
+       "confidence": 90,
+       "expect_pass": true
+      }
+     },
+     "guess": {
+      "answer": "nowhere",
+      "confidence": "high"
+     },
+     "where_wrong": "Where do you think Hermes will trip? Nowhere. It will just work."
+    },
+    "self_score": {
+     "s1": {
+      "pass": true
+     },
+     "s2": {
+      "pass": true
+     },
+     "s3": {
+      "pass": true
+     },
+     "s4": {
+      "pass": true
+     }
+    },
+    "try": null,
+    "try_lines": [],
+    "grid": [
+     {
+      "id": "s1",
+      "text": "The fact is in the memory file of the profile you used, as one short line.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": true,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s2",
+      "text": "A brand-new chat uses the fact without you mentioning it.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": true,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s3",
+      "text": "You can say which kind of memory holds it, and why that kind.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": 2,
+      "passed_after_fix": false,
+      "proves_by": "rubric",
+      "checked_by": "your Hermes graded it"
+     },
+     {
+      "id": "s4",
+      "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": true,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     }
+    ],
+    "calibration": {
+     "per_check": [
+      {
+       "id": "s1",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s2",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s3",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s4",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      }
+     ],
+     "checked": 4,
+     "hit_rate": 0.0,
+     "brier": 0.81,
+     "predicted_passes": 4,
+     "self_passes": 4,
+     "actual_passes": 0,
+     "signed_gap": 4
+    },
+    "result_first": {
+     "passed": 1,
+     "of": 4,
+     "checked_by": "Field Academy read it"
+    },
+    "result_after_fix": {
+     "passed": 4,
+     "of": 4,
+     "checked_by": "Field Academy read it"
+    },
+    "transfer": {
+     "passed": 2,
+     "of": 2,
+     "note": "",
+     "checked_by": "Field Academy read it",
+     "one_off": {
+      "detail": "The printer quote came in at noon today",
+      "saved": false,
+      "why": "It matters for one afternoon, so it doesn't earn a line.",
+      "checked_by": "Field Academy read it",
+      "why_checked_by": "not graded yet"
+     }
+    },
+    "explain": {
+     "level": 2,
+     "pass_level": 3,
+     "feedback": "You spotted that a save can be staged for approval and not yet written, and you check the memory row for it. Only one cause is really explained; the wrong-profile and full-memory causes are missing, and the file check has no reason attached. For each check, say what could have gone wrong and what you'd see, then add at least two more causes.",
+     "checked_by": "your Hermes graded it"
+    },
+    "caught": [
+     {
+      "kind": "write_approval",
+      "title": "Saves waited for approval",
+      "ran_into_it": true,
+      "checked_by": "Field Academy read it",
+      "facts": [
+       {
+        "label": "Saves waiting for approval",
+        "value": "0"
+       },
+       {
+        "label": "Saves Hermes staged in a chat",
+        "value": "1"
+       },
+       {
+        "label": "memory.write_approval",
+        "value": "on"
+       }
+      ]
+     }
+    ],
+    "missed": [],
+    "gap": "I trusted Saved to memory. Expanded, the row said the save was staged for approval.",
+    "diagnosis": "",
+    "fix": "Ran /memory pending, then approved the one held save by its id, then checked the file and a new chat.",
+    "evidence": [
+     {
+      "id": 1,
+      "check": "plant_fixed",
+      "checked_by": "Field Academy read it",
+      "kind": "pending",
+      "file": "pending/memory/e79e83a9.json",
+      "sha256": "50db9c5543bde0cca571a410c0ef120d9a61523cd0dc8b10af27c6658d5fb3ee",
+      "read_at": "2026-10-03T09:00:00+00:00",
+      "excerpt": "add Harbor Bakery uses QuickBooks Online; the other five use Xero",
+      "withheld": false,
+      "phase": "after_fix",
+      "facts": [
+       {
+        "label": "Saves waiting for approval",
+        "value": "0"
+       },
+       {
+        "label": "Saves Hermes staged in a chat",
+        "value": "1"
+       },
+       {
+        "label": "memory.write_approval",
+        "value": "on"
+       }
+      ]
+     },
+     {
+      "id": 2,
+      "check": "plant_fixed",
+      "checked_by": "Field Academy read it",
+      "kind": "tool_result",
+      "file": "state.db",
+      "sha256": "a8c8a34fd76b95ebcc99d04bdc6715aa6bee65cef69bfa3f02e4c7a4e348273b",
+      "read_at": "2026-10-03T09:00:00+00:00",
+      "excerpt": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending.",
+      "withheld": false,
+      "phase": "after_fix",
+      "facts": [
+       {
+        "label": "Saves waiting for approval",
+        "value": "0"
+       },
+       {
+        "label": "Saves Hermes staged in a chat",
+        "value": "1"
+       },
+       {
+        "label": "memory.write_approval",
+        "value": "on"
+       }
+      ]
+     },
+     {
+      "id": 3,
+      "check": "memory_line",
+      "checked_by": "Field Academy read it",
+      "kind": "memory",
+      "file": "memories/MEMORY.md",
+      "sha256": "8852d9810ba03ae18f7575487348044336aedb7dae5877ad1d627ee888f8e7ad",
+      "read_at": "2026-10-03T09:00:00+00:00",
+      "excerpt": "Harbor Bakery uses QuickBooks Online; the other five use Xero",
+      "withheld": false,
+      "phase": "after_fix",
+      "facts": [
+       {
+        "label": "MEMORY.md",
+        "value": "513 of 2,200 characters, 6 lines"
+       },
+       {
+        "label": "USER.md",
+        "value": "0 of 1,375 characters, 0 lines"
+       }
+      ]
+     },
+     {
+      "id": 4,
+      "check": "fresh_use",
+      "checked_by": "Field Academy read it",
+      "kind": "session",
+      "file": "state.db",
+      "sha256": "d963abce075d3f93d34a6379ba7683ec031b0aa66e237d9f3cff38769f7f35de",
+      "read_at": "2026-10-03T09:00:00+00:00",
+      "excerpt": "1. Export the bank feed from QuickBooks Online.",
+      "withheld": false,
+      "phase": "after_fix",
+      "facts": [
+       {
+        "label": "Saved at",
+        "value": "October 19, 2026, 08:53:32 UTC, from the memory call"
+       },
+       {
+        "label": "Chats started after the save",
+        "value": "2"
+       },
+       {
+        "label": "The chat that used it started",
+        "value": "November 9, 2026, 17:52:13 UTC"
+       }
+      ]
+     },
+     {
+      "id": 6,
+      "check": "user_line",
+      "checked_by": "Field Academy read it",
+      "kind": "memory",
+      "file": "memories/USER.md",
+      "sha256": "c4165bd177f9869126c53923e298bda2701f9f90f8a3b27acce5d5ab78c05086",
+      "read_at": "2026-10-03T09:00:00+00:00",
+      "excerpt": "Ada prefers short answers.",
+      "withheld": false,
+      "phase": "transfer",
+      "facts": []
+     }
+    ],
+    "started_at": "2026-10-03T09:00:00+00:00",
+    "frozen_at": "2026-10-03T09:00:00+00:00",
+    "mode": "full",
+    "skipped": [
+     "recall",
+     "claim"
+    ],
+    "first_flight": {
+     "words": "Began as a first flight; snag chosen for first flight",
+     "skipped": [
+      "recall",
+      "claim"
+     ],
+     "snag": "chosen for first flight"
+    }
+   }
+  },
+  "attempt_done": {
+   "attempt": {
+    "id": 1,
+    "mission_id": "f.memory",
+    "attempt_no": 1,
+    "level": "beginner",
+    "status": "done",
+    "started_at": "2026-10-03T09:00:00+00:00",
+    "frozen_at": "2026-10-03T09:00:00+00:00",
+    "finished_at": "2026-10-03T09:00:00+00:00",
+    "profile": "academy-practice"
+   },
+   "steps": [
+    {
+     "id": "recall",
+     "status": "skipped"
+    },
+    {
+     "id": "claim",
+     "status": "skipped"
+    },
+    {
+     "id": "standard",
+     "status": "done"
+    },
+    {
+     "id": "predict",
+     "status": "done"
+    },
+    {
+     "id": "idea",
+     "status": "open"
+    },
+    {
+     "id": "expert",
+     "status": "open"
+    },
+    {
+     "id": "lab",
+     "status": "done"
+    },
+    {
+     "id": "evidence",
+     "status": "done"
+    },
+    {
+     "id": "check",
+     "status": "done"
+    },
+    {
+     "id": "compare",
+     "status": "done"
+    },
+    {
+     "id": "fix_transfer",
+     "status": "done"
+    },
+    {
+     "id": "record",
+     "status": "done"
+    }
+   ],
+   "entries": [
+    {
+     "kind": "first_flight",
+     "body": {
+      "plants_rule": "always write_approval",
+      "skips": [
+       "recall",
+       "claim"
+      ],
+      "snag": "chosen for first flight",
+      "words": "Began as a first flight; snag chosen for first flight"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "standard",
+     "body": {
+      "checks": [
+       {
+        "id": "s1",
+        "text": "The fact is in the memory file of the profile you used, as one short line."
+       },
+       {
+        "id": "s2",
+        "text": "A brand-new chat uses the fact without you mentioning it."
+       },
+       {
+        "id": "s3",
+        "text": "You can say which kind of memory holds it, and why that kind."
+       },
+       {
+        "id": "s4",
+        "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+       }
+      ]
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "prediction",
+     "body": {
+      "checks": {
+       "s1": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s2": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s3": {
+        "confidence": 90,
+        "expect_pass": true
+       },
+       "s4": {
+        "confidence": 90,
+        "expect_pass": true
+       }
+      },
+      "guess": {
+       "answer": "nowhere",
+       "confidence": "high"
+      },
+      "where_wrong": "Where do you think Hermes will trip? Nowhere. It will just work."
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "lab_note",
+     "body": {
+      "fact": "Harbor Bakery uses QuickBooks Online; the other five use Xero",
+      "for": "first",
+      "key_term": "QuickBooks"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "self_score",
+     "body": {
+      "checks": {
+       "s1": {
+        "pass": true
+       },
+       "s2": {
+        "pass": true
+       },
+       "s3": {
+        "pass": true
+       },
+       "s4": {
+        "pass": true
+       }
+      }
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "kind": "nudge",
+      "mission": "f.memory",
+      "rung": 1,
+      "source": "model",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "covered": true,
+      "hunt": true,
+      "kind": "ask",
+      "mission": "f.memory",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "kind": "where",
+      "mission": "f.memory",
+      "rung": 2,
+      "source": "course",
+      "step": "check"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "checks": [
+       "memory_line",
+       "fresh_use"
+      ],
+      "kind": "explain",
+      "mission": "f.memory",
+      "step": "compare"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "covered": true,
+      "hunt": false,
+      "kind": "ask",
+      "mission": "f.memory",
+      "step": "compare"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "covered": false,
+      "hunt": false,
+      "kind": "ask",
+      "mission": "f.memory",
+      "step": "compare"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "gap_note",
+     "body": {
+      "text": "I trusted Saved to memory. Expanded, the row said the save was staged for approval."
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "help",
+     "body": {
+      "at": "2026-10-03T09:00:00+00:00",
+      "kind": "do_it_with_me",
+      "mission": "f.memory",
+      "step": "fix"
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "fix_note",
+     "body": {
+      "text": "Ran /memory pending, then approved the one held save by its id, then checked the file and a new chat."
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "kind": "lab_note",
+     "body": {
+      "fact": "Ada prefers short answers",
+      "for": "transfer",
+      "key_term": "short",
+      "one_off": "The printer quote came in at noon today",
+      "one_off_saved": false,
+      "one_off_why": "It matters for one afternoon, so it doesn't earn a line."
+     },
+     "created_at": "2026-10-03T09:00:00+00:00"
+    }
+   ],
+   "standard_changes": [],
+   "lab": {
+    "profiles": [
+     "a"
+    ],
+    "body": "The box above lists two notes already in this profile's memory that its owner can't lose. Whatever happens to the other notes, those two stay.\n\n1. Pick one real fact Hermes should know about how you work: a deadline, a preference, a tool you use. Keep it to one line.\n2. Press **Open practice chat** and ask Hermes to save it to memory.\n3. Prove each of the four checks above. How you prove them is up to you. For a new chat, press **Open practice chat** again. For the file, press **Show memory file**; it shows both `MEMORY.md` and `USER.md`.\n\nThe practice setup has one snag waiting that can block your save or cost you a note. If the file and the new chat don't agree with what Hermes told you, find the reason before you press Check.\n\nWhen you're done, press **Save what I did** below. Then score yourself, and run the checks on the Check step.",
+    "after_try": {
+     "needed": [],
+     "done": true
+    }
+   },
+   "runs": {
+    "first": {
+     "phase": "first",
+     "passed": false,
+     "checks": [
+      {
+       "id": "memory_line",
+       "checked_by": "Field Academy read it",
+       "passed": false,
+       "title": "Your fact isn't in memory",
+       "detail": "No line in the practice profile's memory files holds your fact.",
+       "facts": [
+        {
+         "label": "MEMORY.md",
+         "value": "449 of 2,200 characters, 5 lines"
+        },
+        {
+         "label": "USER.md",
+         "value": "0 of 1,375 characters, 0 lines"
+        }
+       ],
+       "missing": [
+        {
+         "id": "no_line",
+         "what": "No line in the practice profile's memory files holds your fact."
+        }
+       ],
+       "readable": true
+      },
+      {
+       "id": "fresh_use",
+       "checked_by": "Field Academy read it",
+       "passed": false,
+       "title": "No new chat used the fact",
+       "detail": "No line in memory holds the fact, so a new chat had nothing to use.",
+       "facts": [],
+       "missing": [
+        {
+         "id": "not_saved",
+         "what": "No line in memory holds the fact, so a new chat had nothing to use."
+        }
+       ],
+       "readable": true
+      },
+      {
+       "id": "notes_kept",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "The notes already in memory are still there",
+       "detail": "Every note already in memory is still there, including the two the page asked you to keep.",
+       "facts": [
+        {
+         "label": "Notes Field Academy set up",
+         "value": "5"
+        },
+        {
+         "label": "Still there as written",
+         "value": "5"
+        },
+        {
+         "label": "Shortened",
+         "value": "0"
+        },
+        {
+         "label": "Gone",
+         "value": "0"
+        }
+       ],
+       "missing": [],
+       "readable": true
+      }
+     ],
+     "hidden": {
+      "count": 1,
+      "passed": 0
+     },
+     "at": "2026-10-03T09:00:00+00:00",
+     "runs": 1
+    },
+    "after_fix": {
+     "phase": "after_fix",
+     "passed": true,
+     "checks": [
+      {
+       "id": "memory_line",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "Your fact is in MEMORY.md",
+       "detail": "Found in memories/MEMORY.md: one line of 61 characters.",
+       "facts": [
+        {
+         "label": "MEMORY.md",
+         "value": "513 of 2,200 characters, 6 lines"
+        },
+        {
+         "label": "USER.md",
+         "value": "0 of 1,375 characters, 0 lines"
+        }
+       ],
+       "missing": [],
+       "readable": true
+      },
+      {
+       "id": "fresh_use",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "A new chat used the fact on its own",
+       "detail": "In a chat that started after the save, Hermes used it before you mentioned it.",
+       "facts": [
+        {
+         "label": "Saved at",
+         "value": "October 19, 2026, 08:53:32 UTC, from the memory call"
+        },
+        {
+         "label": "Chats started after the save",
+         "value": "2"
+        },
+        {
+         "label": "The chat that used it started",
+         "value": "November 9, 2026, 17:52:13 UTC"
+        }
+       ],
+       "missing": [],
+       "readable": true
+      },
+      {
+       "id": "notes_kept",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "The notes already in memory are still there",
+       "detail": "Every note already in memory is still there, including the two the page asked you to keep.",
+       "facts": [
+        {
+         "label": "Notes Field Academy set up",
+         "value": "5"
+        },
+        {
+         "label": "Still there as written",
+         "value": "5"
+        },
+        {
+         "label": "Shortened",
+         "value": "0"
+        },
+        {
+         "label": "Gone",
+         "value": "0"
+        }
+       ],
+       "missing": [],
+       "readable": true
+      }
+     ],
+     "hidden": {
+      "count": 1,
+      "passed": 1
+     },
+     "at": "2026-10-03T09:00:00+00:00",
+     "runs": 1
+    },
+    "transfer": {
+     "phase": "transfer",
+     "passed": true,
+     "checks": [
+      {
+       "id": "user_line",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "The fact about you is in USER.md",
+       "detail": "Found in USER.md: 26 characters.",
+       "facts": [],
+       "missing": [],
+       "readable": true
+      },
+      {
+       "id": "one_off",
+       "checked_by": "Field Academy read it",
+       "passed": true,
+       "title": "You left it out, and it's out",
+       "detail": "No memory line holds the one-off detail, as you decided.",
+       "facts": [],
+       "missing": [],
+       "readable": true
+      }
+     ],
+     "hidden": {
+      "count": 0,
+      "passed": 0
+     },
+     "at": "2026-10-03T09:00:00+00:00",
+     "runs": 1
+    }
+   },
+   "explain": {
+    "submitted": 1,
+    "graded": 1,
+    "waiting": false,
+    "level": 2,
+    "passed": false,
+    "feedback": "You spotted that a save can be staged for approval and not yet written, and you check the memory row for it. Only one cause is really explained; the wrong-profile and full-memory causes are missing, and the file check has no reason attached. For each check, say what could have gone wrong and what you'd see, then add at least two more causes.",
+    "pass_level": 3,
+    "answer": "First I would open the memory row in the chat and read every line, because a save can be staged for approval and not written yet. Then I would open MEMORY.md in the practice profile and look for the line. Last, I would start a fresh chat and ask about it without saying it again.",
+    "checked_by": "your Hermes graded it"
+   },
+   "compare": {
+    "grid": [
+     {
+      "id": "s1",
+      "text": "The fact is in the memory file of the profile you used, as one short line.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": true,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s2",
+      "text": "A brand-new chat uses the fact without you mentioning it.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": true,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     },
+     {
+      "id": "s3",
+      "text": "You can say which kind of memory holds it, and why that kind.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": 2,
+      "passed_after_fix": false,
+      "proves_by": "rubric",
+      "checked_by": "your Hermes graded it"
+     },
+     {
+      "id": "s4",
+      "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how.",
+      "expect_pass": true,
+      "confidence": 90,
+      "self_pass": true,
+      "passed": false,
+      "level": null,
+      "passed_after_fix": true,
+      "proves_by": "live",
+      "checked_by": "Field Academy read it"
+     }
+    ],
+    "calibration": {
+     "per_check": [
+      {
+       "id": "s1",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s2",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s3",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      },
+      {
+       "id": "s4",
+       "expect_pass": true,
+       "confidence": 90,
+       "self_pass": true,
+       "passed": false,
+       "hit": false,
+       "self_gap": 1
+      }
+     ],
+     "checked": 4,
+     "hit_rate": 0.0,
+     "brier": 0.81,
+     "predicted_passes": 4,
+     "self_passes": 4,
+     "actual_passes": 0,
+     "signed_gap": 4
+    },
+    "plants": [
+     {
+      "kind": "write_approval",
+      "fired": true,
+      "caught": true,
+      "facts": [
+       {
+        "label": "Saves waiting for approval",
+        "value": "0"
+       },
+       {
+        "label": "Saves Hermes staged in a chat",
+        "value": "1"
+       },
+       {
+        "label": "memory.write_approval",
+        "value": "on"
+       }
+      ]
+     }
+    ]
+   },
+   "evidence": [
+    {
+     "id": 6,
+     "check_id": "user_line",
+     "kind": "memory",
+     "rel_path": "memories/USER.md",
+     "excerpt": "Ada prefers short answers.",
+     "sha256": "c4165bd177f9869126c53923e298bda2701f9f90f8a3b27acce5d5ab78c05086",
+     "read_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "id": 4,
+     "check_id": "fresh_use",
+     "kind": "session",
+     "rel_path": "state.db",
+     "excerpt": "1. Export the bank feed from QuickBooks Online.",
+     "sha256": "d963abce075d3f93d34a6379ba7683ec031b0aa66e237d9f3cff38769f7f35de",
+     "read_at": "2026-10-03T09:00:00+00:00"
+    },
+    {
+     "id": 3,
+     "check_id": "memory_line",
+     "kind": "memory",
+     "rel_path": "memories/MEMORY.md",
+     "excerpt": "Harbor Bakery uses QuickBooks Online; the other five use Xero",
+     "sha256": "8852d9810ba03ae18f7575487348044336aedb7dae5877ad1d627ee888f8e7ad",
+     "read_at": "2026-10-03T09:00:00+00:00"
+    }
+   ],
+   "record": {
+    "id": 1,
+    "hash": "09e6cc2834deb116a2402bfaea00605a5f3f2531f4dba128fb2c3f0ed9c98b05",
+    "created_at": "2026-10-03T09:00:00+00:00"
+   },
+   "recall_from": [
+    {
+     "mission": "f.loop",
+     "title": "Check whether Hermes really did what it says",
+     "order": 1,
+     "done": false
+    },
+    {
+     "mission": "f.cost",
+     "title": "See what a chat costs, and cut it",
+     "order": 2,
+     "done": false
+    }
+   ],
+   "test_out": {
+    "on": false,
+    "passed": null
+   },
+   "first_flight": {
+    "on": true,
+    "words": "Began as a first flight; snag chosen for first flight",
+    "skipped": [
+     "recall",
+     "claim"
+    ],
+    "snag": "chosen for first flight",
+    "guess": {
+     "question": "Where do you think Hermes will trip?",
+     "answers": [
+      {
+       "id": "save",
+       "label": "Saving the fact when I ask"
+      },
+      {
+       "id": "file",
+       "label": "Putting it in the right memory file"
+      },
+      {
+       "id": "new_chat",
+       "label": "Using it in a brand-new chat"
+      },
+      {
+       "id": "nowhere",
+       "label": "Nowhere. It will just work."
+      }
+     ],
+     "confidence": [
+      {
+       "id": "low",
+       "label": "Not sure"
+      },
+      {
+       "id": "medium",
+       "label": "Fairly sure"
+      },
+      {
+       "id": "high",
+       "label": "Sure"
+      }
+     ]
+    },
+    "guessed": {
+     "answer": "nowhere",
+     "confidence": "high"
+    },
+    "guide": "opens after you score yourself"
+   },
+   "protected_notes": [
+    "The walk-in fridge is logged at 6:30 and 14:30; anything above 4 C is reported at once.",
+    "Refunds over 400 dollars need the owner's yes before they are sent."
+   ]
+  },
+  "field_record": {
+   "ready": true,
+   "problems": [
+    "Type the name you want on your Field Record.",
+    "Write two or three lines on what this record doesn't show, in your own words."
+   ],
+   "body": {
+    "record": "Field Academy Field Record",
+    "record_format": 3,
+    "kind": "foundations",
+    "scope": {
+     "holder": {
+      "name": "",
+      "checked_by": "you wrote it"
+     },
+     "issuer": "self",
+     "issuer_line": "Issued by its holder with Field Academy, a community plugin for Hermes Agent. Nobody else issued it.",
+     "not_official": "This is not an official certificate. Field Academy is an independent plugin by Damon Gardenhire, not an official Hermes course from Nous Research.",
+     "dates": {
+      "first_work": "2026-10-03T09:00:00+00:00",
+      "last_entry": "2026-10-03T09:00:00+00:00",
+      "issued": "2026-10-03T09:00:00+00:00"
+     },
+     "hermes": {
+      "version": "",
+      "read_from": "",
+      "exact": false,
+      "checked_by": "Field Academy read it",
+      "line": "Field Academy couldn't find the Hermes version on this computer."
+     },
+     "hours": {
+      "active_minutes": 0,
+      "hours": 0.0,
+      "rule": "Counted from the times work was saved and checked. Gaps over 15 minutes, including waits for a scheduled run, are left out.",
+      "checked_by": "Field Academy counted it"
+     },
+     "missions_in_record": 1,
+     "missions_in_course": 11
+    },
+    "claims": [
+     {
+      "n": 1,
+      "mission": "f.memory",
+      "mission_title": "Save a fact to memory and check it stuck",
+      "claim": "",
+      "author": "",
+      "checked_by": "you wrote it",
+      "standard": [
+       {
+        "id": "s1",
+        "text": "The fact is in the memory file of the profile you used, as one short line."
+       },
+       {
+        "id": "s2",
+        "text": "A brand-new chat uses the fact without you mentioning it."
+       },
+       {
+        "id": "s3",
+        "text": "You can say which kind of memory holds it, and why that kind."
+       },
+       {
+        "id": "s4",
+        "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+       }
+      ],
+      "standard_frozen_at": "2026-10-03T09:00:00+00:00",
+      "changes": []
+     }
+    ],
+    "entries": [
+     {
+      "n": 1,
+      "entry_hash": "09e6cc2834deb116a2402bfaea00605a5f3f2531f4dba128fb2c3f0ed9c98b05",
+      "prev_hash": "",
+      "added_at": "2026-10-03T09:00:00+00:00",
+      "mission": "f.memory",
+      "mission_title": "Save a fact to memory and check it stuck",
+      "level": "beginner",
+      "attempt_no": 1,
+      "claim": {
+       "text": "",
+       "author": "",
+       "checked_by": "you wrote it"
+      },
+      "mode": "full",
+      "tested_out": false,
+      "skipped": [
+       "recall",
+       "claim"
+      ],
+      "where_wrong": {
+       "text": "Where do you think Hermes will trip? Nowhere. It will just work.",
+       "checked_by": "you wrote it"
+      },
+      "checks": [
+       {
+        "id": "s1",
+        "text": "The fact is in the memory file of the profile you used, as one short line.",
+        "expect_pass": true,
+        "confidence": 90,
+        "self_pass": true,
+        "passed": false,
+        "passed_after_fix": true,
+        "level": null,
+        "checked_by": "Field Academy read it"
+       },
+       {
+        "id": "s2",
+        "text": "A brand-new chat uses the fact without you mentioning it.",
+        "expect_pass": true,
+        "confidence": 90,
+        "self_pass": true,
+        "passed": false,
+        "passed_after_fix": true,
+        "level": null,
+        "checked_by": "Field Academy read it"
+       },
+       {
+        "id": "s3",
+        "text": "You can say which kind of memory holds it, and why that kind.",
+        "expect_pass": true,
+        "confidence": 90,
+        "self_pass": true,
+        "passed": false,
+        "passed_after_fix": false,
+        "level": 2,
+        "checked_by": "your Hermes graded it"
+       },
+       {
+        "id": "s4",
+        "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how.",
+        "expect_pass": true,
+        "confidence": 90,
+        "self_pass": true,
+        "passed": false,
+        "passed_after_fix": true,
+        "level": null,
+        "checked_by": "Field Academy read it"
+       }
+      ],
+      "result_first": {
+       "checked_by": "Field Academy read it",
+       "of": 4,
+       "passed": 1
+      },
+      "result_after_fix": {
+       "checked_by": "Field Academy read it",
+       "of": 4,
+       "passed": 4
+      },
+      "transfer": {
+       "checked_by": "Field Academy read it",
+       "note": "",
+       "of": 2,
+       "one_off": {
+        "checked_by": "Field Academy read it",
+        "detail": "The printer quote came in at noon today",
+        "saved": false,
+        "why": "It matters for one afternoon, so it doesn't earn a line.",
+        "why_checked_by": "not graded yet"
+       },
+       "passed": 2
+      },
+      "explain": {
+       "checked_by": "your Hermes graded it",
+       "feedback": "You spotted that a save can be staged for approval and not yet written, and you check the memory row for it. Only one cause is really explained; the wrong-profile and full-memory causes are missing, and the file check has no reason attached. For each check, say what could have gone wrong and what you'd see, then add at least two more causes.",
+       "level": 2,
+       "pass_level": 3
+      },
+      "caught": [
+       {
+        "checked_by": "Field Academy read it",
+        "facts": [
+         {
+          "label": "Saves waiting for approval",
+          "value": "0"
+         },
+         {
+          "label": "Saves Hermes staged in a chat",
+          "value": "1"
+         },
+         {
+          "label": "memory.write_approval",
+          "value": "on"
+         }
+        ],
+        "kind": "write_approval",
+        "ran_into_it": true,
+        "title": "Saves waited for approval"
+       }
+      ],
+      "missed": [],
+      "gap": {
+       "text": "I trusted Saved to memory. Expanded, the row said the save was staged for approval.",
+       "checked_by": "you wrote it"
+      },
+      "diagnosis": {
+       "text": "",
+       "checked_by": "you wrote it"
+      },
+      "fix": {
+       "text": "Ran /memory pending, then approved the one held save by its id, then checked the file and a new chat.",
+       "checked_by": "you wrote it"
+      },
+      "evidence": [
+       {
+        "id": 1,
+        "check": "plant_fixed",
+        "kind": "pending",
+        "file": "pending/memory/e79e83a9.json",
+        "sha256": "50db9c5543bde0cca571a410c0ef120d9a61523cd0dc8b10af27c6658d5fb3ee",
+        "read_at": "2026-10-03T09:00:00+00:00",
+        "checked_by": "Field Academy read it",
+        "withheld": false,
+        "excerpt": "add Harbor Bakery uses QuickBooks Online; the other five use Xero",
+        "excerpt_file": "evidence/01-pending.txt",
+        "backs": {
+         "n": 4,
+         "label": "Backs check 4",
+         "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+        },
+        "phase": "after_fix",
+        "facts": [
+         {
+          "label": "Saves waiting for approval",
+          "value": "0"
+         },
+         {
+          "label": "Saves Hermes staged in a chat",
+          "value": "1"
+         },
+         {
+          "label": "memory.write_approval",
+          "value": "on"
+         }
+        ]
+       },
+       {
+        "id": 2,
+        "check": "plant_fixed",
+        "kind": "tool_result",
+        "file": "state.db",
+        "sha256": "a8c8a34fd76b95ebcc99d04bdc6715aa6bee65cef69bfa3f02e4c7a4e348273b",
+        "read_at": "2026-10-03T09:00:00+00:00",
+        "checked_by": "Field Academy read it",
+        "withheld": false,
+        "excerpt": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending.",
+        "excerpt_file": "evidence/01-tool-result.txt",
+        "backs": {
+         "n": 4,
+         "label": "Backs check 4",
+         "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+        },
+        "phase": "after_fix",
+        "facts": [
+         {
+          "label": "Saves waiting for approval",
+          "value": "0"
+         },
+         {
+          "label": "Saves Hermes staged in a chat",
+          "value": "1"
+         },
+         {
+          "label": "memory.write_approval",
+          "value": "on"
+         }
+        ]
+       },
+       {
+        "id": 3,
+        "check": "memory_line",
+        "kind": "memory",
+        "file": "memories/MEMORY.md",
+        "sha256": "8852d9810ba03ae18f7575487348044336aedb7dae5877ad1d627ee888f8e7ad",
+        "read_at": "2026-10-03T09:00:00+00:00",
+        "checked_by": "Field Academy read it",
+        "withheld": false,
+        "excerpt": "Harbor Bakery uses QuickBooks Online; the other five use Xero",
+        "excerpt_file": "evidence/01-memory.txt",
+        "backs": {
+         "n": 1,
+         "label": "Backs check 1",
+         "text": "The fact is in the memory file of the profile you used, as one short line."
+        },
+        "phase": "after_fix",
+        "facts": [
+         {
+          "label": "MEMORY.md",
+          "value": "513 of 2,200 characters, 6 lines"
+         },
+         {
+          "label": "USER.md",
+          "value": "0 of 1,375 characters, 0 lines"
+         }
+        ]
+       },
+       {
+        "id": 4,
+        "check": "fresh_use",
+        "kind": "session",
+        "file": "state.db",
+        "sha256": "d963abce075d3f93d34a6379ba7683ec031b0aa66e237d9f3cff38769f7f35de",
+        "read_at": "2026-10-03T09:00:00+00:00",
+        "checked_by": "Field Academy read it",
+        "withheld": false,
+        "excerpt": "1. Export the bank feed from QuickBooks Online.",
+        "excerpt_file": "evidence/01-session.txt",
+        "backs": {
+         "n": 2,
+         "label": "Backs check 2",
+         "text": "A brand-new chat uses the fact without you mentioning it."
+        },
+        "phase": "after_fix",
+        "facts": [
+         {
+          "label": "Saved at",
+          "value": "October 19, 2026, 08:53:32 UTC, from the memory call"
+         },
+         {
+          "label": "Chats started after the save",
+          "value": "2"
+         },
+         {
+          "label": "The chat that used it started",
+          "value": "November 9, 2026, 17:52:13 UTC"
+         }
+        ]
+       },
+       {
+        "id": 6,
+        "check": "user_line",
+        "kind": "memory",
+        "file": "memories/USER.md",
+        "sha256": "c4165bd177f9869126c53923e298bda2701f9f90f8a3b27acce5d5ab78c05086",
+        "read_at": "2026-10-03T09:00:00+00:00",
+        "checked_by": "Field Academy read it",
+        "withheld": false,
+        "excerpt": "Ada prefers short answers.",
+        "excerpt_file": "evidence/01-memory-2.txt",
+        "backs": {
+         "n": null,
+         "label": "Backs the transfer task",
+         "text": "the same idea, used on a second job."
+        },
+        "phase": "transfer",
+        "facts": []
+       }
+      ],
+      "corrections": [],
+      "help": {
+       "words": "3 hints used",
+       "key": "hints",
+       "hunt_helps": 3,
+       "checked_by": "Field Academy counted it"
+      },
+      "cost": {
+       "practice": "This practice: Hermes hadn't recorded any usage yet.",
+       "guide": "Field guide and grading: 31,446 tokens over 10 calls, on your own model.",
+       "practice_usd": null,
+       "guide_tokens": 31446,
+       "checked_by": "Field Academy counted it"
+      },
+      "first_flight": {
+       "skipped": [
+        "recall",
+        "claim"
+       ],
+       "snag": "chosen for first flight",
+       "words": "Began as a first flight; snag chosen for first flight"
+      }
+     }
+    ],
+    "calibration": {
+     "per_mission": [
+      {
+       "mission": "f.loop",
+       "title": "Check whether Hermes really did what it says",
+       "order": 1,
+       "in_record": false,
+       "checks": null,
+       "predicted": null,
+       "self_scored": null,
+       "passed_first": null
+      },
+      {
+       "mission": "f.cost",
+       "title": "See what a chat costs, and cut it",
+       "order": 2,
+       "in_record": false,
+       "checks": null,
+       "predicted": null,
+       "self_scored": null,
+       "passed_first": null
+      },
+      {
+       "mission": "f.memory",
+       "title": "Save a fact to memory and check it stuck",
+       "order": 3,
+       "in_record": true,
+       "checks": 4,
+       "predicted": 4,
+       "self_scored": 4,
+       "passed_first": 0
+      },
+      {
+       "mission": "f.new-chats",
+       "title": "Start a new chat at the right time",
+       "order": 4,
+       "in_record": false,
+       "checks": null,
+       "predicted": null,
+       "self_scored": null,
+       "passed_first": null
+      },
+      {
+       "mission": "f.skills",
+       "title": "Turn a repeat job into a skill",
+       "order": 5,
+       "in_record": false,
+       "checks": null,
+       "predicted": null,
+       "self_scored": null,
+       "passed_first": null
+      },
+      {
+       "mission": "f.profiles",
+       "title": "Keep two jobs apart in two profiles",
+       "order": 6,
+       "in_record": false,
+       "checks": null,
+       "predicted": null,
+       "self_scored": null,
+       "passed_first": null
+      },
+      {
+       "mission": "f.connectors",
+       "title": "Connect an outside tool safely",
+       "order": 7,
+       "in_record": false,
+       "checks": null,
+       "predicted": null,
+       "self_scored": null,
+       "passed_first": null
+      },
+      {
+       "mission": "f.schedules",
+       "title": "Set up a job that runs on a schedule",
+       "order": 8,
+       "in_record": false,
+       "checks": null,
+       "predicted": null,
+       "self_scored": null,
+       "passed_first": null
+      },
+      {
+       "mission": "f.safety",
+       "title": "Stop a mistake before it happens, or undo it",
+       "order": 9,
+       "in_record": false,
+       "checks": null,
+       "predicted": null,
+       "self_scored": null,
+       "passed_first": null
+      },
+      {
+       "mission": "f.diagnose",
+       "title": "Find out why Hermes failed, and fix it",
+       "order": 10,
+       "in_record": false,
+       "checks": null,
+       "predicted": null,
+       "self_scored": null,
+       "passed_first": null
+      },
+      {
+       "mission": "f.review",
+       "title": "Foundations review",
+       "order": 11,
+       "in_record": false,
+       "checks": null,
+       "predicted": null,
+       "self_scored": null,
+       "passed_first": null
+      }
+     ],
+     "note": "One row per mission: the checks the holder predicted would pass beside the checks that did, the first time. No average and no verdict: with about four checks a mission, one lucky or unlucky check moves any average more than judgment does. Read down the rows and see whether the guesses got closer.",
+     "checked_by": "Field Academy read it"
+    },
+    "first_and_last": {
+     "first": {
+      "n": 1,
+      "mission": "f.memory",
+      "mission_title": "Save a fact to memory and check it stuck",
+      "added_at": "2026-10-03T09:00:00+00:00",
+      "found_wrong": "I trusted Saved to memory. Expanded, the row said the save was staged for approval.",
+      "found_wrong_by": "you wrote it",
+      "caught": 1,
+      "missed": 0,
+      "first_result": {
+       "passed": 1,
+       "of": 4
+      },
+      "checked_by": "Field Academy read it"
+     },
+     "last": null,
+     "note": "Only one mission is in the record, so first and last are the same work. Add more to see the change."
+    },
+    "can_claim": {
+     "passed": [],
+     "not_yet": [
+      {
+       "mission": "f.loop",
+       "title": "Check whether Hermes really did what it says",
+       "why": "Not in the record yet.",
+       "entry": null,
+       "checked_by": "Field Academy read it"
+      },
+      {
+       "mission": "f.cost",
+       "title": "See what a chat costs, and cut it",
+       "why": "Not in the record yet.",
+       "entry": null,
+       "checked_by": "Field Academy read it"
+      },
+      {
+       "mission": "f.memory",
+       "title": "Save a fact to memory and check it stuck",
+       "why": "Missed: You can say which kind of memory holds it, and why that kind.",
+       "entry": 1,
+       "checked_by": "Field Academy read it"
+      },
+      {
+       "mission": "f.new-chats",
+       "title": "Start a new chat at the right time",
+       "why": "Not in the record yet.",
+       "entry": null,
+       "checked_by": "Field Academy read it"
+      },
+      {
+       "mission": "f.skills",
+       "title": "Turn a repeat job into a skill",
+       "why": "Not in the record yet.",
+       "entry": null,
+       "checked_by": "Field Academy read it"
+      },
+      {
+       "mission": "f.profiles",
+       "title": "Keep two jobs apart in two profiles",
+       "why": "Not in the record yet.",
+       "entry": null,
+       "checked_by": "Field Academy read it"
+      },
+      {
+       "mission": "f.connectors",
+       "title": "Connect an outside tool safely",
+       "why": "Not in the record yet.",
+       "entry": null,
+       "checked_by": "Field Academy read it"
+      },
+      {
+       "mission": "f.schedules",
+       "title": "Set up a job that runs on a schedule",
+       "why": "Not in the record yet.",
+       "entry": null,
+       "checked_by": "Field Academy read it"
+      },
+      {
+       "mission": "f.safety",
+       "title": "Stop a mistake before it happens, or undo it",
+       "why": "Not in the record yet.",
+       "entry": null,
+       "checked_by": "Field Academy read it"
+      },
+      {
+       "mission": "f.diagnose",
+       "title": "Find out why Hermes failed, and fix it",
+       "why": "Not in the record yet.",
+       "entry": null,
+       "checked_by": "Field Academy read it"
+      },
+      {
+       "mission": "f.review",
+       "title": "Foundations review",
+       "why": "Not in the record yet.",
+       "entry": null,
+       "checked_by": "Field Academy read it"
+      }
+     ]
+    },
+    "case": {
+     "text": "",
+     "checked_by": "you wrote it",
+     "note": "No case was written for this record."
+    },
+    "limits": {
+     "text": "",
+     "checked_by": "yours, not graded"
+    },
+    "reviewer": null,
+    "reviewer_note": "Nobody outside has reviewed this record.",
+    "chain": {
+     "head": "09e6cc2834deb116a2402bfaea00605a5f3f2531f4dba128fb2c3f0ed9c98b05",
+     "entries": 1,
+     "intact": true,
+     "checked_by": "Field Academy read it"
+    },
+    "chain_head": "09e6cc2834deb116a2402bfaea00605a5f3f2531f4dba128fb2c3f0ed9c98b05",
+    "shows": "Work done in practice profiles on the holder's own computer: what the holder predicted before each mission, what Field Academy read from the practice profile, what the holder's own Hermes graded, and which planted problems were caught or missed.",
+    "does_not_show": "That anyone outside checked the work, that the holder has used Hermes on real work for months, or anything about a Hermes version other than the one named here. The fingerprints show the files match each other; they don't show this folder is the one the holder saved, and they don't prove Hermes produced them.",
+    "disclaimer": "Self-issued with Field Academy, a community plugin for Hermes Agent. Not issued or endorsed by Nous Research.",
+    "plugin_version": "0.9.0",
+    "issued_at": "2026-10-03T09:00:00+00:00"
+   },
+   "excerpts": [
+    {
+     "id": 1,
+     "entry": 1,
+     "mission_title": "Save a fact to memory and check it stuck",
+     "check": "plant_fixed",
+     "kind": "pending",
+     "file": "pending/memory/e79e83a9.json",
+     "sha256": "50db9c5543bde0cca571a410c0ef120d9a61523cd0dc8b10af27c6658d5fb3ee",
+     "read_at": "2026-10-03T09:00:00+00:00",
+     "excerpt": "add Harbor Bakery uses QuickBooks Online; the other five use Xero",
+     "withheld": false,
+     "excerpt_file": "evidence/01-pending.txt",
+     "backs": {
+      "n": 4,
+      "label": "Backs check 4",
+      "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+     },
+     "about": "A save Hermes was holding for approval, not yet in the memory file."
+    },
+    {
+     "id": 2,
+     "entry": 1,
+     "mission_title": "Save a fact to memory and check it stuck",
+     "check": "plant_fixed",
+     "kind": "tool_result",
+     "file": "state.db",
+     "sha256": "a8c8a34fd76b95ebcc99d04bdc6715aa6bee65cef69bfa3f02e4c7a4e348273b",
+     "read_at": "2026-10-03T09:00:00+00:00",
+     "excerpt": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending.",
+     "withheld": false,
+     "excerpt_file": "evidence/01-tool-result.txt",
+     "backs": {
+      "n": 4,
+      "label": "Backs check 4",
+      "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+     },
+     "about": "What a tool sent back inside a practice chat."
+    },
+    {
+     "id": 3,
+     "entry": 1,
+     "mission_title": "Save a fact to memory and check it stuck",
+     "check": "memory_line",
+     "kind": "memory",
+     "file": "memories/MEMORY.md",
+     "sha256": "8852d9810ba03ae18f7575487348044336aedb7dae5877ad1d627ee888f8e7ad",
+     "read_at": "2026-10-03T09:00:00+00:00",
+     "excerpt": "Harbor Bakery uses QuickBooks Online; the other five use Xero",
+     "withheld": false,
+     "excerpt_file": "evidence/01-memory.txt",
+     "backs": {
+      "n": 1,
+      "label": "Backs check 1",
+      "text": "The fact is in the memory file of the profile you used, as one short line."
+     },
+     "about": "A line in the practice profile's memory file, as it sits there."
+    },
+    {
+     "id": 4,
+     "entry": 1,
+     "mission_title": "Save a fact to memory and check it stuck",
+     "check": "fresh_use",
+     "kind": "session",
+     "file": "state.db",
+     "sha256": "d963abce075d3f93d34a6379ba7683ec031b0aa66e237d9f3cff38769f7f35de",
+     "read_at": "2026-10-03T09:00:00+00:00",
+     "excerpt": "1. Export the bank feed from QuickBooks Online.",
+     "withheld": false,
+     "excerpt_file": "evidence/01-session.txt",
+     "backs": {
+      "n": 2,
+      "label": "Backs check 2",
+      "text": "A brand-new chat uses the fact without you mentioning it."
+     },
+     "about": "A line Hermes wrote in a practice chat, from the chat record (state.db)."
+    },
+    {
+     "id": 6,
+     "entry": 1,
+     "mission_title": "Save a fact to memory and check it stuck",
+     "check": "user_line",
+     "kind": "memory",
+     "file": "memories/USER.md",
+     "sha256": "c4165bd177f9869126c53923e298bda2701f9f90f8a3b27acce5d5ab78c05086",
+     "read_at": "2026-10-03T09:00:00+00:00",
+     "excerpt": "Ada prefers short answers.",
+     "withheld": false,
+     "excerpt_file": "evidence/01-memory-2.txt",
+     "backs": {
+      "n": null,
+      "label": "Backs the transfer task",
+      "text": "the same idea, used on a second job."
+     },
+     "about": "A line in the practice profile's memory file, as it sits there."
+    }
+   ],
+   "verdict": "0 of 11 missions passed. 1 planted problem caught, 0 missed. Explanations graded by the holder's own Hermes. No outside review.",
+   "issued": []
+  },
+  "foundations": {
+   "missions": [
+    {
+     "id": "f.loop",
+     "order": 1,
+     "title": "Check whether Hermes really did what it says",
+     "kind": "",
+     "level": "beginner",
+     "minutes": {
+      "read": 20,
+      "do": 30
+     },
+     "cost": {
+      "chats": 3,
+      "words": "usually a few cents",
+      "line": "Expected cost: three short chats in the practice profile. The record shows what Hermes logged for them."
+     },
+     "attempts": []
+    },
+    {
+     "id": "f.cost",
+     "order": 2,
+     "title": "See what a chat costs, and cut it",
+     "kind": "",
+     "level": "beginner",
+     "minutes": {
+      "read": 20,
+      "do": 30
+     },
+     "cost": {
+      "chats": 4,
+      "words": "usually a few cents",
+      "line": "Expected cost: four short chats in the practice profile. This mission shows you where to read what they cost."
+     },
+     "attempts": []
+    },
+    {
+     "id": "f.memory",
+     "order": 3,
+     "title": "Save a fact to memory and check it stuck",
+     "kind": "",
+     "level": "beginner",
+     "minutes": {
+      "read": 20,
+      "do": 30
+     },
+     "cost": {
+      "chats": 4,
+      "words": "usually a few cents",
+      "line": "Expected cost: about four short chats, mostly one-line questions."
+     },
+     "attempts": [
+      {
+       "id": 1,
+       "attempt_no": 1,
+       "level": "beginner",
+       "status": "done",
+       "started_at": "2026-10-03T09:00:00+00:00",
+       "frozen_at": "2026-10-03T09:00:00+00:00",
+       "finished_at": "2026-10-03T09:00:00+00:00",
+       "test_out": false,
+       "tested_out": false
+      }
+     ]
+    },
+    {
+     "id": "f.new-chats",
+     "order": 4,
+     "title": "Start a new chat at the right time",
+     "kind": "",
+     "level": "beginner",
+     "minutes": {
+      "read": 20,
+      "do": 30
+     },
+     "cost": {
+      "chats": 5,
+      "words": "usually a few cents",
+      "line": "Expected cost: four or five short chats in the practice profile, each only a question or two long."
+     },
+     "attempts": []
+    },
+    {
+     "id": "f.skills",
+     "order": 5,
+     "title": "Turn a repeat job into a skill",
+     "kind": "",
+     "level": "beginner",
+     "minutes": {
+      "read": 20,
+      "do": 35
+     },
+     "cost": {
+      "chats": 5,
+      "words": "usually a few cents",
+      "line": "Expected cost: four or five short chats in the practice profile. Mission 2 showed you where to read the real figure."
+     },
+     "attempts": []
+    },
+    {
+     "id": "f.profiles",
+     "order": 6,
+     "title": "Keep two jobs apart in two profiles",
+     "kind": "",
+     "level": "beginner",
+     "minutes": {
+      "read": 20,
+      "do": 35
+     },
+     "cost": {
+      "chats": 6,
+      "words": "a small charge on your provider",
+      "line": "Expected cost: five or six short chats across two profiles, a small charge on your provider."
+     },
+     "attempts": []
+    },
+    {
+     "id": "f.connectors",
+     "order": 7,
+     "title": "Connect an outside tool safely",
+     "kind": "",
+     "level": "beginner",
+     "minutes": {
+      "read": 25,
+      "do": 40
+     },
+     "cost": {
+      "chats": 4,
+      "words": "small change on most providers",
+      "line": "Expected cost: three or four short chats on your provider. The connector itself runs on your own computer and costs nothing; its first start downloads it, so you'll need to be online."
+     },
+     "attempts": []
+    },
+    {
+     "id": "f.schedules",
+     "order": 8,
+     "title": "Set up a job that runs on a schedule",
+     "kind": "",
+     "level": "beginner",
+     "minutes": {
+      "read": 25,
+      "do": 50,
+      "wait": 180
+     },
+     "cost": {
+      "chats": 3,
+      "words": "small change on most providers",
+      "line": "Expected cost: a handful of short runs, small change on most providers. A job that fires every few minutes on an expensive model is how a bill grows, so keep practice jobs to once an hour and stop them when you're done."
+     },
+     "attempts": []
+    },
+    {
+     "id": "f.safety",
+     "order": 9,
+     "title": "Stop a mistake before it happens, or undo it",
+     "kind": "",
+     "level": "beginner",
+     "minutes": {
+      "read": 25,
+      "do": 35
+     },
+     "cost": {
+      "chats": 4,
+      "words": "small change on most providers",
+      "line": "Expected cost: three or four short chats in the practice profile. Type `/usage` at the end of each one to see what it cost on your provider."
+     },
+     "attempts": []
+    },
+    {
+     "id": "f.diagnose",
+     "order": 10,
+     "title": "Find out why Hermes failed, and fix it",
+     "kind": "",
+     "level": "beginner",
+     "minutes": {
+      "read": 25,
+      "do": 45
+     },
+     "cost": {
+      "chats": 4,
+      "words": "small change on most providers",
+      "line": "Expected cost: a few short chats and one scheduled run on your provider; `/usage` in a chat shows that chat's share. The doctor, the logs and backups don't call a model, so they cost nothing."
+     },
+     "attempts": []
+    },
+    {
+     "id": "f.review",
+     "order": 11,
+     "title": "Foundations review",
+     "kind": "review",
+     "level": "advanced",
+     "minutes": {
+      "read": 15,
+      "do": 60
+     },
+     "cost": {
+      "chats": 3,
+      "words": "one small job's worth of model use",
+      "line": "Expected cost: one small job's worth of model use, plus whatever Hermes runs in the background around it. Read your own total with `/usage` at the end of each practice chat."
+     },
+     "attempts": []
+    }
+   ],
+   "calibration": {
+    "missions": 1,
+    "brier": 0.81,
+    "hit_rate": 0.0,
+    "gaps": [
+     4
+    ],
+    "trend": null
+   },
+   "calibration_table": [
+    {
+     "mission": "f.loop",
+     "title": "Check whether Hermes really did what it says",
+     "order": 1,
+     "in_record": false,
+     "checks": null,
+     "predicted": null,
+     "self_scored": null,
+     "passed_first": null
+    },
+    {
+     "mission": "f.cost",
+     "title": "See what a chat costs, and cut it",
+     "order": 2,
+     "in_record": false,
+     "checks": null,
+     "predicted": null,
+     "self_scored": null,
+     "passed_first": null
+    },
+    {
+     "mission": "f.memory",
+     "title": "Save a fact to memory and check it stuck",
+     "order": 3,
+     "in_record": true,
+     "checks": 4,
+     "predicted": 4,
+     "self_scored": 4,
+     "passed_first": 0
+    },
+    {
+     "mission": "f.new-chats",
+     "title": "Start a new chat at the right time",
+     "order": 4,
+     "in_record": false,
+     "checks": null,
+     "predicted": null,
+     "self_scored": null,
+     "passed_first": null
+    },
+    {
+     "mission": "f.skills",
+     "title": "Turn a repeat job into a skill",
+     "order": 5,
+     "in_record": false,
+     "checks": null,
+     "predicted": null,
+     "self_scored": null,
+     "passed_first": null
+    },
+    {
+     "mission": "f.profiles",
+     "title": "Keep two jobs apart in two profiles",
+     "order": 6,
+     "in_record": false,
+     "checks": null,
+     "predicted": null,
+     "self_scored": null,
+     "passed_first": null
+    },
+    {
+     "mission": "f.connectors",
+     "title": "Connect an outside tool safely",
+     "order": 7,
+     "in_record": false,
+     "checks": null,
+     "predicted": null,
+     "self_scored": null,
+     "passed_first": null
+    },
+    {
+     "mission": "f.schedules",
+     "title": "Set up a job that runs on a schedule",
+     "order": 8,
+     "in_record": false,
+     "checks": null,
+     "predicted": null,
+     "self_scored": null,
+     "passed_first": null
+    },
+    {
+     "mission": "f.safety",
+     "title": "Stop a mistake before it happens, or undo it",
+     "order": 9,
+     "in_record": false,
+     "checks": null,
+     "predicted": null,
+     "self_scored": null,
+     "passed_first": null
+    },
+    {
+     "mission": "f.diagnose",
+     "title": "Find out why Hermes failed, and fix it",
+     "order": 10,
+     "in_record": false,
+     "checks": null,
+     "predicted": null,
+     "self_scored": null,
+     "passed_first": null
+    },
+    {
+     "mission": "f.review",
+     "title": "Foundations review",
+     "order": 11,
+     "in_record": false,
+     "checks": null,
+     "predicted": null,
+     "self_scored": null,
+     "passed_first": null
+    }
+   ],
+   "record": []
+  }
+ }
+}

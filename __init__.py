@@ -59,6 +59,11 @@ INTERACTIVE_PLATFORMS = ("", "desktop", "tui", "cli", "local")
 def _pre_llm_call(session_id="", platform="", **kwargs):
     if _is_automation_run() or str(platform or "").strip().lower() not in INTERACTIVE_PLATFORMS:
         return None
+    try:
+        if not state.ai_settings()["practice_offer"]:
+            return None  # turned off in Settings: say nothing, and leave the watermark where it is
+    except Exception:  # a settings read must never break the learner's chat
+        return None
     mission = state.claim_spotlight(session_id)
     if not mission:
         return None
@@ -109,7 +114,42 @@ def _certificate_words(certificate):
     return f"{remaining} mission{'s' if remaining != 1 else ''} to go"
 
 
+def _register_ai(ctx):
+    """Field Academy's two model tasks, and the context the page routes use to reach the learner's model.
+
+    Both steps are wrapped: an older Hermes without ``register_auxiliary_task`` or ``ctx.llm`` still loads the plugin,
+    and the AI features then report ``no_model`` while every check keeps working."""
+    import logging
+
+    from . import runtime
+
+    log = logging.getLogger("hermes.plugins.field_academy")
+    tasks = (
+        (runtime.TASK_GUIDE, "Field Academy guide",
+         "Short coaching from your own practice run: the nudge, Explain my miss, replay notes and Ask.",
+         runtime.GUIDE_INHERITS),
+        (runtime.TASK_GRADER, "Field Academy grader",
+         "Scores your written answers in Field Academy against the mission's four levels.", None),
+    )
+    register_task = getattr(ctx, "register_auxiliary_task", None)
+    for key, name, description, inherit in tasks:
+        if register_task is None:
+            break
+        try:
+            if inherit:
+                register_task(key, display_name=name, description=description, inherit_from=inherit)
+            else:
+                register_task(key, display_name=name, description=description)
+        except Exception as exc:  # an older Hermes or a duplicate registration: the main model still works
+            log.warning("field-academy: could not register the %s task (%s); using the main model", key, exc)
+    try:
+        runtime.set_context(ctx)
+    except Exception:
+        log.exception("field-academy: could not share the plugin context with the page routes")
+
+
 def register(ctx):
+    _register_ai(ctx)
     ctx.register_tool(name="field_academy_snapshot", toolset="field_academy", schema=schemas.FIELD_ACADEMY_SNAPSHOT, handler=tools.field_academy_snapshot)
     ctx.register_tool(name="field_academy_mission", toolset="field_academy", schema=schemas.FIELD_ACADEMY_MISSION, handler=tools.field_academy_mission)
     ctx.register_tool(name="field_academy_grade_explanation", toolset="field_academy", schema=schemas.FIELD_ACADEMY_GRADE_EXPLANATION, handler=tools.field_academy_grade_explanation)

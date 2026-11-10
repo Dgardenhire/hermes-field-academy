@@ -1,0 +1,35 @@
+{
+ "response": {
+  "do_it_with_me": null,
+  "enabled": true,
+  "explain": [],
+  "help": {
+   "all_helps": 0,
+   "hunt_helps": 0,
+   "key": "own",
+   "used": [],
+   "words": "No hints used"
+  },
+  "ladder": {
+   "nudge": {
+    "state": "not_started",
+    "text": ""
+   },
+   "reveal": {
+    "available": true,
+    "opens": "compare"
+   },
+   "where": {
+    "available": true,
+    "text": ""
+   }
+  },
+  "mission_id": "f.memory",
+  "off_reason": null,
+  "off_words": "",
+  "pins": [],
+  "starters": [],
+  "step": "evidence"
+ },
+ "route": "GET /guide/{attempt_id}?step=&active="
+}

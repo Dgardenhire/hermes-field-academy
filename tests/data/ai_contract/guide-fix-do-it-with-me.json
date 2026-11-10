@@ -1,0 +1,132 @@
+{
+ "response": {
+  "do_it_with_me": {
+   "commands": [
+    "/memory pending",
+    "/memory approve 3a664c9f"
+   ],
+   "sends": false,
+   "why": {
+    "source": "model",
+    "state": "ready",
+    "text": "The save is held, so approving it by its id writes it into MEMORY.md."
+   }
+  },
+  "enabled": true,
+  "explain": [
+   {
+    "check_id": "memory_line",
+    "model": "fake-model-1",
+    "ms": 0,
+    "sentences": [
+     "The fact isn't in any line of MEMORY.md yet.",
+     "Open the memory row in your chat and read it."
+    ],
+    "source": "model",
+    "state": "ready"
+   },
+   {
+    "check_id": "fresh_use",
+    "model": "fake-model-1",
+    "ms": 0,
+    "sentences": [
+     "The fact isn't in any line of MEMORY.md yet.",
+     "Open the memory row in your chat and read it."
+    ],
+    "source": "model",
+    "state": "ready"
+   }
+  ],
+  "help": {
+   "all_helps": 7,
+   "hunt_helps": 4,
+   "key": "shown",
+   "used": [
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "ask",
+     "rung": null,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "where",
+     "rung": 2,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "reveal",
+     "rung": 3,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "pins",
+     "rung": null,
+     "step": "compare"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "explain",
+     "rung": null,
+     "step": "compare"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "do_it_with_me",
+     "rung": null,
+     "step": "fix"
+    }
+   ],
+   "words": "The guide showed the answer"
+  },
+  "ladder": {
+   "nudge": {
+    "event_id": "m3",
+    "model": "fake-model-1",
+    "ms": 212,
+    "source": "model",
+    "state": "ready",
+    "text": "At 03:53 Hermes answered with a memory row. Open it and read every line.",
+    "tokens": {
+     "input": 120,
+     "output": 40,
+     "total": 160
+    }
+   },
+   "reveal": {
+    "available": true,
+    "opens": "compare"
+   },
+   "where": {
+    "available": true,
+    "text": "Go back to the chat where you asked Hermes to remember the fact. Open the memory row and read every line of it, not just its title."
+   }
+  },
+  "mission_id": "f.memory",
+  "off_reason": null,
+  "off_words": "",
+  "pins": [
+   {
+    "event_id": "m3",
+    "kept": true,
+    "source": "model",
+    "why": "This is where your score and Hermes split. Open that memory row in your chat."
+   }
+  ],
+  "starters": [
+   "What do the two fix commands actually do?",
+   "How do I know the line really landed in MEMORY.md?",
+   "Should I turn this setting off, or keep it on and check each save?"
+  ],
+  "step": "fix"
+ },
+ "route": "GET /guide/{attempt_id}?step=&active="
+}

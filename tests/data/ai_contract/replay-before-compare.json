@@ -1,0 +1,24 @@
+{
+ "response": {
+  "attempt_id": 1,
+  "bracket": null,
+  "ended_at": null,
+  "events": [],
+  "lanes": [
+   {
+    "id": "chat",
+    "label": "In your chat"
+   },
+   {
+    "id": "files",
+    "label": "In Hermes's files"
+   }
+  ],
+  "mission_id": "f.memory",
+  "snag_found_from": "staged_flag",
+  "started_at": null,
+  "state": "not_ready",
+  "words": "Your replay opens on Compare, once the first check has run."
+ },
+ "route": "GET /replay/{attempt_id}?step="
+}

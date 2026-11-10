@@ -34,6 +34,16 @@ class Node(unittest.TestCase):
         result = run_node("deploy.test.mjs")
         self.assertEqual(result.returncode, 0, (result.stdout + result.stderr)[-3000:])
 
+    def test_the_trail_test_runs_on_its_own(self):
+        """With no FA_DEPLOYER it builds its own snapshots (tests/deployer_snapshots.py), so `node --test` alone works."""
+        import os
+
+        env = {k: v for k, v in os.environ.items() if k != "FA_DEPLOYER"}
+        env["PYTHON"] = sys.executable
+        result = subprocess.run([NODE, "--test", str(ROOT / "tests" / "deployer_trail.test.mjs")], capture_output=True, text=True, timeout=180, env=env)
+        self.assertEqual(result.returncode, 0, (result.stdout + result.stderr)[-3000:])
+        self.assertIn("labs: the track carries every field", result.stdout)
+
     def test_the_pure_module_imports_nothing(self):
         text = (ROOT / "desktop" / "src" / "deploy.js").read_text(encoding="utf-8")
         self.assertEqual([line for line in text.splitlines() if line.startswith("import ")], [])

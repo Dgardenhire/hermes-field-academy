@@ -1,0 +1,149 @@
+{
+ "reader": "codex exec (read-only)",
+ "when": "2026-11-09 07:07 CST",
+ "items": 23,
+ "read": 23,
+ "contradictions": 0,
+ "give_aways": null,
+ "verdicts": [
+  {
+   "id": "run1-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Approval staging matches the facts; naming the snag is allowed in replay."
+  },
+  {
+   "id": "run1-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The file was unchanged and contained no line holding the fact."
+  },
+  {
+   "id": "run1-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The question matches the facts; 'no way to know' is stronger than established, but not contradicted."
+  },
+  {
+   "id": "run2-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Accurately contrasts the Saved title with the staged result."
+  },
+  {
+   "id": "run2-m4",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The request omits the software; 'only memory' is not established, but not contradicted."
+  },
+  {
+   "id": "run2-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The chat asked for the software; lacking the fact is consistent with the checks."
+  },
+  {
+   "id": "run3-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The title, result, and approval setting match the facts."
+  },
+  {
+   "id": "run3-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The new chat asked for the software and did not use the fact."
+  },
+  {
+   "id": "run4-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The save was staged for approval and not completed."
+  },
+  {
+   "id": "run4-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The fact was absent from MEMORY.md; the held pending save does not contradict that."
+  },
+  {
+   "id": "run4-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The fact did not help the later chat, which asked for the software."
+  },
+  {
+   "id": "run5-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "MEMORY.md remained unchanged and did not contain the fact."
+  },
+  {
+   "id": "run5-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The new chat did not use the supplied fact."
+  },
+  {
+   "id": "run6-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The referenced file did not contain the QuickBooks fact."
+  },
+  {
+   "id": "run7-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The approval setting explains the staged save; the title wording is accurately characterized."
+  },
+  {
+   "id": "run7-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Failure to reach the conversation is an inference consistent with the observed nonuse."
+  },
+  {
+   "id": "run8-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The cited result and setting match the staged-save facts."
+  },
+  {
+   "id": "run8-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The new chat asked for the software and did not benefit from the fact."
+  },
+  {
+   "id": "run9-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "'Hides' describes the misleading title, not literal removal of the visible result."
+  },
+  {
+   "id": "run9-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The unchanged character count matches the checks."
+  },
+  {
+   "id": "run9-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The QuickBooks fact was not used in the new chat."
+  },
+  {
+   "id": "run10-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The file remained unchanged and lacked the QuickBooks fact."
+  },
+  {
+   "id": "run10-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The new chat asked for the software instead of using the supplied fact."
+  }
+ ],
+ "raw_tail": ""
+}

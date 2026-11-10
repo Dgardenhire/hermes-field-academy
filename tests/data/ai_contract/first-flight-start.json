@@ -1,0 +1,194 @@
+{
+ "response": {
+  "attempt": {
+   "attempt_no": 1,
+   "finished_at": "",
+   "frozen_at": "",
+   "id": 1,
+   "level": "beginner",
+   "mission_id": "f.memory",
+   "profile": "",
+   "started_at": "2026-10-03T09:00:00+00:00",
+   "status": "open"
+  },
+  "entries": [
+   {
+    "body": {
+     "plants_rule": "always write_approval",
+     "skips": [
+      "recall",
+      "claim"
+     ],
+     "snag": "chosen for first flight",
+     "words": "Began as a first flight; snag chosen for first flight"
+    },
+    "created_at": "2026-10-03T09:00:00+00:00",
+    "kind": "first_flight"
+   },
+   {
+    "body": {
+     "checks": [
+      {
+       "id": "s1",
+       "text": "The fact is in the memory file of the profile you used, as one short line."
+      },
+      {
+       "id": "s2",
+       "text": "A brand-new chat uses the fact without you mentioning it."
+      },
+      {
+       "id": "s3",
+       "text": "You can say which kind of memory holds it, and why that kind."
+      },
+      {
+       "id": "s4",
+       "text": "If something in your setup stops the fact from being saved, or costs you another note, you find it and say how."
+      }
+     ]
+    },
+    "created_at": "2026-10-03T09:00:00+00:00",
+    "kind": "standard"
+   }
+  ],
+  "explain": {
+   "answer": "",
+   "checked_by": "your Hermes graded it",
+   "feedback": "",
+   "graded": 0,
+   "level": null,
+   "pass_level": 3,
+   "passed": null,
+   "submitted": 0,
+   "waiting": false
+  },
+  "first_flight": {
+   "guess": {
+    "answers": [
+     {
+      "id": "save",
+      "label": "Saving the fact when I ask"
+     },
+     {
+      "id": "file",
+      "label": "Putting it in the right memory file"
+     },
+     {
+      "id": "new_chat",
+      "label": "Using it in a brand-new chat"
+     },
+     {
+      "id": "nowhere",
+      "label": "Nowhere. It will just work."
+     }
+    ],
+    "confidence": [
+     {
+      "id": "low",
+      "label": "Not sure"
+     },
+     {
+      "id": "medium",
+      "label": "Fairly sure"
+     },
+     {
+      "id": "high",
+      "label": "Sure"
+     }
+    ],
+    "question": "Where do you think Hermes will trip?"
+   },
+   "guessed": null,
+   "guide": "opens after you score yourself",
+   "on": true,
+   "skipped": [
+    "recall",
+    "claim"
+   ],
+   "snag": "chosen for first flight",
+   "words": "Began as a first flight; snag chosen for first flight"
+  },
+  "lab": {
+   "after_try": {
+    "done": true,
+    "needed": []
+   },
+   "body": "The box above lists two notes already in this profile's memory that its owner can't lose. Whatever happens to the other notes, those two stay.\n\n1. Pick one real fact Hermes should know about how you work: a deadline, a preference, a tool you use. Keep it to one line.\n2. Press **Open practice chat** and ask Hermes to save it to memory.\n3. Prove each of the four checks above. How you prove them is up to you. For a new chat, press **Open practice chat** again. For the file, press **Show memory file**; it shows both `MEMORY.md` and `USER.md`.\n\nThe practice setup has one snag waiting that can block your save or cost you a note. If the file and the new chat don't agree with what Hermes told you, find the reason before you press Check.\n\nWhen you're done, press **Save what I did** below. Then score yourself, and run the checks on the Check step.",
+   "profiles": [
+    "a"
+   ]
+  },
+  "protected_notes": [],
+  "recall_from": [
+   {
+    "done": false,
+    "mission": "f.loop",
+    "order": 1,
+    "title": "Check whether Hermes really did what it says"
+   },
+   {
+    "done": false,
+    "mission": "f.cost",
+    "order": 2,
+    "title": "See what a chat costs, and cut it"
+   }
+  ],
+  "record": null,
+  "runs": {},
+  "standard_changes": [],
+  "steps": [
+   {
+    "id": "recall",
+    "status": "skipped"
+   },
+   {
+    "id": "claim",
+    "status": "skipped"
+   },
+   {
+    "id": "standard",
+    "status": "done"
+   },
+   {
+    "id": "predict",
+    "status": "open"
+   },
+   {
+    "id": "idea",
+    "status": "locked"
+   },
+   {
+    "id": "expert",
+    "status": "locked"
+   },
+   {
+    "id": "lab",
+    "status": "locked"
+   },
+   {
+    "id": "evidence",
+    "status": "locked"
+   },
+   {
+    "id": "check",
+    "status": "locked"
+   },
+   {
+    "id": "compare",
+    "status": "locked"
+   },
+   {
+    "id": "fix_transfer",
+    "status": "locked"
+   },
+   {
+    "id": "record",
+    "status": "locked"
+   }
+  ],
+  "test_out": {
+   "on": false,
+   "passed": null
+  }
+ },
+ "route": "POST /first-flight/start"
+}

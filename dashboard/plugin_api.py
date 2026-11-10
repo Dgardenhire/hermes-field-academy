@@ -46,7 +46,54 @@ if deployer is None:
 
     deployer = import_module(f"{package_name}.deployer")
 
+practice = sys.modules.get(f"{package_name}.practice")
+if practice is None:
+    from importlib import import_module
+
+    practice = import_module(f"{package_name}.practice")
+
+foundations = sys.modules.get(f"{package_name}.foundations")
+if foundations is None:
+    from importlib import import_module
+
+    foundations = import_module(f"{package_name}.foundations")
+
+field_record = sys.modules.get(f"{package_name}.field_record")
+if field_record is None:
+    from importlib import import_module
+
+    field_record = import_module(f"{package_name}.field_record")
+
 router = APIRouter()
+
+
+def _mount(module_name):
+    """Add one lane's routes (the AI lane's ``routes_ai``, the Replay lane's ``routes_replay``) to this router.
+
+    Each module defines ``mount(router)`` and registers its routes under this same prefix. A module that isn't in
+    this checkout is skipped, and one that fails to load is logged and skipped, so the rest of the page still works.
+    Owned by the AI lane; tell the Field Academy product owner before changing this or the two lines below it."""
+    import logging
+    from importlib import import_module
+
+    try:
+        module = import_module(f"{package_name}.{module_name}")
+    except ModuleNotFoundError as exc:
+        if exc.name == f"{package_name}.{module_name}":
+            return
+        logging.getLogger("hermes.plugins.field_academy").exception("field-academy: %s did not load", module_name)
+        return
+    except Exception:
+        logging.getLogger("hermes.plugins.field_academy").exception("field-academy: %s did not load", module_name)
+        return
+    try:
+        module.mount(router)
+    except Exception:
+        logging.getLogger("hermes.plugins.field_academy").exception("field-academy: %s routes did not mount", module_name)
+
+
+_mount("routes_ai")
+_mount("routes_replay")
 
 
 def _guard(call, *args, **kwargs):
@@ -454,3 +501,222 @@ async def deployer_reverify_start():
 @router.post("/deployer/reverify/finish")
 async def deployer_reverify_finish():
     return _guard(deployer.finish_reverify)
+
+
+# -- Foundations: the practice profile ------------------------------------------
+# The page sends profiles.create and deleteProfile itself, through Hermes's own gateway. This side plans the exact
+# request, records what Hermes made, plants problems before the first chat, and confirms a deletion.
+
+
+@router.get("/foundations/practice")
+async def foundations_practice():
+    return {"practice": practice.listing()}
+
+
+@router.post("/foundations/practice/plan")
+async def foundations_practice_plan(body: Optional[dict] = None):
+    body = body or {}
+    return _guard(practice.plan, body.get("which", "a"), body.get("attempt_id"))
+
+
+@router.post("/foundations/practice/confirm")
+async def foundations_practice_confirm(body: dict):
+    result = body.get("result") if isinstance(body.get("result"), dict) else None
+    return _guard(practice.confirm, str(body.get("name", "")), result)
+
+
+@router.post("/foundations/practice/plant")
+async def foundations_practice_plant(body: dict):
+    return _guard(foundations.plant_lab, body.get("attempt_id", 0))
+
+
+@router.post("/foundations/attempt/{attempt_id}/after-try")
+async def foundations_after_try(attempt_id: int):
+    return _guard(foundations.plant_after_try, attempt_id)
+
+
+@router.get("/foundations/practice/{name}/memory")
+async def foundations_practice_memory(name: str):
+    return _guard(practice.memory_files, name)
+
+
+@router.get("/foundations/practice/{name}/folder")
+async def foundations_practice_folder(name: str):
+    return _guard(practice.working_folder, name)
+
+
+@router.post("/foundations/practice/remove")
+async def foundations_practice_remove(body: dict):
+    return _guard(practice.prepare_remove, str(body.get("name", "")), body.get("confirm") is True)
+
+
+@router.post("/foundations/practice/removed")
+async def foundations_practice_removed(body: dict):
+    return _guard(practice.removed, str(body.get("name", "")))
+
+
+# Missions 1, 2, 4, 5 and 6 (0.9 M6, part A): page data read on this side, never a planted problem.
+def _foundations_a():
+    from importlib import import_module
+
+    return import_module(f"{package_name}.foundations_a")
+
+
+@router.get("/foundations/a/{attempt_id}/{what}")
+async def foundations_a_page(attempt_id: str, what: str):
+    return _guard(_foundations_a().page, attempt_id, what)
+
+
+@router.post("/foundations/a/{attempt_id}/{what}")
+async def foundations_a_page_post(attempt_id: str, what: str, body: Optional[dict] = None):
+    return _guard(_foundations_a().page, attempt_id, what, body or {})
+
+
+# -- Foundations: the mission loop ----------------------------------------------
+# No route here records a level or a score: those arrive only through the agent tool field_academy_grade_explanation.
+
+
+@router.get("/foundations")
+async def foundations_snapshot():
+    return foundations.snapshot()
+
+
+@router.get("/foundations/mission/{mission_id}")
+async def foundations_mission(mission_id: str):
+    return _guard(foundations.mission_view, mission_id)
+
+
+@router.post("/foundations/attempt/start")
+async def foundations_attempt_start(body: dict):
+    return _guard(foundations.start, str(body.get("mission_id", "")), str(body.get("level", "")), body.get("test_out") is True)
+
+
+@router.get("/foundations/attempt/{attempt_id}")
+async def foundations_attempt(attempt_id: str):
+    return _guard(foundations.attempt_view, attempt_id)
+
+
+@router.post("/foundations/attempt/{attempt_id}/entry")
+async def foundations_attempt_entry(attempt_id: str, body: dict):
+    return _guard(foundations.save_entry, attempt_id, str(body.get("kind", "")), body.get("body") if isinstance(body.get("body"), dict) else {})
+
+
+@router.post("/foundations/attempt/{attempt_id}/lab/open")
+async def foundations_attempt_lab_open(attempt_id: str):
+    return _guard(foundations.open_lab, attempt_id)
+
+
+@router.post("/foundations/attempt/{attempt_id}/check")
+async def foundations_attempt_check(attempt_id: str, body: Optional[dict] = None):
+    body = body or {}
+    sample = body.get("sample") if isinstance(body.get("sample"), dict) else None
+    return _guard(foundations.run_checks, attempt_id, str(body.get("phase", "first")), sample)
+
+
+@router.post("/foundations/attempt/{attempt_id}/explain")
+async def foundations_attempt_explain(attempt_id: str, body: dict):
+    return _guard(foundations.submit_explanation, attempt_id, str(body.get("answer", "")), str(body.get("session_id", "")))
+
+
+@router.post("/foundations/attempt/{attempt_id}/explain/resend")
+async def foundations_attempt_explain_resend(attempt_id: str):
+    return _guard(foundations.resend_explanation, attempt_id)
+
+
+@router.get("/foundations/attempt/{attempt_id}/record")
+async def foundations_attempt_record(attempt_id: str):
+    return _guard(foundations.record_preview, attempt_id)
+
+
+@router.post("/foundations/attempt/{attempt_id}/record/preview")
+async def foundations_attempt_record_preview(attempt_id: str, body: Optional[dict] = None):
+    body = body or {}
+    withhold = body.get("withhold") if isinstance(body.get("withhold"), list) else []
+    return _guard(foundations.record_preview, attempt_id, withhold)
+
+
+@router.post("/foundations/attempt/{attempt_id}/record")
+async def foundations_attempt_record_add(attempt_id: str, body: Optional[dict] = None):
+    body = body or {}
+    withhold = body.get("withhold") if isinstance(body.get("withhold"), list) else []
+    return _guard(foundations.add_to_record, attempt_id, withhold, body.get("confirm") is True)
+
+
+@router.post("/foundations/record/correction")
+async def foundations_record_correction(body: dict):
+    return _guard(foundations.add_correction, str(body.get("entry_hash", "")), str(body.get("text", "")), body.get("confirm") is True)
+
+
+# -- Foundations: the Field Record (format 3) -------------------------------------
+# Preview lists every excerpt; the learner can withhold any. Issue saves the record folder on this computer, once.
+
+
+def _record_args(body):
+    body = body or {}
+    withhold = body.get("withhold") if isinstance(body.get("withhold"), list) else []
+    return str(body.get("holder", "")), str(body.get("limits", "")), str(body.get("case", "")), withhold
+
+
+@router.get("/foundations/record")
+async def foundations_record():
+    return _guard(field_record.preview)
+
+
+@router.post("/foundations/record/preview")
+async def foundations_record_preview(body: Optional[dict] = None):
+    return _guard(field_record.preview, *_record_args(body))
+
+
+@router.post("/foundations/record/issue")
+async def foundations_record_issue(body: Optional[dict] = None):
+    return _guard(field_record.issue, *_record_args(body), confirmed=(body or {}).get("confirm") is True)
+
+
+@router.post("/foundations/record/save")
+async def foundations_record_save(body: dict):
+    return _guard(field_record.save_again, str(body.get("number", "")))
+
+
+# -- Foundations missions 7 to 11 -------------------------------------------------
+# Read-only views the mission pages need: the connector settings text (7), the jobs the page asks Hermes to make and
+# its report back (8, 10), the two-run notice (8), the practice profile's logs folder and terminal commands (10), and
+# the Start snapshot (11). None records a check result.
+
+
+def _foundations_b():
+    module = sys.modules.get(f"{package_name}.foundations_b")
+    if module is None:
+        from importlib import import_module
+
+        module = import_module(f"{package_name}.foundations_b")
+    return module
+
+
+@router.get("/foundations/practice/{name}/connector-text")
+async def foundations_practice_connector_text(name: str):
+    return _guard(_foundations_b().connector_text, name)
+
+
+@router.get("/foundations/practice/{name}/jobs")
+async def foundations_practice_jobs(name: str):
+    return _guard(practice.jobs_to_make, name)
+
+
+@router.post("/foundations/practice/{name}/jobs-made")
+async def foundations_practice_jobs_made(name: str):
+    return _guard(practice.jobs_made, name)
+
+
+@router.get("/foundations/practice/{name}/ops")
+async def foundations_practice_ops(name: str):
+    return _guard(_foundations_b().ops, name)
+
+
+@router.get("/foundations/practice/{name}/baseline")
+async def foundations_practice_baseline(name: str):
+    return _guard(_foundations_b().baseline_view, name)
+
+
+@router.get("/foundations/attempt/{attempt_id}/watch")
+async def foundations_attempt_watch(attempt_id: str):
+    return _guard(_foundations_b().watch, attempt_id)

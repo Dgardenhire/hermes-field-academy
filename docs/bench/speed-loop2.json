@@ -1,0 +1,183 @@
+{
+ "about": "Seconds from the check route returning to the nudge (and every Explain my miss item) being ready in the Field guide view, polled the way the page polls GET /guide. The nudge and all Explain calls start together on their own threads at the first GET /guide after a missed check. Model: claude -p (grade_bench.CliLlm) standing in for Hermes, so every number includes claude -p's own start-up: a trivial one-line reply takes 5.2 to 6.0 s on sonnet and 7.7 to 8.2 s on haiku through the CLI (measured Nov 9, 00:25 CT). Haiku through the CLI is no faster than sonnet here because the CLI start-up dominates; inside Hermes the guide task inherits the 'approval' task (a fast model) and calls the provider directly. Not measured inside Hermes.",
+ "bars": {
+  "nudge": "<= 10 s after the check returns",
+  "explain": "<= 15 s"
+ },
+ "when": "2026-11-09 00:00 to 00:35 CT",
+ "summary": {
+  "sonnet": {
+   "runs": 5,
+   "nudge_median": 9.95,
+   "nudge_max": 13.5,
+   "nudge_within_10s": 3,
+   "explain_median": 11.55,
+   "explain_max": 19.6,
+   "explain_within_15s": 4
+  },
+  "haiku": {
+   "runs": 3,
+   "nudge_median": 13.94,
+   "nudge_max": 17.19,
+   "nudge_within_10s": 0,
+   "explain_median": 17.21,
+   "explain_max": 20.69,
+   "explain_within_15s": 1
+  }
+ },
+ "cli_floor_s": {
+  "sonnet": [
+   6.02,
+   5.23
+  ],
+  "haiku": [
+   7.73,
+   8.16
+  ]
+ },
+ "runs": [
+  {
+   "model": "sonnet",
+   "source": "screens run 1 (00:00 CT)",
+   "nudge": 13.5,
+   "explain": 19.6
+  },
+  {
+   "model": "sonnet",
+   "source": "screens run 2 (screens.json)",
+   "nudge": 9.95,
+   "explain": 12.59,
+   "why_ready_after_compare_opened": 19.98,
+   "press_to_answer": {
+    "help_nudge_press": 0.01,
+    "help_where_press": 0.01,
+    "help_explain_press": 0.01,
+    "help_do_it_with_me_press": 0.01
+   }
+  },
+  {
+   "model": "sonnet",
+   "source": "--only-speed run 1",
+   "nudge": 11.26,
+   "explain": 11.55,
+   "calls": [
+    {
+     "seconds": 10.13,
+     "reply": "{\"sentences\": [\"The check looked in the practice profile's memory files and did not find a line with your fact.\", \"Look next at MEMORY.md in the practice profil"
+    },
+    {
+     "seconds": 11.09,
+     "reply": "{\"question\":\"At 03:53 you asked Hermes to save the Harbor Bakery fact and it called memory. Open that tool step and read what it says. What do you notice?\",\"eve"
+    },
+    {
+     "seconds": 11.49,
+     "reply": "{\"sentences\": [\"The check found that the fact is not in Hermes's memory yet, so no new chat could use it.\", \"Look at MEMORY.md in the practice profile to see wh"
+    }
+   ]
+  },
+  {
+   "model": "sonnet",
+   "source": "--only-speed run 2",
+   "nudge": 9.27,
+   "explain": 9.81,
+   "calls": [
+    {
+     "seconds": 8.29,
+     "reply": "{\"sentences\": [\"The check looked in the practice profile's memory files and did not find a line with your fact.\", \"Look next at MEMORY.md in the practice profil"
+    },
+    {
+     "seconds": 9.01,
+     "reply": "{\"question\":\"At 03:53 you asked Hermes to save the Harbor Bakery fact, and it called memory. Open that tool step and read what it says. What do you see?\",\"event"
+    },
+    {
+     "seconds": 9.53,
+     "reply": "{\"sentences\": [\"The check found that the fact is not in memory, so no new chat could use it.\", \"Next, look at MEMORY.md in the practice profile to see what is t"
+    }
+   ]
+  },
+  {
+   "model": "sonnet",
+   "source": "--only-speed run 3",
+   "nudge": 7.62,
+   "explain": 7.63,
+   "calls": [
+    {
+     "seconds": 6.79,
+     "reply": "{\"sentences\": [\"The check looked in the practice profile's memory files and did not find a line with your fact.\", \"Look next at MEMORY.md in the practice profil"
+    },
+    {
+     "seconds": 6.96,
+     "reply": "{\"sentences\": [\"The check found that the fact is not in Hermes's memory yet, so no new chat could use it.\", \"Look at MEMORY.md in the practice profile to see wh"
+    },
+    {
+     "seconds": 7.45,
+     "reply": "{\"question\":\"At 03:53 you asked Hermes to save the Harbor Bakery fact, and it called memory. Open that tool step and read what it returned. What does it tell yo"
+    }
+   ]
+  },
+  {
+   "model": "haiku",
+   "source": "--only-speed run 1",
+   "nudge": 13.94,
+   "explain": 20.69,
+   "calls": [
+    {
+     "seconds": 11.27,
+     "reply": "{\"sentences\": [\"The check found no new chat used the fact, and the fact is not in memory yet.\", \"Next, look at the memory row in your chat at 03:53.\"]}"
+    },
+    {
+     "seconds": 11.23,
+     "reply": "{\"sentences\": [\"The check found no line in your practice memory files holds your fact.\", \"Next, look at MEMORY.md in the practice profile.\"]}"
+    },
+    {
+     "seconds": 13.69,
+     "reply": "{\"question\": \"At 03:55, a new chat asked which software Harbor Bakery uses. Open that new chat and read its first answer: did Hermes know?\", \"event_id\": \"m5\"}"
+    },
+    {
+     "seconds": 9.2,
+     "reply": "{\"sentences\": [\"The check did not find your fact in the practice profile's memory files.\", \"Next, check the memory row in your chat at 03:53 for your fact.\"]}"
+    }
+   ]
+  },
+  {
+   "model": "haiku",
+   "source": "--only-speed run 2",
+   "nudge": 17.19,
+   "explain": 17.21,
+   "calls": [
+    {
+     "seconds": 12.04,
+     "reply": "{\"sentences\": [\"The check did not find your fact in the practice profile's memory files.\", \"Next, look at the memory row in your chat at 03:53.\"]}"
+    },
+    {
+     "seconds": 12.48,
+     "reply": "{\"sentences\": [\"The check found that no new chat used the fact, because the fact is not in memory yet.\", \"Look at the memory row in your chat at 03:53.\"]}"
+    },
+    {
+     "seconds": 16.85,
+     "reply": "{\"question\": \"At 03:55 you started a new chat for a checklist. Did it know which software Harbor Bakery uses? Open that reply and read it.\", \"event_id\": \"m5\"}"
+    }
+   ]
+  },
+  {
+   "model": "haiku",
+   "source": "--only-speed run 3",
+   "nudge": 13.46,
+   "explain": 13.48,
+   "calls": [
+    {
+     "seconds": 12.26,
+     "reply": "{\"sentences\": [\"The check could not find your fact in any line of the practice profile's memory files.\", \"Next, look at MEMORY.md in the practice profile.\"]}"
+    },
+    {
+     "seconds": 12.26,
+     "reply": "{\"sentences\": [\"The check found that no new chat used the fact because the fact isn't in memory yet.\", \"Look next at the memory row in your chat at 03:53.\"]}"
+    },
+    {
+     "seconds": 13.34,
+     "reply": "{\"question\": \"At 03:55, your new chat asked which software Harbor Bakery uses. Open that 03:55 chat and read its first answer. What did it know?\", \"event_id\": \""
+    }
+   ]
+  }
+ ]
+}

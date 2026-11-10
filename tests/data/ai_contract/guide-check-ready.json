@@ -1,0 +1,48 @@
+{
+ "response": {
+  "do_it_with_me": null,
+  "enabled": true,
+  "explain": [],
+  "help": {
+   "all_helps": 0,
+   "hunt_helps": 0,
+   "key": "own",
+   "used": [],
+   "words": "No hints used"
+  },
+  "ladder": {
+   "nudge": {
+    "event_id": "m3",
+    "model": "fake-model-1",
+    "ms": 212,
+    "source": "model",
+    "state": "ready",
+    "text": "",
+    "tokens": {
+     "input": 120,
+     "output": 40,
+     "total": 160
+    }
+   },
+   "reveal": {
+    "available": true,
+    "opens": "compare"
+   },
+   "where": {
+    "available": true,
+    "text": ""
+   }
+  },
+  "mission_id": "f.memory",
+  "off_reason": null,
+  "off_words": "",
+  "pins": [],
+  "starters": [
+   "What should I open first when a check misses?",
+   "Where does Hermes keep what it remembers, and how do I open it?",
+   "Why does a new chat matter for this check?"
+  ],
+  "step": "check"
+ },
+ "route": "GET /guide/{attempt_id}?step=&active="
+}

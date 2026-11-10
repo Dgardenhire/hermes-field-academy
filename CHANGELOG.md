@@ -1,5 +1,61 @@
 # Changelog
 
+## 0.9.0 (2026-11-08)
+
+Foundations: eleven new missions that teach how Hermes really works, each one checked by reading Hermes itself.
+Your progress on the paths and your Field Records carry over.
+
+- **Eleven Foundations missions.** Watch the loop, cost, memory, new chats, skills, profiles, connectors,
+  scheduled jobs, guardrails and undo, fixing what broke, and a review. They sit first on the map.
+- **Practice profiles.** Each mission runs in a profile Field Academy makes for you (`academy-practice`, and
+  `academy-practice-b` when a mission needs two). The checks never read your own profiles; grading your explanation
+  adds one chat to your own profile and nothing else. Delete a practice profile from the page when you're done.
+- **A planted problem in every practice profile.** Before your first chat, Field Academy sets up a snag a real
+  setup has: memory nearly full, saves held for approval, a job sent to a misspelled place, a second connector
+  that reaches the same folder. Finding it is part of the mission.
+- **Checks that read Hermes.** Field Academy opens the practice profile's memory files, settings, chat records,
+  scheduled jobs, run history and logs itself. What you say about your work is never the check.
+- **Twelve steps a mission,** from a recall question and a guess before you start, through a worked example and
+  your own try, to the check, a side-by-side of your guess and the result, and a fix.
+- **A Field Record you can hand to a stranger.** It lists each claim with the exact line Field Academy read and a
+  SHA-256 fingerprint, shows how your guesses compared with the checks, and saves as a folder with a README and a
+  `MANIFEST.sha256` anyone can check with one command. You see every excerpt first and can keep any of them out.
+- **Checked against Hermes 0.23.0.** Every "as of Hermes" fact in the lessons is matched against the Hermes source
+  at the release tag before a build (`scripts/check_foundations.py --hermes-ref v0.23.0`). Fixed for 0.23.0: skill
+  descriptions are cut at a whole word, scheduled-job "missed" rows are not runs, `room:` is a real delivery
+  place, and connector tools are named `mcp__<server>__<tool>`.
+- **Fixes.** The command palette entry no longer breaks the palette (Hermes calls `detail()` on every open), and
+  calls to a practice profile go through its local connection, so a second connection doesn't block them.
+- **Easier to read.** No text under 12px, and the mission steps no longer crowd each other in a narrow window.
+- **A practice job meant to start paused can't be left running.** If Hermes doesn't confirm the job is paused, Field
+  Academy pauses it by the id the job list gives it, deletes it if it still won't pause, and makes nothing after it.
+  If it can't do either, the page says the job is on and how to stop it (security audit B1).
+
+Fixes from the persona test (three people walking the release: a careful first-week user, an experienced developer and
+a hiring manager reading a Field Record):
+
+- **Every mission asks its own try questions.** Missions 7 to 10 showed mission 3's memory form on the Practice step
+  ("how much does Hermes carry?") and wrote it into the record. Each now has its own guesses and counts, mission 11
+  has none, and the record entry shows the try in the mission's own words. **Show memory file** appears only on the
+  missions that work through memory, and **Open practice chat** once.
+- **One Start here.** The Foundations card is the home page's Start here; the path card waits until you want a path.
+  The banner counts the Foundations missions.
+- **Check yourself hides its answers** until you've written your own.
+- **A re-check route after a miss,** on the Check step itself.
+- **Test out.** Someone who already uses Hermes can test out of a mission: Recall is skipped, the rest of the proof
+  stays, and a pass is recorded as Tested out, never as completed.
+- **The Field Record reads for a stranger:** a verdict line on top, each excerpt captioned with the check it backs,
+  times on every date, no excerpt cut inside a word, course-written claims labelled as the course's, and questions
+  to ask the holder. README.txt keeps what the checks don't prove.
+- **Copy that matches the page:** where grading runs, mission 9's terminal warning before the first chat, mission 10's
+  doctor and backup commands (the page has no buttons for them), Recall when you skipped earlier missions, "practice
+  profile" and "practice folder" each meaning one thing, "1 line", and Compare's "Your score" and "You caught it".
+- **Mission 7 hides passwords and tokens on screen** in the connector settings text; the copy button still copies it
+  whole.
+- **Mission 2 can plant one of two problems.** Before, it had only one, so the note about its connector, shown before
+  the first practice chat, told you what to look for. The note is now true whichever was planted and names neither.
+  The lesson and Your turn add the **Skills** line and the Capabilities **Skills** tab to what you measure and switch.
+
 ## 0.8.5 (2026-10-18)
 
 Security and bug fixes from a review of the live plugin. Your progress and your Field Records carry over.

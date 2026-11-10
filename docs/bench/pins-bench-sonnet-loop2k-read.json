@@ -1,0 +1,191 @@
+{
+ "reader": "codex exec (read-only)",
+ "when": "2026-11-09 08:18 CST",
+ "items": 30,
+ "read": 30,
+ "contradictions": 0,
+ "give_aways": null,
+ "verdicts": [
+  {
+   "id": "run1-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the staged result and pending-review instruction."
+  },
+  {
+   "id": "run1-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The file is unchanged and contains no line holding the fact."
+  },
+  {
+   "id": "run1-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Lack of access is stronger than non-use, but no check fact contradicts it."
+  },
+  {
+   "id": "run2-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the staged result and pending-review instruction."
+  },
+  {
+   "id": "run2-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The fact did not enter the unchanged file."
+  },
+  {
+   "id": "run2-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The check facts confirm the new chat did not use the fact."
+  },
+  {
+   "id": "run3-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the staged result and pending-review instruction."
+  },
+  {
+   "id": "run3-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The unchanged file contains no line holding the fact."
+  },
+  {
+   "id": "run3-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Having no way to use it is stronger than non-use, but is not contradicted."
+  },
+  {
+   "id": "run4-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the staged result and pending-review instruction."
+  },
+  {
+   "id": "run4-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The fact is absent from MEMORY.md; its pending copy does not contradict that."
+  },
+  {
+   "id": "run4-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The check facts confirm the new chat did not use the fact."
+  },
+  {
+   "id": "run5-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the staged result and pending-review instruction."
+  },
+  {
+   "id": "run5-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The fact was not added to the referenced memory file."
+  },
+  {
+   "id": "run5-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Failure to reach the chat is stronger than non-use, but is not contradicted."
+  },
+  {
+   "id": "run6-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the staged result and pending-review instruction."
+  },
+  {
+   "id": "run6-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The fact is absent from the unchanged memory file."
+  },
+  {
+   "id": "run6-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Failure to reach the chat is stronger than non-use, but is not contradicted."
+  },
+  {
+   "id": "run7-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the staged result and pending-review instruction."
+  },
+  {
+   "id": "run7-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Failure to reach the chat is stronger than non-use, but is not contradicted."
+  },
+  {
+   "id": "run7-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The check facts explicitly say MEMORY.md is unchanged."
+  },
+  {
+   "id": "run8-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the staged result and pending-review instruction."
+  },
+  {
+   "id": "run8-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The QuickBooks fact is absent from the referenced memory file."
+  },
+  {
+   "id": "run8-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Absence is stronger than non-use, but no check fact contradicts it."
+  },
+  {
+   "id": "run9-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the staged result and pending-review instruction."
+  },
+  {
+   "id": "run9-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The QuickBooks fact is absent from the unchanged memory file."
+  },
+  {
+   "id": "run9-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Missing from the new chat is consistent with the checks; a pending copy can still exist."
+  },
+  {
+   "id": "run10-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the staged result and pending-review instruction."
+  },
+  {
+   "id": "run10-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The fact is absent from the unchanged memory file."
+  },
+  {
+   "id": "run10-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Lack of access is stronger than non-use, but no check fact contradicts it."
+  }
+ ],
+ "raw_tail": ""
+}

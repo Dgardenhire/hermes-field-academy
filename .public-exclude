@@ -1,0 +1,13 @@
+# Paths the public package leaves out. The build script that makes the public repository reads this file from the
+# exported commit, removes every path listed (one per line, relative to the repository root), then removes this file.
+# Private: the pitch brief for Nous and its images and generator, the CI setup, the draft catalog entry and PR,
+# the demo notes, the working status page, the AI lane's notes on model calls and its bench.
+.github
+docs/brief-img
+docs/concept-brief-nous.html
+docs/make_brief.py
+docs/catalog
+docs/DEMO-NOTES.md
+docs/STATUS.md
+docs/ai-calls.md
+docs/bench

@@ -1,0 +1,10 @@
+{
+ "response": {
+  "fallback": "chat",
+  "message": "AI help is off, so Score my answer is off too.",
+  "next_step": "Turn AI help on in Field Academy's Settings, or score this answer in your own Hermes chat.",
+  "off_reason": "switch",
+  "state": "off"
+ },
+ "route": "POST /ai/grade/{mission_id}/{step_id}"
+}

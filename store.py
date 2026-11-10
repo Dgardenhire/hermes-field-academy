@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 PLUGIN_ID = "field-academy"
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 
 
 def clock() -> datetime:
@@ -203,7 +203,111 @@ TABLES = (
     version_source TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL,
     body_json TEXT NOT NULL
+)""",    # 0.9.0, Foundations --------------------------------------------------------
+    # One row per try at a Foundations mission. seed and plants_json are hidden from every page payload until the
+    # learner reaches Compare; triggers below keep them, the level and the freeze time from ever changing.
+    """CREATE TABLE IF NOT EXISTS f_attempts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    mission_id TEXT NOT NULL,
+    attempt_no INTEGER NOT NULL,
+    level TEXT NOT NULL DEFAULT 'beginner',
+    seed TEXT NOT NULL DEFAULT '',
+    plants_json TEXT NOT NULL DEFAULT '[]',
+    profile TEXT NOT NULL DEFAULT '',
+    started_at TEXT NOT NULL,
+    frozen_at TEXT NOT NULL DEFAULT '',
+    finished_at TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'open',
+    UNIQUE (mission_id, attempt_no)
 )""",
+    # What the learner wrote, in order, chained by hash: recall, claim, standard, prediction, self-scores, notes.
+    """CREATE TABLE IF NOT EXISTS f_entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    attempt_id INTEGER NOT NULL,
+    kind TEXT NOT NULL,
+    body_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    prev_hash TEXT NOT NULL DEFAULT '',
+    hash TEXT NOT NULL
+)""",
+    # What a check found, each time it ran.
+    """CREATE TABLE IF NOT EXISTS f_checks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    attempt_id INTEGER NOT NULL,
+    check_id TEXT NOT NULL,
+    phase TEXT NOT NULL CHECK (phase IN ('first', 'after_fix', 'transfer')),
+    passed INTEGER,
+    level INTEGER,
+    source TEXT NOT NULL CHECK (source IN ('practice_profile', 'page_sample', 'hermes_grader')),
+    facts_json TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL
+)""",
+    # Scrubbed excerpts read from the practice profile, with the hash of the excerpt (never of the raw text).
+    """CREATE TABLE IF NOT EXISTS f_evidence (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    attempt_id INTEGER NOT NULL,
+    check_id TEXT NOT NULL DEFAULT '',
+    kind TEXT NOT NULL,
+    rel_path TEXT NOT NULL DEFAULT '',
+    excerpt TEXT NOT NULL DEFAULT '',
+    excerpt_sha256 TEXT NOT NULL DEFAULT '',
+    source_sha256 TEXT NOT NULL DEFAULT '',
+    read_at TEXT NOT NULL
+)""",
+    # Field Record entries. A correction is a new row that names the one it corrects.
+    """CREATE TABLE IF NOT EXISTS f_record (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    attempt_id INTEGER NOT NULL,
+    mission_id TEXT NOT NULL,
+    body_json TEXT NOT NULL,
+    hash TEXT NOT NULL,
+    prev_hash TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL,
+    corrects_id INTEGER
+)""",
+    # Practice profiles Field Academy planned, recorded and removed. Only a profile named here is ever written to.
+    """CREATE TABLE IF NOT EXISTS f_practice (
+    name TEXT PRIMARY KEY,
+    path TEXT NOT NULL DEFAULT '',
+    plan_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    fingerprint_json TEXT NOT NULL DEFAULT '',
+    seed TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'planned',
+    removed_at TEXT NOT NULL DEFAULT '',
+    attempt_id INTEGER,
+    planted_at TEXT NOT NULL DEFAULT ''
+)""",
+    # Foundations Field Records as issued.
+    """CREATE TABLE IF NOT EXISTS f_issued (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    number TEXT NOT NULL,
+    issued_at TEXT NOT NULL,
+    body_json TEXT NOT NULL,
+    folder TEXT NOT NULL DEFAULT ''
+)""",
+)
+
+# Append-only, enforced by the database. Nothing in Field Academy edits or removes these rows; a later version that
+# tried would be stopped here.
+APPEND_ONLY = ("f_entries", "f_checks", "f_evidence", "f_record", "f_issued")
+TRIGGERS = tuple(
+    statement
+    for table in APPEND_ONLY
+    for statement in (
+        f"CREATE TRIGGER IF NOT EXISTS {table}_append_only_update BEFORE UPDATE ON {table} "
+        f"BEGIN SELECT RAISE(ABORT, '{table} is append-only'); END",
+        f"CREATE TRIGGER IF NOT EXISTS {table}_append_only_delete BEFORE DELETE ON {table} "
+        f"BEGIN SELECT RAISE(ABORT, '{table} is append-only'); END",
+    )
+) + (
+    "CREATE TRIGGER IF NOT EXISTS f_attempts_fixed BEFORE UPDATE ON f_attempts "
+    "WHEN NEW.mission_id IS NOT OLD.mission_id OR NEW.attempt_no IS NOT OLD.attempt_no OR NEW.level IS NOT OLD.level "
+    "OR NEW.seed IS NOT OLD.seed OR NEW.plants_json IS NOT OLD.plants_json OR NEW.started_at IS NOT OLD.started_at "
+    "OR (OLD.frozen_at != '' AND NEW.frozen_at IS NOT OLD.frozen_at) "
+    "BEGIN SELECT RAISE(ABORT, 'an attempt keeps its mission, level, seed, plants and freeze time'); END",
+    "CREATE TRIGGER IF NOT EXISTS f_attempts_kept BEFORE DELETE ON f_attempts "
+    "BEGIN SELECT RAISE(ABORT, 'attempts are kept'); END",
 )
 
 # Columns added to tables that older versions already created.
@@ -288,6 +392,8 @@ def connect() -> sqlite3.Connection:
     for table, column, ddl in ADDED_COLUMNS:
         if column not in _columns(conn, table):
             conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
+    for statement in TRIGGERS:
+        conn.execute(statement)
     if version < SCHEMA_VERSION:
         _migrate(conn, version, had_progress)
     conn.commit()
@@ -300,7 +406,8 @@ def _migrate(conn, from_version: int, had_progress: bool) -> None:
 
     stamp = now()
     # The carry-over below is for a database made by 0.4.0. A 0.5.0 database
-    # (version 5) already has its steps, and 0.6.0 only adds the Deployer tables.
+    # (version 5) already has its steps, 0.6.0 only adds the Deployer tables, and 0.9.0 (version 7) only adds the
+    # Foundations tables, which start empty.
     if had_progress and from_version < 5:
         for mission_id, mission in MISSIONS.items():
             old = [step for step in mission["steps"] if step["kind"] in OLD_STEP_KINDS]

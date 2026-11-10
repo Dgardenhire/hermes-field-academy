@@ -1,0 +1,75 @@
+{
+  "about": "Ten written Explain it answers with levels set by hand against each mission's four-level rubric (content/foundations/f_*.py). Written for the Lane A grading bench on Nov 8, 2026. The bar: the grader matches the authored level on at least 8 of 10 and is within one level on all 10.",
+  "answers": [
+    {
+      "id": "m3-l1",
+      "mission": "f.memory",
+      "level": 1,
+      "why": "No reason, just 'unreliable'.",
+      "answer": "Honestly Hermes is just unreliable with memory. Sometimes it remembers things and sometimes it doesn't, so she shouldn't count on it for anything important. That's how these tools are."
+    },
+    {
+      "id": "m3-l2",
+      "mission": "f.memory",
+      "level": 2,
+      "why": "One real cause (the save never happened), no checks, no order.",
+      "answer": "The likeliest reason is that the save never really happened. Hermes may have said it would remember, but if the memory tool never ran, there is nothing written down for the new chat to find."
+    },
+    {
+      "id": "m3-l3",
+      "mission": "f.memory",
+      "level": 3,
+      "why": "Three causes, each with a check: never saved (row and file), waiting for approval, wrong profile. Nothing from her own run.",
+      "answer": "First, the save may never have happened: open the memory row in the first chat and read it, then look for the line in MEMORY.md. Second, the save may be waiting for approval: run /memory pending and see if it is listed there. Third, she may have saved it in a different profile: check which profile each chat used, because each profile has its own memory."
+    },
+    {
+      "id": "m3-l4",
+      "mission": "f.memory",
+      "level": 4,
+      "why": "Three causes with checks, a sensible order, and a point from the learner's own run (the row said Saved to memory but the save was staged).",
+      "answer": "In my run the row said Saved to memory, but when I opened it the save was only staged for approval, so I would check that first: open the memory row and read every line, then run /memory pending. Second, open MEMORY.md and look for the actual line, since a row is not the file. Third, check the memory meter, because a full memory can cut a note. Last, check that the new chat ran in the same profile, because each profile keeps its own memory."
+    },
+    {
+      "id": "m1-l1",
+      "mission": "f.loop",
+      "level": 1,
+      "why": "'Check it' with no specific check.",
+      "answer": "I would check it carefully before I believe it. You can never be totally sure what an agent did, so I would look it over and make sure the report seems right to me before I sign off."
+    },
+    {
+      "id": "m1-l2",
+      "mission": "f.loop",
+      "level": 2,
+      "why": "Three checks, but all against Hermes's words and its tool rows, none against the real output file.",
+      "answer": "I would read Hermes's final message to see that it says the report is done. Then I would look at the tool rows in the chat to make sure the write tool really ran. Last, I would check that none of the tool rows show an error message."
+    },
+    {
+      "id": "m1-l3",
+      "mission": "f.loop",
+      "level": 3,
+      "why": "Three checks, two against the real output and input, each with what it catches. No reason from the learner's own run, no stated order.",
+      "answer": "I would open the report file itself and count its rows against the input, which catches a report that stopped early. I would open the input file to make sure it was not empty, which catches a report built from nothing. And I would check the file's saved time against when Hermes said it finished, which catches a write that never landed because the file was locked."
+    },
+    {
+      "id": "m1-l4",
+      "mission": "f.loop",
+      "level": 4,
+      "why": "Checks against the real output, what each catches, an order with the riskiest claim first, and a reason from the learner's own run.",
+      "answer": "In my run Hermes said it wrote 40 rows, but the file had 32, so I start where a mistake would hide: open the output file and count the rows against the input. Next I open the input to make sure it had data, because a report from an empty file still looks finished. Then I check the output's saved time, since a locked file means the write never landed. Only after those do I read Hermes's summary, because its words are the last thing I trust."
+    },
+    {
+      "id": "m2-l2",
+      "mission": "f.cost",
+      "level": 2,
+      "why": "Explains that tool descriptions are sent on every trip. No way to see it, no fix.",
+      "answer": "Every connector adds its tools to Hermes, and the description of every one of those tools gets sent to the model on every trip, even when she never uses them. Three new services means a lot more text sent each time, so each message costs more."
+    },
+    {
+      "id": "m2-l3",
+      "mission": "f.cost",
+      "level": 3,
+      "why": "Explains the tool descriptions, how to see it (the Context Usage panel) and a fix that keeps what she uses. Doesn't say why the fix belongs in a new chat.",
+      "answer": "Each connector adds tool descriptions that ride along on every message, used or not, so three new services made every trip bigger. She can see it in the Context Usage panel, where the tools share of each request shows up. The fix is to turn off the connectors or tools she never uses and keep the one she relies on, so she keeps the work and drops the extra weight."
+    }
+  ]
+}

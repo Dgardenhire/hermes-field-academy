@@ -1,0 +1,67 @@
+{
+ "about": "Ten Explain it answers written by codex exec on Nov 09, 2026, told the question, the job and a plain weak-to-strong description (docs/bench/write_fair_answers.py TIERS), never the rubric's level wording. The authored level is the level codex aimed for. The AI lane did not write or edit them.",
+ "writer": "codex exec",
+ "tiers_shown": "1 = vague or a shrug, with no concrete step anyone could actually do. 2 = one real, concrete point, but thin: only one cause or only checks Hermes's own words. 3 = three solid, concrete points, each with how you would actually check it. 4 = all of 3, plus something specific from the writer's own run and a sensible order of checks.",
+ "answers": [
+  {
+   "id": "c01",
+   "mission": "f.memory",
+   "level": 1,
+   "answer": "My first guess is that Hermes just didn't really remember what she meant. Sometimes a conversation seems clear while you're having it, but later the important part gets lost. It could also be something about how the app works between chats, or maybe there was too much going on. I'd probably think about the memory side first and the general app side afterward. I don't really know how she could tell which explanation is right, though. It sounds like one of those things that can happen even when you thought you explained yourself."
+  },
+  {
+   "id": "c02",
+   "mission": "f.memory",
+   "level": 2,
+   "answer": "I'd start by looking back through the first chat for the row showing that Hermes saved the fact. Saying something to Hermes doesn't necessarily mean it got saved as memory, even if its reply sounded like it understood. If there isn't a save row, that's the explanation I'd go with first: the information stayed in that conversation. I wouldn't have much of an answer after that if the row was there. I'd need more help figuring out why a new conversation still couldn't answer."
+  },
+  {
+   "id": "c03",
+   "mission": "f.memory",
+   "level": 3,
+   "answer": "There are three things I'd investigate. A save might still need approval, so I'd look for a pending approval request and see whether it was accepted. The memory might also be full; I'd compare the amount already stored with the stated size limit and look for a failed save message. Finally, telling Hermes a fact might never have caused a save at all. I'd find the save row in the original chat and open the profile's MEMORY.md to see whether the actual client fact appears there."
+  },
+  {
+   "id": "c04",
+   "mission": "f.memory",
+   "level": 4,
+   "answer": "In my run, I told Hermes that Cedar's reports were due Tuesday. It replied that it would remember, but there was no save row. So I'd first check her original chat for that row, then open MEMORY.md in the profile used by both chats and look for the fact. Next I'd check whether the save is waiting for approval, since a pending request isn't a finished save. If those don't explain it, I'd compare the stored memory with its size limit and inspect any save error. After fixing the first failed check, I'd try the question in another new chat."
+  },
+  {
+   "id": "c05",
+   "mission": "f.loop",
+   "level": 1,
+   "answer": "I'd want to know that it understood the task, that it did a decent job, and that the result was finished properly. Those would be my three main concerns, although I'm not very sure what would count as enough proof for any of them. Reports can look convincing while still being a bit off. If my colleague seemed happy with what Hermes said, I'd probably feel better about it too. Mostly I'd be going on whether the whole thing seemed believable and whether anything felt obviously wrong."
+  },
+  {
+   "id": "c06",
+   "mission": "f.loop",
+   "level": 3,
+   "answer": "The report file is one check: I'd find it at the requested location and open it to make sure it's readable and contains the expected sections. Another is the source material. I'd compare the files Hermes actually opened, shown in its tool activity, with the job sheets for the required week. Third, I'd test the figures rather than trusting the summary. I'd add up hours or jobs directly from the sheets and compare those totals with the report, including whether missing entries were handled properly."
+  },
+  {
+   "id": "c07",
+   "mission": "f.loop",
+   "level": 4,
+   "answer": "I'd check the inputs first by matching the spreadsheet names in Hermes's tool activity against the sheets for that week. In my run, there were four sheets, and Friday's was initially missing from the files it opened. Second, I'd verify the calculations by adding the hours from those four sheets myself and comparing the total and a few job entries with the report. Third, I'd open the saved report at the requested path and check its date range and sections. That order helps catch a missing source before I spend time judging a report built from incomplete data."
+  },
+  {
+   "id": "c08",
+   "mission": "f.cost",
+   "level": 2,
+   "answer": "The new services could explain it because their tool descriptions take up tokens whenever a message goes to the model, even when she doesn't use those services. I'd check the input token count for the same short question with the new connectors enabled and then disabled. That would show whether they add much overhead. I'd keep the ones she actually needs often and leave the others off. That comparison is the main thing I'd know to do; I wouldn't be able to say from the bill alone whether it explains the whole increase."
+  },
+  {
+   "id": "c09",
+   "mission": "f.cost",
+   "level": 3,
+   "answer": "Connecting services can make every model trip bigger because the tool descriptions travel with it whether the tools are used or not. I'd check three things. Compare input tokens for the same prompt with the connectors on and off to measure that extra load. Look at request counts and model choices in the usage records to see whether more chatting or a different model also raised the bill. Then review actual tool calls over a typical week. Keep the connectors and skills she uses regularly, and disable rarely used ones; repeat the prompt comparison to confirm that the overhead falls."
+  },
+  {
+   "id": "c10",
+   "mission": "f.cost",
+   "level": 4,
+   "answer": "I'd measure the added load first. In my run, the same short question used more input tokens with all three connectors enabled, even though Hermes called none of them. Their descriptions ride along on every model trip, so that cost repeats. She can repeat that comparison, switching off one connector at a time. Next, check the month's request counts and model choices against the previous month so we don't blame everything on connectors. Finally, review tool activity from a normal week and keep services and skills that earn their place through regular use. Disable the others and rerun the comparison to verify the saving."
+  }
+ ]
+}

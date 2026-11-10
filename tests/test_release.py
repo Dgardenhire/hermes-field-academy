@@ -84,7 +84,7 @@ class VersionTests(unittest.TestCase):
 
     def test_versions_agree(self):
         version = self.version()
-        self.assertEqual(version, "0.8.5")
+        self.assertEqual(version, "0.9.0")
         changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         first = re.search(r"^## (\S+)", changelog, re.M).group(1)
         self.assertEqual(first.lstrip("v"), version)
@@ -210,7 +210,7 @@ class BannerTests(unittest.TestCase):
         self.assertIn("BANNER_CSS", page)
         built = (ROOT / "desktop" / "plugin.js").read_text(encoding="utf-8")
         self.assertIn("fa-bn-art", built)
-        self.assertIn("Learn Hermes by doing real work", built)
+        self.assertIn("Get good at Hermes by using it, learn all of what it can do, then learn to help other people use it.", built)
 
 
 if __name__ == "__main__":

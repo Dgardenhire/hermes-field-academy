@@ -1,0 +1,10 @@
+{
+ "response": {
+  "fallback": "chat",
+  "message": "Field Academy can't reach a model in this Hermes yet.",
+  "next_step": "Pick a model in Settings, Models, then try again. Your checks still work without it.",
+  "state": "no_model",
+  "test_out": false
+ },
+ "route": "POST /ai/grade/{mission_id}/{step_id}"
+}

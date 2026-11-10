@@ -1,0 +1,13 @@
+{
+ "response": {
+  "pins": [
+   {
+    "event_id": "m3",
+    "kept": true,
+    "source": "model",
+    "why": "This is where your score and Hermes split. Open that memory row in your chat."
+   }
+  ]
+ },
+ "route": "POST /guide/{attempt_id}/pins"
+}

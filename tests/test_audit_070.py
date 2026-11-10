@@ -14,6 +14,10 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = (ROOT / "desktop" / "src" / "plugin.js").read_text(encoding="utf-8")
 DEPLOYER_SRC = (ROOT / "desktop" / "src" / "deployer.js").read_text(encoding="utf-8")
 API = (ROOT / "dashboard" / "plugin_api.py").read_text(encoding="utf-8")
+# Every file that adds routes under the plugin's prefix: plugin_api.py itself, and the modules it mounts (the AI lane's
+# routes_ai.py, which mounts guide.py and recorder.py, and the Replay lane's routes_replay.py when it is in this checkout).
+ROUTE_FILES = ("dashboard/plugin_api.py", "routes_ai.py", "guide.py", "recorder.py", "routes_replay.py")
+ROUTES_TEXT = "\n".join((ROOT / f).read_text(encoding="utf-8") for f in ROUTE_FILES if (ROOT / f).exists())
 
 
 class ExplainPassStaysTests(AcademyCase):
@@ -56,12 +60,19 @@ class ScoreRoutesTests(unittest.TestCase):
 
     def test_every_route_the_page_calls_exists(self):
         calls = set(re.findall(r"ctxRest\(\s*[`']([^`'$]+)", SRC + DEPLOYER_SRC))
-        routes = set(re.findall(r'@router\.(?:get|post)\("([^"]+)"', API))
+        routes = set(re.findall(r'@router\.(?:get|post)\("([^"]+)"', ROUTES_TEXT))
         for call in calls:
+            call = call.split("?")[0]
             if call.endswith("/"):
+                # A call built from a template (`/guide/${id}`): some route must start with its fixed part.
+                self.assertTrue(any(r.startswith(call) for r in routes), f"the page calls {call}... and no route serves it")
                 continue
             self.assertIn(call, routes, f"the page calls {call} and no route serves it")
         self.assertIn("/deployer/review/trust", routes)
+        for route in ("/ai/grade/{mission_id}/{step_id}", "/settings/ai", "/guide/{attempt_id}", "/guide/{attempt_id}/help",
+                      "/guide/{attempt_id}/ask", "/guide/{attempt_id}/pins", "/replay/{attempt_id}", "/replay/sample",
+                      "/first-flight/start"):
+            self.assertIn(route, routes, f"the AI and Replay route {route} is read by this check")
 
 
 class PastedDocumentTests(AcademyCase):

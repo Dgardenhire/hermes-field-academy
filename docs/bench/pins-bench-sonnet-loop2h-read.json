@@ -1,0 +1,155 @@
+{
+ "reader": "codex exec (read-only)",
+ "when": "2026-11-09 06:43 CST",
+ "items": 24,
+ "read": 24,
+ "contradictions": 0,
+ "give_aways": null,
+ "verdicts": [
+  {
+   "id": "run1-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The tool gives that instruction; whether the chat omitted it is unverified, not contradicted."
+  },
+  {
+   "id": "run1-f-pending-1",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The pending save contains the exact fact outside MEMORY.md."
+  },
+  {
+   "id": "run1-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The new chat asked for the software and did not use the fact."
+  },
+  {
+   "id": "run2-f-pending-1",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The fact remained pending and absent from MEMORY.md."
+  },
+  {
+   "id": "run3-f-pending-1",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The pending file is separate from the unchanged memory file."
+  },
+  {
+   "id": "run3-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the fact being absent from memory and unused in the new chat."
+  },
+  {
+   "id": "run4-f-pending-1",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The fact exists in pending storage, outside MEMORY.md."
+  },
+  {
+   "id": "run4-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The later answer asked for information the saved fact would have supplied."
+  },
+  {
+   "id": "run5-f-pending-1",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The held save exists on disk but is absent from MEMORY.md."
+  },
+  {
+   "id": "run5-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the unchanged memory and the new chat's question."
+  },
+  {
+   "id": "run6-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The tool says those words; their omission from the chat reply is unverified, not contradicted."
+  },
+  {
+   "id": "run6-f-pending-1",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The QuickBooks fact remains in a separate pending file."
+  },
+  {
+   "id": "run6-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The new chat asked for the accounting software and did not use the fact."
+  },
+  {
+   "id": "run7-f-pending-1",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The pending save and MEMORY.md are separate files."
+  },
+  {
+   "id": "run7-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The checklist did not use the fact and instead asked for the software."
+  },
+  {
+   "id": "run8-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The tool gives that instruction; whether the learner took it is unverified, not contradicted."
+  },
+  {
+   "id": "run8-f-pending-1",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The fact remains outside the memory file used by the next chat."
+  },
+  {
+   "id": "run8-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the missing memory fact; the causal explanation is inferred."
+  },
+  {
+   "id": "run9-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The tool points to pending review; the learner's actions are unverified, not contradicted."
+  },
+  {
+   "id": "run9-f-pending-1",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The pending fact is separate from the unchanged memory file."
+  },
+  {
+   "id": "run9-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the fact being absent from memory and unused in the new chat."
+  },
+  {
+   "id": "run10-m3",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The success-sounding title obscures the result's explicit not-yet-saved status."
+  },
+  {
+   "id": "run10-f-memory",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The character count is correct, and no line in MEMORY.md contains the fact."
+  },
+  {
+   "id": "run10-m5",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The new chat asked for the software instead of using the intended memory fact."
+  }
+ ],
+ "raw_tail": ""
+}

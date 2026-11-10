@@ -1,156 +1,153 @@
-# Field Academy
+# Field Academy: the School of Hermes
 
-A Hermes Desktop plugin for learning Hermes Agent by doing real work on your own setup, with checks that read
-what you made and a Field Record you keep for each path. Free, MIT licensed, and everything stays on your computer.
+A Hermes Desktop plugin that teaches Hermes Agent by having you use it. Get good at Hermes by using it, learn all of
+what it can do, then learn to help other people use it. Every mission you pass goes into your Field Record with the
+lines Field Academy read from Hermes as evidence. Free, MIT licensed, and everything stays on your computer.
+
+The school is the trail map. Everyone starts at the Foundations trailhead. Five trails climb Mount Olympus, each named
+for one of Hermes's old jobs and for whom it serves: Messenger (for introductions), Traveler (for yourself),
+Crossroads (for clients), Boundary Keeper (for an organization) and Guide (for clients, in practice). Each trail climbs
+its camps to a summit flag, the Field Record for that trail.
+
+| Camp | What you can do there |
+|---|---|
+| Beginner | See what Hermes is doing |
+| Intermediate | Fit it to the work |
+| Advanced | Let it run without you |
+| Capstone | Solve your own problem |
+| Summit | Your Field Record |
+
+Practice missions sit in the camps where they fit. They run the same way as Foundations: a practice profile, a planted
+problem, and a check that reads Hermes itself.
+
+| Mission | Trail and camp |
+|---|---|
+| Give Hermes only the tools a job needs | Crossroads, Intermediate |
+| Hand work to helper agents, and check what each one did | Boundary Keeper, Intermediate |
+| Set Hermes up for someone else | Guide, Build |
+| Write a walkthrough someone can follow on their own | Guide, Verify |
+| Judge someone's work from their Field Record | Guide, Verify |
 
 Field Academy is a community plugin by Damon Gardenhire. Nous Research didn't make it and doesn't issue, review or
 endorse it or the records it writes.
 
-![Field Academy: learn Hermes by doing real work, one camp at a time](docs/card.png)
+![The Field Academy home page: the mountain banner, then the Foundations card with three parts: a problem is planted first, the check reads Hermes itself, and the record opens anywhere](docs/shots/foundations-home.png)
 
-**[Read the manual](docs/MANUAL.md)**: every path, mission and check, step by step, with screenshots.
+**[Read the manual](docs/MANUAL.md)** for every step, with screenshots. Reviewing it? Start with
+[REVIEWER-GUIDE.md](REVIEWER-GUIDE.md), a ten-minute tour.
 
-![The Field Academy home page: an engraved mountain banner with a camp flag for each path, then where you are and your next step](docs/shots/home.png)
+## What a mission does
 
-Reviewing it? Start with [REVIEWER-GUIDE.md](REVIEWER-GUIDE.md), a ten-minute tour. Who each path is for and what
-each check really reads: [docs/paths.md](docs/paths.md).
+A prompt can tell Hermes what to do. It can't tell you whether Hermes did it. Every Foundations mission does three
+things a prompt can't:
+
+1. **A problem is planted first.** Field Academy makes a practice profile for the mission and sets up one problem a
+   real setup has, before your first chat. In the memory mission, saves are held for approval, so Hermes says
+   "saved" when nothing was written yet.
+2. **The check reads Hermes itself.** When you press **Check**, Field Academy opens the practice profile's files:
+   `memories/MEMORY.md`, the `pending` folder where held saves wait, `config.yaml`, the chat records in `state.db`,
+   `cron/jobs.json` and the run history, the logs. What you say about your work is never the check.
+3. **The record opens anywhere.** Each pass goes into your Field Record with the exact line Field Academy read and
+   its SHA-256 fingerprint. The record saves as a folder that anyone can check with one command, without Hermes.
 
 | | |
 |---|---|
-| ![A mission: six steps, from a short story to Prove it](docs/shots/mission.png) | ![A missed check: exactly what was missing, one hint, then a worked example](docs/shots/miss.png) |
-| ![The Guide path: four camps from audit to staged verification](docs/shots/deployer.png) | ![A Field Record with the proof behind every mission](docs/shots/certificate.png) |
+| ![Your turn in the memory mission: two notes the profile's owner can't lose, the steps, and buttons for a practice chat and the memory file](docs/shots/foundations-lab.png) | ![The check: what Field Academy read in MEMORY.md and USER.md, check by check](docs/shots/foundations-check.png) |
+| ![The scheduled-jobs mission in light mode: two scheduled runs have landed, and you score yourself before you see the result](docs/shots/foundations-schedule.png) | ![A Field Record: who issued it, the claims, and how each guess compared with the check](docs/shots/foundations-record.png) |
 
+## The eleven Foundations missions
 
-## What you see
+They come first on the map. Each takes about an hour and runs a few short chats on your own model provider; each
+mission says what it expects to cost before you start.
 
-Click **Field Academy** under **Tools** in the sidebar and the page opens on Mount Olympus: a banner with a band of cloud on the
-mountain's shoulders, one flag per path, and the caduceus, the herald's staff, at the summit. The paths take their
-names from Hermes's old jobs, and each path page says in one line why its name fits. Four learning paths come first:
+| # | Mission | What you can claim when you pass |
+|---|---|---|
+| 1 | Check whether Hermes really did what it says | You can tell from what Hermes actually did whether its "done" is true. |
+| 2 | See what a chat costs, and cut it | You can see what makes a chat cost what it does, and cut the cost without breaking the job. |
+| 3 | Save a fact to memory and check it stuck | You can get a fact into memory and prove it from the memory file and a brand-new chat. |
+| 4 | Start a new chat at the right time | You can change how Hermes behaves and know exactly when the change takes hold. |
+| 5 | Turn a repeat job into a skill | You can make a skill Hermes finds and uses on its own, and prove it from the skill and the chat. |
+| 6 | Keep two jobs apart in two profiles | You can keep two jobs fully apart in two profiles, and prove it from each profile's own records. |
+| 7 | Connect an outside tool safely | You can connect an outside tool with only the access a job needs, and prove it from its settings. |
+| 8 | Set up a job that runs on a schedule | You can set up a scheduled job that runs right with nobody watching, and prove it from its run history. |
+| 9 | Stop a mistake before it happens, or undo it | You can say whether a mistake would be stopped before it happens or undone after. |
+| 10 | Find out why Hermes failed, and fix it | You can find why Hermes failed with its own logs and tools, fix it, and show the fix holds. |
+| 11 | Foundations review | You can take a small job through a profile you didn't set up and find what is planted in it. |
 
-- **Messenger**, for introductions: watch Hermes do one real job, explain it honestly, spot a real opportunity, and pass it to the builder. Hermes carried word between the gods and people.
-- **Traveler**, for yourself: run Hermes on your own computer and keep one daily job working. Hermes protected travelers.
-- **Crossroads**, for clients: set Hermes up for a client, connect it to their tools, and hand it over. Hermes was the god of crossroads.
-- **Boundary Keeper**, for an organization: who owns what, who approves what, and how it recovers. Herms, stone pillars, marked where one property ended and the next began.
+![The Foundations page: the eleven missions in order, each with its time and expected cost](docs/shots/foundations-path.png)
 
-A fifth, **Guide**, sits below them for people who will deploy and run Hermes for a client; Hermes led travelers to
-where they were going. It is described under [The Guide path](#the-guide-path).
+## Inside a mission
 
-Each learning path climbs three levels, **Beginner**, **Intermediate** and **Advanced** (the level names Nous uses on its Learning Path page), then ends with a **Capstone** on your own problem. The map shows where you are on each path and how many missions stand between you and its Field Record. A **Start here** card picks your next mission and says why it matters to you and how long it takes. For a new learner that is the first Messenger mission, **Watch Hermes do one real job**.
+A mission runs as twelve steps. You can always see where you are on the row of steps at the top.
 
-Above the map, the first time you open it, one question: **What do you want Hermes to do for you?** Your answer becomes the example in every practice prompt and the "Why this matters to you" line on every mission. You can change it, or skip it.
+1. **Recall.** Three minutes to write two things from memory, without looking back: from the last mission, or,
+   in the first one, from your own life.
+2. **Your claim.** The sentence you're about to prove, in the mission's words.
+3. **Your guess.** Before you start, say which checks you expect to pass.
+4. **Practice.** Field Academy makes the practice profile and sets up the problem. A short try shows you the idea.
+5. **The idea.** How this part of Hermes really works, with the defaults as of the Hermes release it was checked
+   against.
+6. **Watch it done.** Someone works the same kind of job step by step: what they did, saw, noticed and ruled out.
+7. **Your turn.** The real job, in the practice profile. **Open practice chat** opens a new chat there. Your own
+   profile stays as it was.
+8. **Score yourself.** Say how you think each check went, before you see it.
+9. **Check.** Field Academy reads the practice profile and shows what it found for each check. One check is hidden
+   until the end. You also explain the idea in your own words, and your own Hermes scores the answer.
+10. **Compare.** Your guess, your own score and the real result, side by side.
+11. **Fix and transfer.** Fix what missed, then use the idea on a second, different job.
+12. **Record.** Add the mission to your Field Record.
 
-Saved progress from earlier versions keeps working: the paths' internal ids (`ambassador`, `operator`, `integrator`, `architect`, and the Guide path's `deployer`) did not change with their names.
+## Practice profiles
 
-## A mission
+A practice profile is an ordinary Hermes profile that Field Academy asks Hermes to make. It is named
+`academy-practice` (a second one, for missions that need two, is `academy-practice-b`; a new try gets `-2`, `-3`
+and so on). Field Academy only ever works in profiles with these names that it made and recorded itself.
 
-Twenty missions across the four learning paths (sixteen, plus a capstone on each). Support fades as you go. Each mission has six steps, with plain names:
-
-1. **The story.** A short case of what happened to someone, with its steps labelled.
-2. **The takeaway.** The idea in a few lines (three, in a story-first mission), with a labelled picture where one helps (Find where Hermes is running shows the four parts of Hermes).
-3. **Your turn.** A half-done example with gaps. You write each gap first, and the model answer shows after you try.
-4. **Try it** in your own Hermes, on your own. A button opens the right page, or opens a new chat and sends the practice prompt for you.
-5. **Explain it** in your own words. Hermes scores the answer in a new chat of its own, so the scoring never lands in the middle of your own work; 70 or more passes.
-6. **Prove it.** Every check needs something you made: a typed answer compared with what Hermes reports, a skill or job or chat carrying a marker (`academy-...`, `[FA-DESKTOP]`), or a document whose every section holds real content. A few checks can only confirm that the thing you made exists with the mission's name (the skill check is one); [docs/checks.md](docs/checks.md) and [docs/paths.md](docs/paths.md) list each check and say which ones cannot be made fully strong. If your Hermes runs on another computer, paste a document instead of typing where it is saved.
-
-Everything you need to pass is on the page. Reading and video links from the Hermes docs and the people who teach Hermes sit at the end of each mission, closed, under **Go deeper**.
-
-**No copy and paste.** Practice prompts and scoring requests open a new chat and send themselves. The clipboard is used only on a Hermes too old to allow that, and the page says so when it happens.
-
-**When you miss**, the page says exactly what was missing and gives one hint. A second miss adds a worked example. You can always retry.
-
-**Time.** Every mission and every step says how long it takes, in honest working minutes. The top of a mission stays short so you reach step one quickly.
-
-## Review
-
-Two days after you pass a mission, it comes back for a short review: three questions drawn from missions you passed earlier, scored by your own Hermes the way an explain-it answer is. Answer well and the next review waits a week, then three weeks, then two months. Answer badly and it comes back tomorrow. Each mission keeps a strength (Strong, Holding, Fading, Weak) shown on the map. The **Review queue** on the home screen lists what is due. Nothing counts your days or sets a daily goal.
-
-## Placement
-
-Each path has a six-question placement check. Get both questions right on a level and you can skip that level's reading and practice. **Skipped levels still need you to answer each question and pass each check**, and your Field Record says which missions had their reading skipped.
-
-## After the summit
-
-**What changed since you learned this** lists missions whose lesson or check changed after you passed them, in plain words, with a **Re-verify** button. Your passes stay passed whatever a re-verify finds, and your Field Record says which version of each check you passed.
+Before the first chat in a practice profile, Field Academy may write a few named settings, the two memory files
+and some sample files in the profile's practice folder. After the first chat, it only reads. When you finish, delete
+the profile from the page, or in Hermes under **Settings**, **Profiles**.
 
 ## Your Field Record
 
-A Field Record is your own learning record for a path. You build it mission by mission, and when every mission on the path passes, including the capstone, you type your name and Field Academy writes it on your computer. It carries your name, the date, and the proof behind every mission:
+At any point you can open your Field Record: the claims you proved, how your guesses compared with the checks, how
+long you spent, and every excerpt Field Academy read, each with who checked it. You see every excerpt before you
+save and can keep any of them out; a kept-out excerpt shows only its fingerprint.
 
-- What each check found, and the version of the check
-- Your score on each question
-- The file name and fingerprint of each document you wrote
+![Every excerpt in the record: the file it came from, its fingerprint, and a box to keep it out](docs/shots/foundations-excerpts.png)
 
-It never holds your answers, your chats, or full file paths.
+**Save my Field Record** writes a folder on your computer:
 
-The record number is the first 12 characters of a SHA-256 over the record's own contents, so an accidental edit stops matching. It is not a signature: someone editing their own data on purpose can rebuild it. **Save as a file** writes a readable `.md` and a matching `.json` to a `field-records` folder in Field Academy's data folder.
+```
+field-records/foundations-<date>/
+    record.md          the record, to read
+    record.json        the record's data, exactly what the record number covers
+    evidence/          each excerpt you kept, one file each
+    MANIFEST.sha256    a fingerprint for every other file
+    README.txt         how someone else checks the folder
+```
 
-Every Field Record, on screen and in both files, carries this line:
+Anyone you give the folder to can run `shasum -a 256 -c MANIFEST.sha256` inside it to see that every file matches
+its fingerprint. That catches a file damaged or changed by accident. It doesn't show the folder is the one you
+saved: whoever edits a file can also write a new manifest and a new record number. Send the record number by
+another route (an email when you save it) and a reader can compare. It doesn't prove the work was done honestly
+either; see [Honest limits](#honest-limits).
 
-> Self-issued with Field Academy, a community plugin for Hermes Agent. Not issued or endorsed by Nous Research.
+## The paths and the Guide path
 
-It records checks that passed on one computer, and it is yours to keep, share or leave alone. Records made by 0.8.2 and earlier were called certificates; they keep their original stored wording, because the record number covers it, and they still verify.
-
-## The Guide path
-
-A fifth trail, below the four on the map, for one question the others do not ask: can this person set up, deploy
-and manage Hermes for a small client, a solopreneur or a three-person firm? It is not a course. It makes you do the
-work, in four camps that follow the order a deployment goes in (audit, architect, build and integrate, staged
-verification):
-
-1. **Four break-and-fix labs** (Audit and Architect). Field Academy builds a disposable "client machine" as a
-   plain folder of fake files that imitates a Hermes home: settings, a keys file with clearly fake keys, scheduled
-   jobs, logs, a profile folder, a service file and a backup script. One fault is hidden in it. You open the folder
-   (the page has an **Open the folder** button), read the logs, repair the files, and write down what happened. A
-   script grades the files and your write-up against criteria you cannot see, and a miss gives you what was
-   missing, one hint, then a worked example. The four labs: a key leaked into a saved settings file that must be
-   moved, rotated and recorded; a scheduled job running every minute on an expensive model that needs a sane
-   schedule and a cost cap; a service that does not survive a reboot, with open file permissions and a backup that
-   never ran; and one key shared by two helpers that needs a key each, with the smallest scopes and a rotation
-   note. The cases come from a seed, so a repair copied from someone else fails on yours.
-2. **A client proposal** (Architect). A vague brief from a fictional three-person accounting firm, with a budget,
-   constraints and one request that should be refused. You write scope, price, acceptance criteria, what you
-   would audit first, what the helper may reach, the build, how you test before go-live, who approves what, the
-   request you decline, and the handover. A script checks the numbers, the named owner, the access list and the
-   refusal. Your own Hermes scores the prose against a rubric you see afterwards.
-3. **Nine judgment scenarios** (Architect). Cases with no clean answer: emailing customers on its own, a shared
-   login, a compliance claim, chasing a customer in hardship, scope creep into payroll, an update before month
-   end, watching staff, a handover from a relative, and connecting a community tool. Scored on reasoning, not on a
-   verdict.
-4. **A real deployment** (Build and integrate). You connect one real service to your own Hermes with the smallest
-   permission and let a scheduled job use it for at least three days. Field Academy reads Hermes's own scheduler
-   list, run history and logs, read only, and checks that it ran over time.
-5. **Failure drills** (Staged verification). You revoke a token, trip a rate limit or restart Hermes, then prove
-   recovery with timestamps that show a gap and a recovered run. The drill is yours to run on your own setup.
-   Nothing is run for you.
-6. **A walkthrough and a review.** You explain one lab as you would to a client's partner. Field Academy
-   gathers everything into a review packet (all the evidence, fingerprints, your recorded explanation) with a
-   rubric. A reviewer you choose, someone with the experience to judge it, reads it and signs a JSON file the
-   plugin verifies. Without the signature you hold **Guide, awaiting review**. With it you create your **Guide
-   Field Record**.
-
-The Guide Field Record shows the Hermes version it was made on and shows **Re-verify needed** when that version moves
-to a new series. Re-verify repeats the four labs on new cases.
-
-**What it shows:** competence shown in labs and on your own setup, with the signature of a reviewer you chose.
-**What it does not:** years of client work, or how you will do with a real client. Like every Field Record, it is
-self-issued, and Nous Research and the Hermes team don't issue, review or endorse it. Where Field Academy could not
-read Hermes, the screen says so and the part falls back to a packet the reviewer checks. Your own word alone never
-passes. The path's order follows the lifecycle Tony Simons describes at tonysimons.dev;
-he has not reviewed it and does not endorse it, and his site offers no certification.
-
-Labs are folders of files under Field Academy's own data folder. Nothing in one runs, Hermes never reads it,
-every key in it is fake, and a test fails if the real `~/.hermes` changes. Reviewers: see
-[docs/reviewing.md](docs/reviewing.md). The research behind the design, and the claims that could not be verified:
-[docs/deployer-pedagogy.md](docs/deployer-pedagogy.md).
+After Foundations, four paths climb Beginner, Intermediate and Advanced, then end with a capstone on your own
+problem: **Messenger** (explain Hermes and spot where it fits), **Traveler** (run it on your own computer),
+**Crossroads** (connect it to a client's tools) and **Boundary Keeper** (who owns what, who approves what, how it
+recovers). Twenty missions in all. A fifth path, **Guide**, is for people who set up and run Hermes for a client:
+practice labs built from made-up data, a proposal, one real service run by a scheduled job for several days, a
+recovery drill, and a review signed by a reviewer you choose. Passed missions come back for short spaced reviews.
+The manual covers all of it.
 
 ## Install
 
-You need Hermes Desktop with Hermes Agent 0.22.0 or newer. This release was checked against the Hermes 0.22.0
-source.
+You need Hermes Desktop with Hermes Agent 0.22.0 or newer. This release was checked against Hermes 0.23.0.
 
-1. Install it from Hermes Desktop: open the link
-   [hermes://plugin/install?catalog=field-academy](hermes://plugin/install?catalog=field-academy), or click
-   **Capabilities**, then **Plugins**, find Field Academy and click **Install**.
+1. In Hermes Desktop, click **Capabilities**, then **Plugins**, find Field Academy and click **Install**. Or open
+   [hermes://plugin/install?catalog=field-academy](hermes://plugin/install?catalog=field-academy).
 
    Prefer the terminal? On the computer where Hermes runs (PowerShell on Windows), type:
 
@@ -158,82 +155,97 @@ source.
    hermes plugins install Dgardenhire/hermes-field-academy --enable
    ```
 
-   Hermes downloads the plugin and switches it on. (Without `--enable` it asks "Enable 'field-academy' now?"; answer y.)
-2. Restart Hermes, or in the app press Cmd-K (Ctrl-K on Windows and Linux) and choose **Reload desktop plugins**.
-3. Click **Field Academy** under **Tools** in the sidebar. The page opens on the trail map and asks one question: what you want
-   Hermes to do for you. Answer it and press **Save my goal**, or press **Skip for now**.
+2. Restart Hermes, or press Cmd-K (Ctrl-K on Windows and Linux) and choose **Reload desktop plugins**.
+3. Click **Field Academy** under **Tools** in the sidebar, then **Open Foundations**.
 
-To remove it: `hermes plugins remove field-academy`, then delete `~/.hermes/plugin-data/field-academy/` if you want
-your progress gone too.
+To remove it, run `hermes plugins remove field-academy`. Your progress stays in
+`~/.hermes/plugin-data/field-academy/` until you delete that folder. Practice profiles stay until you delete them.
 
-The window half loads from `~/.hermes/desktop-plugins/field-academy/`; the half that stores progress loads from
-`~/.hermes/plugins/field-academy/` and only runs while the plugin is enabled. `/academy` in the terminal or a
-messaging app prints the same map as plain text.
+## Privacy: what Field Academy reads and writes
+
+**In practice profiles only** (never your own profiles):
+
+- **Makes and deletes them** through Hermes's own profile calls, when you press the button for it. Hermes itself
+  copies your provider sign-in into a new profile so practice chats work; Field Academy never reads those files.
+- **Writes, before the first chat only:** named settings in `config.yaml` (such as `memory.write_approval`, a
+  connector entry or `terminal.cwd` set to the profile's own folder), `memories/MEMORY.md` and `memories/USER.md`,
+  and sample files in the profile's practice folder. Never `.env`, `auth.json` or any other file.
+- **Asks Hermes, through its gateway,** to make and pause the scheduled jobs a mission needs, to list the
+  profile's chats and undo snapshots, and to open a new chat there. On a Hermes that offers them, it can start the
+  practice profile's doctor and backup.
+- **Reads:** the memory files and held saves, named keys from `config.yaml`, chat records and usage in `state.db`,
+  `cron/jobs.json` and the run history, the logs, the skills folder and the undo snapshot folder. Excerpts are
+  cleaned of anything that looks like a key before they are stored.
+
+**In its own data folder** (`~/.hermes/plugin-data/field-academy/`): your progress database, pasted documents,
+Guide labs and review packets, and the Field Records you save.
+
+**Planted problems are real settings.** Missions 2 and 7 plant a filesystem connector that Hermes starts with
+`npx` when a practice chat opens (it downloads a pinned package from npm and runs it, aimed at a folder inside the
+practice profile). Mission 9 switches off an approval safeguard in the practice profile until you fix it, and the
+terminal tool reaches your whole computer, so fix it before you give Hermes work. Practice jobs run hourly on your
+provider once repaired. The details are in [docs/privacy.md](docs/privacy.md#what-the-planted-problems-do-while-they-stand).
+
+**AI help:** the Field guide, Score my answer and the notes on the replay ask your own model through Hermes, on two
+tasks Field Academy registers (`field_academy_guide`, `field_academy_grader`) that you can point at any model in
+Settings, Models. What goes to the model: the mission's own text, your answers, and short scrubbed excerpts of the
+practice profile's chats and files, never your own profiles. A model reply never sends, approves, deletes or writes
+anything, and never decides a check. Turn it off with **Turn off AI help** at the foot of the Field guide; the checks work without it.
+
+**Everywhere else:** Field Academy makes no network calls of its own (a source link opens in your browser only when you
+click it; model calls go through Hermes, above), holds no credentials, sends no telemetry, runs no shell commands, starts no background processes and
+never updates itself. The two hooks work as in
+0.8: `pre_llm_call` may add one sentence offering a practice, in interactive sessions only, and `post_tool_call`
+notes which tool was used. More in [SECURITY.md](SECURITY.md) and [docs/privacy.md](docs/privacy.md).
 
 ## What is verified, and what is not
 
 Tested here, without a live Hermes: the full test suite (Python and Node), every screen through the harness in
-light, dark and narrow widths, every check against Hermes's own source for the response shapes it reads (skills,
-scheduled jobs, sessions, tools, connections), and every lesson against the Hermes 0.22.0 source and docs
-(October 15, 2026; the 0.8.1 entry in CHANGELOG.md lists what changed).
+light and dark, with a red and a green accent, wide and narrow, and every reader against fixture profiles built
+from Hermes's own schema. Every "as of Hermes" fact in the lessons is matched against the Hermes 0.23.0 source at
+its release tag (`scripts/check_foundations.py --hermes-ref v0.23.0`).
 
 Not tested here:
 
-- **A live Hermes Desktop install.** The page and the checks were driven through a stand-in for the plugin SDK
-  that serves the real backend. The response shapes come from reading Hermes's source, not from a running app.
-- **Learners.** Nobody outside the author has taken a path yet.
-- **The Guide path's real-deployment and drill reading** against a live Hermes's run history and logs.
-- **Page routes** the missions open (Gateways, Scheduled jobs, Profiles, Kanban) were read from Hermes's source,
-  not clicked in a live app. Kanban ships switched off; turn it on under Capabilities, Plugins.
-
-## Privacy
-
-Field Academy sends nothing anywhere. It has no server, no analytics and no account. It reads Hermes through the
-app's own connection and writes only to its own data folder. Details below and in [docs/privacy.md](docs/privacy.md).
-
-## What it stores
-
-Progress lives in the plugin's own SQLite database under your Hermes home: for the Guide path, your lab seeds and results, your written answers, run times read from Hermes (times only), your review packet and the sign-off; and for the other paths, step status, check results, question scores, your gap answers, your review answers and strengths, your placement results, your goal, the path and hash of any document you checked, and the Field Records you created. It doesn't record prompts, tool output, credentials or customer data. When 0.5.0 first opens a database from an older version, it copies the whole database to a `backups` folder beside it, then only adds tables and columns. [docs/privacy.md](docs/privacy.md) has the full list.
-
-Delete `~/.hermes/plugin-data/field-academy/` to start over.
-
-## Working alongside Hermes
-
-The plugin ships an agent skill and tools. `field_academy_snapshot` returns a compact status; `field_academy_mission` returns one mission in full; `field_academy_grade_explanation` and `field_academy_grade_review` record the scores Hermes gives. Tool use may suggest a relevant mission. It never advances a step and never counts as evidence, and the suggestion is suppressed outside an interactive session.
-
-## Teaching content
-
-The words that make the learning design work (worked examples, hints, review questions, placement, capstones) live in `content/`, one file per path. The format is in [docs/content-format.md](docs/content-format.md), and the research behind it is in [docs/pedagogy.md](docs/pedagogy.md).
-
-## Building the page
-
-The page Hermes loads, `desktop/plugin.js`, is built from `desktop/src/plugin.js` and the shared design kit (hermes-ui-kit, a sibling folder) with esbuild: `node ../hermes-ui-kit/scripts/build.mjs .`. Edit the source, then build. The built file still imports only `@hermes/plugin-sdk`, `react` and `react/jsx-runtime`.
-
-## Seeing every screen without Hermes
-
-```bash
-python3 harness/make_fixtures.py         # real backend, throwaway data folder
-python3 harness/shoot.py --list
-python3 harness/shoot.py map path-ladder  # one headless Chrome at a time
-python3 scripts/check_content.py          # validates content/ against docs/content-format.md
-```
-
-PNGs land in `harness/shots/`. The harness stands in for the Hermes SDK and needs network for its CDN imports. It runs no `hermes` command.
+- **A live run of every Foundations mission in Hermes Desktop.** The page was driven through a stand-in for the
+  plugin SDK that serves the real backend. `docs/LIVE-TEST.md` is the checklist for a live run.
+- **Learners.** Nobody outside the author has taken Foundations yet.
 
 ## Honest limits
 
-- **Local checks have a local boundary.** Field Academy reads and checks every document itself, and it refuses a result sent for a document check. The four Operator checks that read Hermes run in the page, so Field Academy takes the page's word for what it found and says so on the Field Record. Anyone willing to edit their own plugin data, or to send a made-up result for one of those four checks, can fake a pass. This is a practice tool run on your own computer.
-- **The explain step is scored by your own Hermes.** The rubric is fixed and shown after you answer, but the model doing the scoring is yours, so a learner who tells it what score to give can get that score. Scores arrive only through the agent tools; no web route writes one.
-- **You choose your reviewer.** Field Academy's published reviewer list ships empty. A learner adds the key of a reviewer they chose to their own list, and the Field Record says the key came from that list. Nobody at Nous Research or on the Hermes team appoints or approves reviewers.
-- **Some checks are still limited.** The marker proves a chat, skill or job exists with the mission's name. It can't prove you did every step in it. Nothing can see whether an approval prompt appeared or whether a Kanban card exists, so those records are your own account, held to specifics. docs/checks.md says which and why.
-- **Nothing here is tested on learners.** The design follows learning research, and docs/pedagogy.md says which numbers are our own choices and which claims could not be verified.
-- **The Guide path was not run against a live Hermes.** The layout of Hermes's run history and logs is read generously and could not be checked here, and the Hermes version is read from Hermes's install stamp (or, failing that, package metadata) when it can be, and otherwise read by the Field Academy page or typed by you. The Field Record says which. The lab files imitate a Hermes home and are not a copy of one.
-- **The reviewer's signature proves the key, not the person.** The plugin verifies a signed sign-off against a list of trusted keys. A learner who edits their own copy can trust their own key, so the Field Record says which list the key came from, and a third party should check it against the published list in the repository.
-- **Remote backends read their own disk.** On a remote or Cloud backend, the file path you type means a path on that machine.
+- **A Field Record shows what passed on your own computer.** Someone who edits their own saved data can fake a
+  pass. The fingerprints show the files match each other, not that they are the ones you saved or that the work
+  was honest.
+- **Your own Hermes scores your written answers**, so a score depends on your model.
+- **Checks read files, not intentions.** A check can see that a fact is in `MEMORY.md` and that a new chat used it.
+  It can't see why you did what you did; your written answers cover that.
+- **Some things only the live app can confirm,** such as whether an approval prompt appeared. Those checks say so
+  on screen and tell you how to look for yourself.
+- **Lessons describe Hermes as of a release.** Each fact is labelled with the version it was checked against. A
+  later Hermes can change a default before the lesson catches up.
+
+## For developers
+
+The page Hermes loads, `desktop/plugin.js`, is built from `desktop/src/` and the shared design kit (hermes-ui-kit,
+a sibling folder): `node ../hermes-ui-kit/scripts/build.mjs .`. It imports only `@hermes/plugin-sdk`, `react` and
+`react/jsx-runtime`.
+
+```bash
+python3 -m unittest discover -s tests              # Python suite (runs the Node tests too, if node is installed)
+python3 scripts/check_foundations.py               # every mission against the teaching rules
+HERMES_SOURCE=~/hermes-agent python3 scripts/check_foundations.py --hermes-ref v0.23.0
+python3 harness/make_fixtures.py                   # the real backend, in a throwaway folder
+python3 harness/shoot.py doc-home doc-lab          # screenshots, one headless Chrome at a time
+```
+
+Lessons live in `content/foundations/` (one Python file and four Markdown files a mission). The harness needs
+network for its CDN imports and never runs a `hermes` command.
 
 ## Credits
 
-The teaching this is built on comes from other people: the Nous Research Hermes docs, Tonbi's masterclass (linked through Kevin Simback's Hermes Atlas), Kevin Simback's Hermes Atlas guides, iamlukethedev's Hermes Bible, and Tony Simons, whose site tonysimons.dev is also the reference for the shape of the Guide path. See [CREDITS.md](CREDITS.md).
+The teaching draws on other people's work: the Nous Research Hermes docs, Tonbi's masterclass (linked through Kevin
+Simback's Hermes Atlas), Kevin Simback's Hermes Atlas guides, iamlukethedev's Hermes Bible, and Tony Simons,
+whose site tonysimons.dev is the reference for the shape of the Guide path. See [CREDITS.md](CREDITS.md).
 
 ## License
 

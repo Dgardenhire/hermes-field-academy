@@ -254,6 +254,51 @@ def main():
 
     for name, make in deployer_fixtures.RECIPES:
         states[name] = build(name, deployer_recipe(make))
+    import foundations_fixtures
+
+    def foundations_recipe(make):
+        def run(state, curriculum, data_dir, store):
+            kit = foundations_fixtures.Kit(state, store, data_dir)
+            try:
+                make(kit)
+                return {"foundations": kit.out()}
+            finally:
+                kit.close()
+
+        return run
+
+    for name, make in foundations_fixtures.RECIPES:
+        states[name] = build(name, foundations_recipe(make))
+
+    def foundations_a_recipe(mid, make):  # missions 1, 2, 4, 5 and 6 (0.9 M6, part A)
+        def run(state, curriculum, data_dir, store):
+            kit = foundations_fixtures.KitA(state, store, data_dir, mid)
+            try:
+                make(kit)
+                return {"foundations": kit.out()}
+            finally:
+                kit.close()
+
+        return run
+
+    for name, mid, make in foundations_fixtures.RECIPES_A:
+        states[name] = build(name, foundations_a_recipe(mid, make))
+
+    import foundations_fixtures_b
+
+    def foundations_recipe_b(mid, make):
+        def run(state, curriculum, data_dir, store):
+            kit = foundations_fixtures_b.KitB(state, store, data_dir, mid)
+            try:
+                make(kit)
+                return {"foundations": kit.out()}
+            finally:
+                kit.close()
+
+        return run
+
+    for name, mid, make in foundations_fixtures_b.RECIPES:
+        states[name] = build(name, foundations_recipe_b(mid, make))
     out = ROOT / "harness" / "fixtures.json"
     out.write_text(json.dumps({"states": states}, indent=1, ensure_ascii=False))
     print(f"wrote {out} ({out.stat().st_size:,} bytes)")

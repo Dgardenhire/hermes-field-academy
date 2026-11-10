@@ -13,7 +13,7 @@ import { jsx, jsxs } from 'react/jsx-runtime'
 import { Button, Codicon, Input, Textarea } from '@hermes/plugin-sdk'
 import { Back, Card, Details, Facts, PageHeader, Pill, Ring, Section, useListKeys } from 'hermes-ui-kit'
 import { CertCorners, Contours, ElevationProfile, Legend, Seal, TrailMark } from './field.js'
-import { trailModel } from './trail.js'
+import { trailModel, withPlaced } from './trail.js'
 import { stateWords } from './deploy.js'
 
 export const DEPLOYER_CSS = `
@@ -220,9 +220,12 @@ export function createDeployerViews(ui) {
   }
 
   function DeployerPath({ data, go }) {
-    const track = data.track
+    // The teaching missions placed in the Guide's camps show beside its own parts (school.PLACEMENTS).
+    const track = withPlaced(data.track)
     const model = trailModel(track)
-    const itemById = Object.fromEntries(data.items.map(item => [item.id, item]))
+    const placed = (data.track.placed || []).map(m => ({ id: m.id, title: m.title, minutes: m.minutes, detail: 'Practice mission',
+      state: m.status === 'verified' ? 'verified' : m.status === 'not_started' ? 'not_started' : 'in_progress' }))
+    const itemById = Object.fromEntries([...data.items, ...placed].map(item => [item.id, item]))
     const rows = track.levels.flatMap(level => level.missions)
     const list = useListKeys({ count: rows.length, onOpen: i => rows[i] && go(partFor(rows[i])) })
     return jsx(Frame, { width: 'narrow', up: () => go({ name: 'map' }), onKey: list.keyProps.onKeyDown, children: [
@@ -237,7 +240,7 @@ export function createDeployerViews(ui) {
         onOpenMission: id => go(partFor(id)),
         onOpenSummit: () => scrollToId('fa-dp-route'),
         children: [
-          jsx('p', { children: `${track.verified_missions} of ${track.missions.length} parts passed. ${data.certificate.label}.` }, 'where'),
+          jsx('p', { children: `${data.track.verified_missions} of ${data.track.missions.length} parts passed. ${data.certificate.label}.` }, 'where'),
           jsx(Legend, {}, 'legend'),
         ],
       }, 'profile'),

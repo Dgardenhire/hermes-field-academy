@@ -1,0 +1,76 @@
+{
+ "response": {
+  "draft_for_practice_chat": "How do I connect Slack?",
+  "held_back": false,
+  "help": {
+   "all_helps": 9,
+   "hunt_helps": 4,
+   "key": "shown",
+   "used": [
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "ask",
+     "rung": null,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "where",
+     "rung": 2,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "reveal",
+     "rung": 3,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "pins",
+     "rung": null,
+     "step": "compare"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "explain",
+     "rung": null,
+     "step": "compare"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "do_it_with_me",
+     "rung": null,
+     "step": "fix"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "ask",
+     "rung": null,
+     "step": "compare"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "ask",
+     "rung": null,
+     "step": "compare"
+    }
+   ],
+   "words": "The guide showed the answer"
+  },
+  "model": "fake-model-1",
+  "ms": 0,
+  "not_in_sources": true,
+  "sends": false,
+  "sentences": [],
+  "state": "ok",
+  "tries": 1
+ },
+ "route": "POST /guide/{attempt_id}/ask"
+}

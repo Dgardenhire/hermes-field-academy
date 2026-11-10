@@ -1,0 +1,40 @@
+{
+ "response": {
+  "draft_for_practice_chat": "",
+  "held_back": true,
+  "help": {
+   "all_helps": 2,
+   "hunt_helps": 2,
+   "key": "hints",
+   "used": [
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "ask",
+     "rung": null,
+     "step": "check"
+    }
+   ],
+   "words": "2 hints used"
+  },
+  "model": "fake-model-1",
+  "ms": 202,
+  "not_in_sources": false,
+  "sends": false,
+  "sentences": [
+   {
+    "source": "course",
+    "source_ids": [],
+    "text": "That one is part of the hunt, so the guide won't say it yet. Open the memory row in your chat and read every line, or press Give me a hint."
+   }
+  ],
+  "state": "ok",
+  "tries": 2
+ },
+ "route": "POST /guide/{attempt_id}/ask"
+}

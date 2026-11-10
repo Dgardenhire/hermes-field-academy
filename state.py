@@ -15,7 +15,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from . import documents, learning, pathways, review, store
+from . import documents, learning, pathways, review, school, store
 from .curriculum import (
     MISSIONS,
     PLACEMENTS,
@@ -103,6 +103,36 @@ def set_use_goal(text="", skipped=False):
         _meta_set(conn, "use_goal_skipped", "0")
         _meta_set(conn, "use_goal_at", _now())
     return snapshot()
+
+
+# ── AI help and the in-chat practice offer (0.9 premium) ─────────────────────
+#
+# Two switches in Settings. ``ai_help`` turns every Field Academy model call off: the guide column, Explain my miss,
+# replay pins, Do it with me's line and inline grading. Checks never need a model, so they keep working. Default on.
+# ``practice_offer`` is the one-sentence practice offer the ``pre_llm_call`` hook can add to a learner's own chat. It
+# defaults on, as it always has, and still stays silent until the learner picks a path (claim_spotlight needs a
+# recorded opportunity on the learner's track).
+
+AI_SWITCHES = ("ai_help", "practice_offer")
+
+
+def ai_settings():
+    with _connection() as conn:
+        return {name: _meta_get(conn, f"setting:{name}", "1") != "0" for name in AI_SWITCHES}
+
+
+def set_ai_settings(ai_help=None, practice_offer=None):
+    """Change one or both switches. Anything but a real True or False is refused, so a stray string can't turn AI
+    help on."""
+    wanted = {"ai_help": ai_help, "practice_offer": practice_offer}
+    for name, value in wanted.items():
+        if value is not None and not isinstance(value, bool):
+            raise ValueError(f"{name} is on or off (true or false).")
+    with _connection() as conn:
+        for name, value in wanted.items():
+            if value is not None:
+                _meta_set(conn, f"setting:{name}", "1" if value else "0")
+    return ai_settings()
 
 
 def _goal(conn):
@@ -1255,6 +1285,9 @@ def snapshot():
     if active_mission not in MISSIONS or MISSIONS[active_mission]["track"] != goal_track:
         active_mission = _next_mission(tracks, goal_track)
     holding = sum(1 for found in reviews["strength"].values() if (found["strength"] or 0) >= learning.PASS_SCORE)
+    next_up = pathways.next_up(tracks, goal_track, goal["text"])
+    # The capability missions join their camps on the trails (school.PLACEMENTS), after every path count is made.
+    school.inject_all(tracks)
     return {
         "version": 5,
         "oriented": oriented,
@@ -1262,7 +1295,10 @@ def snapshot():
         "goal_track": goal_track,
         "learning_context": context,
         "active_mission": active_mission,
-        "next_up": pathways.next_up(tracks, goal_track, goal["text"]),
+        "next_up": next_up,
+        "camp_lines": school.CAMP_LINES,
+        "summit_line": school.SUMMIT_LINE,
+        "school_line": school.SCHOOL_LINE,
         "tracks": tracks,
         "recent_evidence": evidence_rows[:12],
         "credential_note": pathways.ABOUT,
@@ -1460,6 +1496,10 @@ def record_display(body):
         shows = body.get("shows", shows)
         does_not = body.get("does_not_show", does_not)
         issuer = body.get("issuer", issuer)
+    if fmt >= 3:
+        # Foundations records (field_record.py) keep who issued them in their scope: "self", with the line that says so.
+        scope = body.get("scope") if isinstance(body.get("scope"), dict) else {}
+        issuer = scope.get("issuer_line") or issuer
     return {
         "format": fmt,
         "issuer": issuer,
@@ -1592,6 +1632,10 @@ def data_dir():
 
 
 def _human_date(stamp):
+    # A trailing "Z" (reviewer signatures carry one) is read as UTC on every Python. Python 3.11 and later parse it on
+    # their own; 3.9 and 3.10 refuse it, so without this the same record read differently by interpreter.
+    if isinstance(stamp, str) and stamp.endswith("Z"):
+        stamp = stamp[:-1] + "+00:00"
     try:
         moment = datetime.fromisoformat(stamp)
     except (TypeError, ValueError):

@@ -1,0 +1,328 @@
+{
+ "summary": {
+  "when": "2026-11-09 02:45 CST",
+  "model": "sonnet",
+  "outputs": 20,
+  "from_model": 20,
+  "course_words": 0,
+  "max_words_per_sentence": 19,
+  "over_20_words": 0,
+  "user_md_mentions": 0,
+  "second_sentence_places": [
+   "03:53"
+  ],
+  "median_seconds_all_checks": 11.43,
+  "places": [
+   {
+    "name": "what the memory row in your chat at 03:53 says came back",
+    "match": [
+     "03:53",
+     "memory row"
+    ]
+   }
+  ],
+  "facts": "The check facts (all true): the memory row in the chat is titled Saved to memory but its result says the save was staged for approval and not yet saved; a held save sits in the profile's pending/memory folder; MEMORY.md is unchanged (479 of 2,200 characters, no line holds the fact); the new chat did NOT use the fact (it asked which software Harbor Bakery uses); the fact the learner wanted saved is 'Harbor Bakery uses QuickBooks Online; the other five use Xero'."
+ },
+ "rows": [
+  {
+   "run": 1,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "The check read the memory files in your practice copy and found none of them has your fact.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    18,
+    14
+   ],
+   "seconds_all_checks": 8.92
+  },
+  {
+   "run": 1,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "The check read your memory files, and they don't have this fact for new chats to use.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    17,
+    14
+   ],
+   "seconds_all_checks": 8.92
+  },
+  {
+   "run": 2,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Hermes's MEMORY.md has five lines, and none of them match your fact.",
+    "Read what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    12,
+    13
+   ],
+   "seconds_all_checks": 12.86
+  },
+  {
+   "run": 2,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "The memory files Hermes keeps did not show your fact, so new chats had nothing to use.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    17,
+    14
+   ],
+   "seconds_all_checks": 12.86
+  },
+  {
+   "run": 3,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Your job is to get your fact into a line of the MEMORY.md file the check read.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    17,
+    14
+   ],
+   "seconds_all_checks": 9.84
+  },
+  {
+   "run": 3,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "The memory files Hermes keeps did not show your fact, so new chats had nothing to use.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    17,
+    14
+   ],
+   "seconds_all_checks": 9.84
+  },
+  {
+   "run": 4,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Your fact still needs to get into the memory files, because none of the five lines there has it.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    19,
+    14
+   ],
+   "seconds_all_checks": 12.11
+  },
+  {
+   "run": 4,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "The memory files Hermes keeps did not have your new fact in them when checked.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    15,
+    14
+   ],
+   "seconds_all_checks": 12.11
+  },
+  {
+   "run": 5,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Your job is to get your fact into a line of the practice Hermes memory files.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    16,
+    14
+   ],
+   "seconds_all_checks": 6.41
+  },
+  {
+   "run": 5,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Your job is to get the fact into Hermes's memory files, because they showed nothing for it.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    17,
+    14
+   ],
+   "seconds_all_checks": 6.41
+  },
+  {
+   "run": 6,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "The memory files in your Hermes practice copy have no line with your fact.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    14,
+    14
+   ],
+   "seconds_all_checks": 12.35
+  },
+  {
+   "run": 6,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "The memory files Hermes read don't have your fact, so your new chats couldn't use it.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    16,
+    14
+   ],
+   "seconds_all_checks": 12.35
+  },
+  {
+   "run": 7,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Your job is to get your fact into a line in the memory files, and none has it.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    18,
+    14
+   ],
+   "seconds_all_checks": 7.09
+  },
+  {
+   "run": 7,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "The memory files the check read don't have your fact, so new chats couldn't use it.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    16,
+    14
+   ],
+   "seconds_all_checks": 7.09
+  },
+  {
+   "run": 8,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "The check read the memory files in your practice copy and found no line with your fact.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    17,
+    14
+   ],
+   "seconds_all_checks": 11.43
+  },
+  {
+   "run": 8,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "The memory files Hermes keeps don't have your fact in them, so new chats can't use it.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    17,
+    14
+   ],
+   "seconds_all_checks": 11.43
+  },
+  {
+   "run": 9,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "I read the memory files in your practice copy, and none of their lines has your fact.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    17,
+    14
+   ],
+   "seconds_all_checks": 8.64
+  },
+  {
+   "run": 9,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Your job is to get the fact into Hermes's memory files, and the check found it missing.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    17,
+    14
+   ],
+   "seconds_all_checks": 8.64
+  },
+  {
+   "run": 10,
+   "check_id": "memory_line",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "Your job is to get your fact into a line in the memory files.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    14,
+    14
+   ],
+   "seconds_all_checks": 15.56
+  },
+  {
+   "run": 10,
+   "check_id": "fresh_use",
+   "source": "model",
+   "state": "ready",
+   "sentences": [
+    "The memory files the check read do not show your fact, so new chats had nothing to use.",
+    "Look at what the memory row in your chat at 03:53 says came back."
+   ],
+   "words": [
+    18,
+    14
+   ],
+   "seconds_all_checks": 15.56
+  }
+ ]
+}

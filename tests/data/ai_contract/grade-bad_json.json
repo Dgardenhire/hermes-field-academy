@@ -1,0 +1,10 @@
+{
+ "response": {
+  "fallback": "chat",
+  "message": "Your model's reply came back in a shape Field Academy can't read, even after asking twice.",
+  "next_step": "Field Academy shows the course's own words instead. Press Try again to ask your model once more.",
+  "state": "bad_json",
+  "test_out": false
+ },
+ "route": "POST /ai/grade/{mission_id}/{step_id}"
+}

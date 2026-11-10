@@ -1,0 +1,43 @@
+{
+ "response": {
+  "guess": {
+   "answers": [
+    {
+     "id": "save",
+     "label": "Saving the fact when I ask"
+    },
+    {
+     "id": "file",
+     "label": "Putting it in the right memory file"
+    },
+    {
+     "id": "new_chat",
+     "label": "Using it in a brand-new chat"
+    },
+    {
+     "id": "nowhere",
+     "label": "Nowhere. It will just work."
+    }
+   ],
+   "confidence": [
+    {
+     "id": "low",
+     "label": "Not sure"
+    },
+    {
+     "id": "medium",
+     "label": "Fairly sure"
+    },
+    {
+     "id": "high",
+     "label": "Sure"
+    }
+   ],
+   "question": "Where do you think Hermes will trip?"
+  },
+  "guide": "The Field guide opens after you answer Did it work?",
+  "mission_id": "f.memory",
+  "words": "Began as a first flight; snag chosen for first flight"
+ },
+ "route": "GET /first-flight"
+}

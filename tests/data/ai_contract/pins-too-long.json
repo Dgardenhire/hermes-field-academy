@@ -1,0 +1,10 @@
+{
+ "response": {
+  "message": "Your model's replay notes ran too long to show.",
+  "next_step": "Press Try again for shorter notes. The replay itself is all there.",
+  "pins": [],
+  "state": "too_long",
+  "tries": 2
+ },
+ "route": "POST /guide/{attempt_id}/pins"
+}

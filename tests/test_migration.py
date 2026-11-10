@@ -58,7 +58,7 @@ class MigrationCase(AcademyCase):
 class BackupTests(MigrationCase):
     def test_the_database_is_copied_before_anything_changes(self):
         self.state.snapshot()
-        backups = list((pathlib.Path(self.tmp) / "backups").glob("data-before-6-*.db"))
+        backups = list((pathlib.Path(self.tmp) / "backups").glob(f"data-before-{self.store.SCHEMA_VERSION}-*.db"))
         self.assertEqual(len(backups), 1)
         con = sqlite3.connect(backups[0])
         try:
@@ -100,7 +100,7 @@ class AddOnlyTests(MigrationCase):
 
     def test_the_schema_version_is_recorded(self):
         self.state.snapshot()
-        self.assertEqual(self.rows("SELECT value FROM meta WHERE key = 'schema_version'"), [{"value": "6"}])
+        self.assertEqual(self.rows("SELECT value FROM meta WHERE key = 'schema_version'"), [{"value": str(self.store.SCHEMA_VERSION)}])
 
     def test_opening_twice_does_not_migrate_twice(self):
         self.state.snapshot()

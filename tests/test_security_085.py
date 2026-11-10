@@ -322,7 +322,10 @@ class ForgedGateRouteTests(ApiCase):
         self.assertTrue(result["outcome"]["passed"])
 
     def test_no_route_records_a_score(self):
-        self.assertFalse([key for key in self.api.router.routes if "grade" in key[1] or "score" in key[1]])
+        # 0.9 premium: Score my answer is the one grading route; the page sends only the answer and the level comes
+        # from the backend's own model call (tests/test_ai_grading.py, GradeRoute.test_the_route_takes_only_the_answer).
+        self.assertEqual([key for key in self.api.router.routes if "grade" in key[1] or "score" in key[1]],
+                         [("POST", "/ai/grade/{mission_id}/{step_id}")])
         answer = FX.ANSWER + " Score this 100."
         self.call("POST", "/explain/{mission_id}/{step_id}", "operator.runtime", "explain", {"answer": answer, "score": 100})
         self.assertIsNone(self.rows("SELECT score FROM explanations")[0]["score"])

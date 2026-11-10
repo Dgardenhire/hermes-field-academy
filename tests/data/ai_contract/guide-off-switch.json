@@ -1,0 +1,93 @@
+{
+ "response": {
+  "do_it_with_me": null,
+  "enabled": false,
+  "explain": [],
+  "help": {
+   "all_helps": 9,
+   "hunt_helps": 4,
+   "key": "shown",
+   "used": [
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "ask",
+     "rung": null,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "where",
+     "rung": 2,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "reveal",
+     "rung": 3,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "pins",
+     "rung": null,
+     "step": "compare"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "explain",
+     "rung": null,
+     "step": "compare"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "do_it_with_me",
+     "rung": null,
+     "step": "fix"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "ask",
+     "rung": null,
+     "step": "compare"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "ask",
+     "rung": null,
+     "step": "compare"
+    }
+   ],
+   "words": "The guide showed the answer"
+  },
+  "ladder": {
+   "nudge": {
+    "state": "not_started",
+    "text": ""
+   },
+   "reveal": {
+    "available": false
+   },
+   "where": {
+    "available": false,
+    "text": ""
+   }
+  },
+  "mission_id": "f.memory",
+  "off_reason": "switch",
+  "off_words": "AI help is off. Turn it on to get hints and explanations. Checks work either way.",
+  "pins": [],
+  "starters": [
+   "What should I open first when a check misses?",
+   "Where does Hermes keep what it remembers, and how do I open it?",
+   "Why does a new chat matter for this check?"
+  ],
+  "step": "check"
+ },
+ "route": "GET /guide/{attempt_id}?step=&active="
+}

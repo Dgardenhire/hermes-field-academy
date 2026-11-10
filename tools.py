@@ -65,6 +65,17 @@ def field_academy_mission(args, **kwargs):
 
 def field_academy_grade_explanation(args, **kwargs):
     def operation():
+        if str(args.get("mission_id", "")).startswith("f."):
+            from . import foundations
+
+            return foundations.grade_rubric(
+                args.get("mission_id", ""),
+                args.get("step_id", ""),
+                args.get("level"),
+                args.get("feedback", ""),
+                args.get("missed") or [],
+                args.get("score"),
+            )
         return state.grade_explanation(
             args.get("mission_id", ""),
             args.get("step_id", "explain"),

@@ -1,0 +1,82 @@
+{
+  "hermes_version": "0.22.4",
+  "read_on": "2026-10-21",
+  "state_schema_version": 32,
+  "sources": {
+    "state_schema_version": "hermes_state_common.py:289 SCHEMA_VERSION = 32",
+    "entry_delimiter": "tools/memory_tool_store.py:25 ENTRY_DELIMITER",
+    "memory_dir": "tools/memory_tool.py:38-40 get_memory_dir() -> <home>/memories",
+    "char_limits": "hermes_cli/config_defaults.py:1334-1335",
+    "write_approval_default": "hermes_cli/config_defaults.py:1333 and :1497",
+    "sessions_auto_prune": "hermes_cli/config_defaults.py:2287-2289",
+    "pending_record": "tools/write_approval.py:65-86 stage_write()",
+    "memory_full_error": "tools/memory_tool_store.py:380-386 add() over the limit",
+    "jobs_file": "cron/jobs.py:1537 {\"jobs\": [...], \"updated_at\": ...} and :1868-1905 job fields",
+    "logs": "hermes_logging.py:3 agent.log, errors.log, gateway.log",
+    "skill_walk": "agent/skill_utils.py:24-32 EXCLUDED_SKILL_DIRS, SKILL_SUPPORT_DIRS"
+  },
+  "entry_delimiter": "\n§\n",
+  "memory_char_limit": 2200,
+  "user_char_limit": 1375,
+  "write_approval_default": false,
+  "sessions_auto_prune_default": false,
+  "sessions_retention_days": 90,
+  "pending_record_keys": [
+    "id",
+    "subsystem",
+    "action",
+    "summary",
+    "origin",
+    "created_at",
+    "payload"
+  ],
+  "memory_full_error": "Memory at {current:,}/{limit:,} chars; adding this entry ({size} chars) would exceed the limit by {over:,} chars. Retry as ONE 'operations' batch that removes or shortens (patch) stale entries from current_entries below to free at least {over:,} chars AND adds this entry — the limit is checked only on the batch result.",
+  "excluded_skill_dirs": [
+    ".git",
+    ".github",
+    ".hub",
+    ".archive",
+    ".curator_backups",
+    ".locks",
+    ".venv",
+    "venv",
+    "node_modules",
+    "site-packages",
+    "__pycache__",
+    ".tox",
+    ".nox",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache"
+  ],
+  "skill_support_dirs": [
+    "references",
+    "templates",
+    "assets",
+    "scripts"
+  ],
+  "rechecked": {
+    "version": "0.23.0",
+    "on": "2026-11-08",
+    "same": [
+      "state_schema_version",
+      "entry_delimiter",
+      "memory_dir",
+      "char_limits",
+      "write_approval_default",
+      "sessions_auto_prune",
+      "pending_record",
+      "memory_full_error",
+      "jobs_file",
+      "logs",
+      "skill_support_dirs"
+    ],
+    "changed": {
+      "excluded_skill_dirs": "agent/skill_utils.py:26-32 adds DIST_SWAP_DIR '.hermes-dist' (hermes_read.EXCLUDED_SKILL_DIRS follows)",
+      "cron_status": "cron/executions.py:39-40 adds 'cancelled' and 'missed'; a missed row is not a run (hermes_read_b.runs). Fixture: ../hermes-0.23.0/cron_executions.sql",
+      "cron_delivery": "cron/scheduler_delivery_room.py:21-41 adds room:<id>[@profile] (plants_b.DELIVERY)",
+      "skill_index_clip": "agent/skill_utils.py clip_skill_description (0.22.6+) cuts at the last whole word, not at 57 (foundations_checks_a.seen_line)",
+      "skill_description_budget": "tools/skill_manager_tool.py _description_budget_error (0.22.6+) refuses a new or changed description over 60"
+    }
+  }
+}

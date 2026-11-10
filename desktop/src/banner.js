@@ -11,6 +11,8 @@ import { jsx, jsxs } from 'react/jsx-runtime'
 const W = 1200
 const H = 320
 const SKY = 40
+const EXTEND = 3000
+const extend = d => d.replace(/^M0 (\d+)/, `M${-EXTEND} $1 L0 $1`).replace(/L0 320 Z$/, `L${-EXTEND} 320 Z`)
 
 export const BANNER_RIDGES = {
   far: 'M0 214 L80 186 L150 198 L240 156 L320 174 L420 128 L500 154 L580 116 L660 144 L760 96 L840 124 L930 86 L1010 110 L1100 74 L1200 98 L1200 320 L0 320 Z',
@@ -90,7 +92,7 @@ function Flag({ x, y, done, label, summit = false }) {
 
 /** The plate on its own, sized by its container; the summit stays in view at any width. */
 export function BannerArt({ camps = [], summitDone = false }) {
-  return jsxs('svg', { className: 'fa-bn-art', viewBox: `0 ${-SKY} ${W} ${H + SKY}`, preserveAspectRatio: 'xMaxYMax slice', 'aria-hidden': 'true', focusable: 'false', children: [
+  return jsxs('svg', { className: 'fa-bn-art', viewBox: `0 ${-SKY} ${W} ${H + SKY}`, preserveAspectRatio: 'xMaxYMid meet', 'aria-hidden': 'true', focusable: 'false', children: [
     jsxs('defs', { children: [
       jsxs('linearGradient', { id: 'fa-bn-sky', x1: 0, y1: 0, x2: 0, y2: 1, children: [
         jsx('stop', { offset: '0', className: 'fa-bn-sky-top' }),
@@ -99,11 +101,12 @@ export function BannerArt({ camps = [], summitDone = false }) {
       ] }),
       jsx('clipPath', { id: 'fa-bn-main-clip', children: jsx('path', { d: BANNER_RIDGES.main }) }),
     ] }),
-    jsx('rect', { y: -SKY, width: W, height: H + SKY, fill: 'url(#fa-bn-sky)' }),
+    // The art is fitted whole (meet), never cropped; the sky and the ridges run on to the left so a wide banner has no bare edge.
+    jsx('rect', { x: -EXTEND, y: -SKY, width: W + EXTEND, height: H + SKY, fill: 'url(#fa-bn-sky)' }),
     jsx('circle', { className: 'fa-bn-sun-halo', cx: 1112, cy: 70, r: 62 }),
     jsx('circle', { className: 'fa-bn-sun', cx: 1112, cy: 70, r: 32 }),
-    jsx('path', { className: 'fa-bn-ridge', 'data-layer': 'far', d: BANNER_RIDGES.far }),
-    jsx('path', { className: 'fa-bn-ridge', 'data-layer': 'main', d: BANNER_RIDGES.main }),
+    jsx('path', { className: 'fa-bn-ridge', 'data-layer': 'far', d: extend(BANNER_RIDGES.far) }),
+    jsx('path', { className: 'fa-bn-ridge', 'data-layer': 'main', d: extend(BANNER_RIDGES.main) }),
     jsx('g', { className: 'fa-bn-contours', clipPath: 'url(#fa-bn-main-clip)', children: RINGS.map((ring, i) =>
       jsx('path', { d: ring.d, 'data-index': ring.index ? '' : undefined }, i)) }),
     jsx('path', { className: 'fa-bn-crest', d: crest(BANNER_RIDGES.main) }),
@@ -112,14 +115,14 @@ export function BannerArt({ camps = [], summitDone = false }) {
     ...BANNER_CAMPS.map((at, i) => jsx(Flag, { x: at.x, y: at.y, done: camps[i]?.done, label: camps[i]?.label }, `camp-${i}`)),
     jsx(Caduceus, { x: BANNER_SUMMIT.x, y: BANNER_SUMMIT.y, done: summitDone }, 'summit'),
     jsx('text', { className: 'fa-bn-label fa-bn-summit-label', x: BANNER_SUMMIT.x + 30, y: BANNER_SUMMIT.y - 18, children: 'Olympus' }),
-    jsx('path', { className: 'fa-bn-ridge', 'data-layer': 'near', d: BANNER_RIDGES.near }),
+    jsx('path', { className: 'fa-bn-ridge', 'data-layer': 'near', d: extend(BANNER_RIDGES.near) }),
     jsx('path', { className: 'fa-bn-crest', 'data-layer': 'near', d: crest(BANNER_RIDGES.near) }),
   ] })
 }
 
 /** The home banner: the plate, a scrim, the wordmark lockup and one promise. */
-export function Banner({ eyebrow, promise, facts = [], camps = [], summitDone = false }) {
-  return jsxs('header', { className: 'fa-bn hk-enter', children: [
+export function Banner({ eyebrow, promise, facts = [], camps = [], summitDone = false, compact = false }) {
+  return jsxs('header', { className: 'fa-bn hk-enter', 'data-compact': compact ? '' : undefined, children: [
     jsx(BannerArt, { camps, summitDone }, 'art'),
     jsx('span', { className: 'fa-bn-scrim', 'aria-hidden': 'true' }, 'scrim'),
     jsxs('div', { className: 'fa-bn-copy', children: [
@@ -166,6 +169,9 @@ export const BANNER_CSS = `
 .fa-bn-label{fill:var(--hk-ink);font-size:13px;font-weight:600;letter-spacing:.08em;font-variant-caps:all-small-caps;paint-order:stroke;stroke:var(--hk-bg);stroke-width:4px;stroke-linejoin:round}
 .fa-bn-scrim{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,var(--hk-bg) 0%,color-mix(in srgb,var(--hk-bg) 92%,transparent) 30%,color-mix(in srgb,var(--hk-bg) 35%,transparent) 44%,transparent 54%)}
 .fa-bn-copy{display:grid;gap:9px;padding:28px 30px;max-width:480px;color:var(--hk-ink)}
+.fa-bn[data-compact]{min-height:200px}
+.fa-bn[data-compact] .fa-bn-copy{padding:16px 24px;gap:6px}
+.fa-bn[data-compact] .fa-bn-mark{font-size:24px}
 .fa-bn-mark{display:flex;align-items:center;gap:12px;margin:0;font-size:30px;line-height:1.05;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
 .fa-bn-rule{display:block;width:22px;height:2px;background:var(--fa-blaze);flex:none}
 .fa-bn-promise{font-size:14px;line-height:1.5;max-width:44ch}
@@ -174,6 +180,7 @@ export const BANNER_CSS = `
 @container (max-width:640px){
   .fa-bn{flex-direction:column;align-items:stretch;min-height:0}
   .fa-bn-art{position:relative;inset:auto;height:150px;order:-1;border-bottom:1px solid var(--hk-stroke)}
+  .fa-bn[data-compact] .fa-bn-art{height:120px}
   .fa-bn-scrim{display:none}
   .fa-bn-copy{padding:16px 18px 18px;max-width:none}
   .fa-bn-mark{font-size:24px;letter-spacing:.12em}

@@ -1,0 +1,131 @@
+{
+ "reader": "codex exec (read-only)",
+ "when": "2026-11-09 02:45 CST",
+ "items": 20,
+ "read": 20,
+ "contradictions": 0,
+ "give_aways": 0,
+ "verdicts": [
+  {
+   "id": "run1-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the checked saved-memory files lacking the fact; points only to the memory row."
+  },
+  {
+   "id": "run1-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the fact being unavailable in saved memory; does not identify the cause."
+  },
+  {
+   "id": "run2-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "MEMORY.md lacks the fact. The five-line count is unverified, not contradicted; the row reference is allowed."
+  },
+  {
+   "id": "run2-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Describes the missing saved fact and its consequence without identifying why the save failed."
+  },
+  {
+   "id": "run3-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "States the desired outcome and points to evidence without naming the cause."
+  },
+  {
+   "id": "run3-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with missing saved memory and the new chat not using the fact; no cause disclosed."
+  },
+  {
+   "id": "run4-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The fact still needs saving. The five-line count is unverified, not contradicted; no cause disclosed."
+  },
+  {
+   "id": "run4-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the checked saved-memory files lacking the fact; points only to the row."
+  },
+  {
+   "id": "run5-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "States the saving goal and an allowed place to investigate."
+  },
+  {
+   "id": "run5-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Describes the desired saved state and the missing fact without revealing the cause."
+  },
+  {
+   "id": "run6-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with no saved-memory line containing the fact; does not explain the failed save."
+  },
+  {
+   "id": "run6-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the fact being unavailable through saved memory; does not name the cause."
+  },
+  {
+   "id": "run7-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "States the goal and missing saved-memory line; the row reference does not reveal the cause."
+  },
+  {
+   "id": "run7-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the checked saved-memory files lacking the fact; no cause disclosed."
+  },
+  {
+   "id": "run8-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the checked saved-memory lines lacking the fact; points only to evidence."
+  },
+  {
+   "id": "run8-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Describes absence from saved memory and its consequence without identifying the cause."
+  },
+  {
+   "id": "run9-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "The missing saved-memory fact is consistent. Personal inspection is unverified, not contradicted; no cause disclosed."
+  },
+  {
+   "id": "run9-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "States the saving goal and the check's missing-fact result without explaining the cause."
+  },
+  {
+   "id": "run10-memory_line",
+   "contradicts": false,
+   "give_away": false,
+   "why": "States the desired outcome and points to the memory row, both allowed."
+  },
+  {
+   "id": "run10-fresh_use",
+   "contradicts": false,
+   "give_away": false,
+   "why": "Consistent with the checked saved-memory files lacking the fact and the new chat not using it; no cause disclosed."
+  }
+ ],
+ "raw_tail": ""
+}

@@ -1,0 +1,10 @@
+{
+ "response": {
+  "fallback": "chat",
+  "message": "Your model's provider says it is busy right now.",
+  "next_step": "Wait a minute, then press Try again. If it keeps happening, check the model in Settings, Models.",
+  "state": "provider_error",
+  "test_out": false
+ },
+ "route": "POST /ai/grade/{mission_id}/{step_id}"
+}

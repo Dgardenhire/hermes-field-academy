@@ -1,17 +1,36 @@
 // The Deployer trail's data and geometry, run against snapshots the real backend produced.
 //
+//   node --test tests/deployer_trail.test.mjs
 //   FA_DEPLOYER=/path/to/snapshots.json node --test tests/deployer_trail.test.mjs
 //
-// tests/test_deployer_ui.py builds that file from the real deployer module (a fresh start, labs passed, everything
-// passed and signed, certificate issued) and runs this. Every field the trail map reads must be there, and every
+// tests/test_deployer_ui.py builds the snapshots from the real deployer module (a fresh start, then labs passed) and
+// passes them in FA_DEPLOYER. Run on its own, this asks tests/deployer_snapshots.py to build the same two states
+// (python3 on PATH, or PYTHON), in a throwaway folder with HOME and HERMES_HOME fenced off. Every field the trail map reads must be there, and every
 // number it draws must be finite, so a gap in the snapshot cannot blank the page.
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { MAP_FIELDS, layoutProfile, layoutRow, trailModel } from '../desktop/src/trail.js'
 
-const STATES = JSON.parse(readFileSync(process.env.FA_DEPLOYER, 'utf8'))
+function loadStates() {
+  if (process.env.FA_DEPLOYER) return JSON.parse(readFileSync(process.env.FA_DEPLOYER, 'utf8'))
+  const dir = mkdtempSync(join(tmpdir(), 'fa-deployer-'))
+  try {
+    const out = join(dir, 'deployer.json')
+    execFileSync(process.env.PYTHON || 'python3', [fileURLToPath(new URL('./deployer_snapshots.py', import.meta.url)), out],
+      { env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' }, stdio: ['ignore', 'ignore', 'inherit'], timeout: 120000 })
+    return JSON.parse(readFileSync(out, 'utf8'))
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+}
+
+const STATES = loadStates()
 const BAD = /NaN|undefined|Infinity|null/
 
 test('there are states to check', () => {
@@ -27,15 +46,17 @@ for (const [name, snapshot] of Object.entries(STATES)) {
     for (const key of MAP_FIELDS.certificate) assert.ok(key in track.certificate, `certificate.${key}`)
   })
 
-  test(`${name}: the model has four camps, nine waypoints and sensible words`, () => {
+  test(`${name}: the model has four camps, nine parts plus the placed teaching missions, and sensible words`, () => {
     const model = trailModel(snapshot.track)
+    const placed = (snapshot.track.placed || []).length
     assert.equal(model.camps.length, 4)
-    assert.equal(model.total, 9)
+    assert.equal(model.total, 9 + placed)
     assert.deepEqual(model.camps.map(c => c.short), ['Audit', 'Architect', 'Build', 'Verify'])
     assert.equal(model.unit, 'parts')
-    assert.ok(model.passed >= 0 && model.passed <= 9)
+    assert.ok(model.passed >= 0 && model.passed <= 9 + placed)
     const covered = model.camps.flatMap(c => c.waypoints.map(w => w.id))
-    assert.equal(new Set(covered).size, 9)
+    assert.equal(new Set(covered).size, 9 + placed)
+    assert.equal(snapshot.track.missions.length, 9, "the Guide's own parts are unchanged")
   })
 
   test(`${name}: the map and the profile draw finite shapes at every width`, () => {

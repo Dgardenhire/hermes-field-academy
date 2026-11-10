@@ -12,7 +12,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import {
-  MAP_FIELDS, bezelTicks, compassReading, contourPaths, layoutProfile, layoutRow, overview, pathBetween, sealRim, trailModel,
+  MAP_FIELDS, bezelTicks, compassReading, contourPaths, layoutProfile, layoutRow, overview, pathBetween, sealRim, trailModel, withPlaced,
 } from '../desktop/src/trail.js'
 
 function loadStates() {
@@ -76,8 +76,10 @@ for (const [name, passport] of Object.entries(STATES)) {
   })
 
   test(`${name}: every path, level and mission lands on the map`, () => {
-    for (const track of passport.tracks) {
-      const model = trailModel(track)
+    for (const raw of passport.tracks) {
+      // A trail's camps hold the path's own missions plus the practice missions placed there (school.PLACEMENTS).
+      const track = withPlaced(raw)
+      const model = trailModel(raw)
       assert.equal(model.id, track.id)
       assert.ok(model.name && model.eyebrow && model.promise, `${track.id} labels`)
       assert.deepEqual(model.camps.map(c => c.id), track.levels.map(l => l.id), `${track.id}: one camp per level`)
@@ -113,7 +115,7 @@ for (const [name, passport] of Object.entries(STATES)) {
 
   test(`${name}: the overview counts each mission once`, () => {
     const info = overview(passport)
-    const unique = new Set(passport.tracks.flatMap(t => t.missions.map(m => m.id)))
+    const unique = new Set(passport.tracks.flatMap(t => withPlaced(t).missions.map(m => m.id)))
     assert.equal(info.total, unique.size)
     assert.ok(info.passed >= 0 && info.passed <= info.total)
     assert.equal(info.tracks.length, passport.tracks.length)

@@ -5,7 +5,10 @@ A tour for someone judging whether Field Academy is ready to recommend to the He
 
 ## What it is, in one paragraph
 
-A free Hermes Desktop plugin that teaches Hermes by having you do real work on your own setup. Four learning
+A free Hermes Desktop plugin that teaches Hermes by having you do real work on your own setup. It opens on
+Foundations: eleven missions that each run in a practice profile Field Academy makes, plant one problem in it
+before the first chat, and check the work by reading that profile's own files (memory, settings, chat records,
+scheduled jobs, run history, logs). After Foundations, four learning
 paths, named after Hermes's old jobs on Mount Olympus, climb Beginner, Intermediate and Advanced, the level names
 from the Nous Learning Path, then end in a capstone on your own problem: Messenger (explain Hermes and spot where it
 fits), Traveler (run Hermes on your own computer), Crossroads (connect Hermes to a client's tools) and Boundary
@@ -23,6 +26,7 @@ Without installing anything, from the repository folder:
 ```bash
 python3 harness/make_fixtures.py     # drives the real backend into each state, in a throwaway folder
 python3 harness/shoot.py --list       # every screen
+python3 harness/shoot.py doc-home doc-lab doc-check doc-record   # Foundations
 python3 harness/shoot.py map mission mission-miss dp-lab-open certificate
 ```
 

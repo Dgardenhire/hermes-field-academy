@@ -1,0 +1,38 @@
+# DRAFT re-pin of plugin-catalog/field-academy.yaml for 0.9.0. Not submitted. Left out of the public package
+# (.public-exclude). Before the PR: build the public package, push it, replace every PINNED_SHA below with that
+# 40-character commit, and check that each image URL returns 200 at that commit.
+name: field-academy
+title: Field Academy
+repo: https://github.com/Dgardenhire/hermes-field-academy
+sha: PINNED_SHA
+description: "Learn Hermes by doing real jobs in a practice copy of it, then seeing what Hermes actually did. Eleven Foundations missions each run in a practice profile Field Academy makes for you, plant one problem a real setup has before your first chat (memory nearly full, saves held for approval, a job sent to a misspelled place), and check your work by reading that profile's own files. Then four paths (Messenger, Traveler, Crossroads, Boundary Keeper) climb Beginner, Intermediate and Advanced to a capstone on your own problem, and a fifth, Guide, covers setting Hermes up for a client. Passed missions come back for spaced reviews, and you keep a Field Record with the exact line each check read and a SHA-256 fingerprint for every file, your own self-issued learning record. Field Academy is an independent community plugin. It is not made, issued or endorsed by Nous Research. Disclosure — Field Academy makes no network calls of its own (a source link opens in your browser only when you click it). Its AI help (the Field guide, Score my answer and notes on the replay) asks your own model through Hermes (ctx.llm.complete_structured) on two auxiliary tasks it registers, field_academy_guide and field_academy_grader, which you can point at any model in Settings, Models; the text goes only to that model's provider. It sends the mission's own text, your answers, and short scrubbed excerpts of the practice profile's chats and files, never your own profiles, and before Compare never the planted problem's name. A model reply never sends, approves, deletes or writes anything and never decides whether a check passes. Turn it off with Turn off AI help at the foot of the Field guide; the checks work without it. No credentials, telemetry, shell commands, background processes or self-updates; registers six tools, two hooks, the /academy command and one skill: pre_llm_call may add one sentence offering a practice to the user message, only in interactive desktop, TUI and CLI sessions, and post_tool_call records which tool was used; pressing Try it or a scoring button opens a new chat and sends the practice or scoring prompt there (on an older Hermes it goes to the clipboard instead). Practice profiles (Foundations): creates profiles named academy-practice and academy-practice-b through profiles.create, and deletes them only when you confirm; Hermes copies your provider sign-in into a new profile, and Field Academy never reads those files; before a practice profile's first chat it writes named config.yaml keys (terminal.cwd set to the profile's own folder, memory and skills write approval, and for missions 7 to 11 connector entries, agent.disabled_toolsets, command_allowlist and fallback_providers), memories/MEMORY.md and USER.md, and sample files in the profile's practice folder; in a practice profile it makes and pauses the scheduled jobs a mission needs (cron.manage add and pause), lists its chats and undo snapshots (session.list, rollback.list), opens new chats there, and where the app offers them starts that profile's doctor and backup; it reads that profile's memory files and held saves, named config.yaml keys, skills, chat records and usage in state.db, cron/jobs.json and run history, logs and undo snapshots, read-only, keeping only short excerpts with key-shaped text removed; it never reads or writes your own profiles, .env or auth.json. Elsewhere the Desktop page calls gateway list methods only (session.list, cron.manage list, skills.manage list, tools.list, mcp.catalog, commands.catalog, setup.runtime_check); stores progress, pasted documents, practice labs, review packets and saved Field Records in $HERMES_HOME/plugin-data/field-academy/; reads a file you name (UTF-8 text, max 5 MiB) and hashes a recording you name without copying it; Guide labs write and check made-up .env and auth.json files inside its own labs folder (refusing to build in a real Hermes home) and never read Hermes's real ones; on the Guide path reads Hermes's run-history database read-only, jobs.json and up to 25 log files (2 MiB each), keeping only timestamps for the job you name, and reads install-stamp.json for the Hermes version; no private Hermes imports."
+maintainer: Dgardenhire
+tier: community
+category: desktop
+requires_hermes: ">=0.22.0"
+docs_url: https://github.com/Dgardenhire/hermes-field-academy/blob/PINNED_SHA/docs/MANUAL.md
+version: "0.9.0"
+image: "https://raw.githubusercontent.com/Dgardenhire/hermes-field-academy/PINNED_SHA/docs/card.png"
+screenshots:
+  - "https://raw.githubusercontent.com/Dgardenhire/hermes-field-academy/PINNED_SHA/docs/shots/foundations-home.png"
+  - "https://raw.githubusercontent.com/Dgardenhire/hermes-field-academy/PINNED_SHA/docs/shots/foundations-lab.png"
+  - "https://raw.githubusercontent.com/Dgardenhire/hermes-field-academy/PINNED_SHA/docs/shots/foundations-check.png"
+  - "https://raw.githubusercontent.com/Dgardenhire/hermes-field-academy/PINNED_SHA/docs/shots/foundations-record.png"
+  - "https://raw.githubusercontent.com/Dgardenhire/hermes-field-academy/PINNED_SHA/docs/shots/foundations-schedule.png"
+  - "https://raw.githubusercontent.com/Dgardenhire/hermes-field-academy/PINNED_SHA/docs/shots/home.png"
+  - "https://raw.githubusercontent.com/Dgardenhire/hermes-field-academy/PINNED_SHA/docs/shots/deployer.png"
+readme: true
+platforms: []
+capabilities:
+  provides_tools:
+    - field_academy_snapshot
+    - field_academy_mission
+    - field_academy_grade_explanation
+    - field_academy_grade_review
+    - field_academy_grade_deployer
+    - field_academy_record_evidence
+  provides_hooks:
+    - post_tool_call
+    - pre_llm_call
+  provides_middleware: []
+  requires_env: []

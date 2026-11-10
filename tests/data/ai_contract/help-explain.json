@@ -1,0 +1,89 @@
+{
+ "response": {
+  "entry": {
+   "body": {
+    "at": "2026-10-03T09:00:00+00:00",
+    "checks": [
+     "memory_line",
+     "fresh_use"
+    ],
+    "kind": "explain",
+    "mission": "f.memory",
+    "step": "compare"
+   },
+   "hash": "670ee24499a37fd531513a7ad3c153d13295b84c941b84578f4abe6084df90e0",
+   "kind": "help"
+  },
+  "help": {
+   "all_helps": 6,
+   "hunt_helps": 4,
+   "key": "shown",
+   "used": [
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "nudge",
+     "rung": 1,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "ask",
+     "rung": null,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "where",
+     "rung": 2,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "reveal",
+     "rung": 3,
+     "step": "check"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "pins",
+     "rung": null,
+     "step": "compare"
+    },
+    {
+     "at": "2026-10-03T09:00:00+00:00",
+     "kind": "explain",
+     "rung": null,
+     "step": "compare"
+    }
+   ],
+   "words": "The guide showed the answer"
+  },
+  "shown": {
+   "explain": [
+    {
+     "check_id": "memory_line",
+     "model": "fake-model-1",
+     "ms": 0,
+     "sentences": [
+      "The fact isn't in any line of MEMORY.md yet.",
+      "Open the memory row in your chat and read it."
+     ],
+     "source": "model",
+     "state": "ready"
+    },
+    {
+     "check_id": "fresh_use",
+     "model": "fake-model-1",
+     "ms": 0,
+     "sentences": [
+      "The fact isn't in any line of MEMORY.md yet.",
+      "Open the memory row in your chat and read it."
+     ],
+     "source": "model",
+     "state": "ready"
+    }
+   ]
+  }
+ },
+ "route": "POST /guide/{attempt_id}/help"
+}

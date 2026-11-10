@@ -1,0 +1,105 @@
+{
+ "response": {
+  "attempt_id": 1,
+  "bracket": {
+   "from": "m3",
+   "to": "f-pending-1",
+   "words": "The chat showed Saved to memory, but the note is waiting for your approval and is not in MEMORY.md."
+  },
+  "ended_at": 1792400102.0,
+  "events": [
+   {
+    "at": 1792400011.0,
+    "event_id": "m1",
+    "kind": "user",
+    "lane": "chat",
+    "text": "Save to memory: Harbor Bakery uses QuickBooks Online; the other five use Xero",
+    "title": "You asked"
+   },
+   {
+    "at": 1792400012.0,
+    "event_id": "m2",
+    "kind": "assistant",
+    "lane": "chat",
+    "text": "(called memory)",
+    "title": "Hermes called memory"
+   },
+   {
+    "at": 1792400013.0,
+    "event_id": "m3",
+    "failed": false,
+    "kind": "tool:memory",
+    "lane": "chat",
+    "staged": true,
+    "text": "Staged for approval (memory.write_approval is on). Not yet saved — review with /memory pending.",
+    "title": "Saved to memory"
+   },
+   {
+    "at": 1792400013.0,
+    "at_source": "the held save's own record",
+    "event_id": "f-pending-1",
+    "kind": "file:pending",
+    "lane": "files",
+    "path": "pending/memory/3a664c9f.json",
+    "read_at": 1791018000.0,
+    "text": "add Harbor Bakery uses QuickBooks Online; the other five use Xero",
+    "title": "Held for your approval"
+   },
+   {
+    "at": 1792400013.0,
+    "event_id": "f-memory",
+    "kind": "file:memory",
+    "lane": "files",
+    "meter": {
+     "changed": false,
+     "limit": 2200,
+     "used": 479
+    },
+    "path": "memories/MEMORY.md",
+    "read_at": 1791018000.0,
+    "text": "479 of 2,200 characters, as the check read it.",
+    "title": "MEMORY.md unchanged"
+   },
+   {
+    "at": 1792400101.0,
+    "event_id": "c4",
+    "kind": "chat:new",
+    "lane": "chat",
+    "text": "",
+    "title": "A new chat started"
+   },
+   {
+    "at": 1792400101.0,
+    "event_id": "m4",
+    "kind": "user",
+    "lane": "chat",
+    "text": "Draft this month's reconciliation checklist for Harbor Bakery.",
+    "title": "You asked"
+   },
+   {
+    "at": 1792400102.0,
+    "event_id": "m5",
+    "kind": "assistant",
+    "lane": "chat",
+    "text": "1. Export the bank feed from your accounting software. Which one does Harbor Bakery use?",
+    "title": "Hermes answered"
+   }
+  ],
+  "lanes": [
+   {
+    "id": "chat",
+    "label": "In your chat"
+   },
+   {
+    "id": "files",
+    "label": "In Hermes's files"
+   }
+  ],
+  "mission_id": "f.memory",
+  "snag_found_from": "staged_flag",
+  "started_at": 1792400011.0,
+  "state": "ready",
+  "words": ""
+ },
+ "route": "GET /replay/{attempt_id}?step="
+}
