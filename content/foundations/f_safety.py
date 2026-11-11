@@ -81,7 +81,7 @@ MISSION = {'id': 'f.safety',
             'standard': "How you'll know",
             'predict': 'Your guess'},
  # Shown on the Practice and Your turn steps, before the first chat (0.9 persona test).
- 'practice_note': "Field Academy changed one of this practice profile's safety settings against you. Until you fix it, a terminal command in a practice chat can run without asking, and the terminal can reach your whole computer, beyond the practice folder. Fix the setting before you give Hermes the tidying job, and keep practice chats away from files you care about.",
+ 'practice_note': "Field Academy never changes this profile's approvals, and nothing in this mission asks you to turn them off. It added one connector, left at Hermes's default trust, so nothing asks before that connector acts. Until you fix it, it can write inside the practice folder without asking. Keep practice chats away from files you care about.",
  'fresh_text': 'This mission builds a new `academy-practice` when you set up practice.',
  # Shown only when a practice profile from an earlier mission is still there (0.9 persona test).
  'fresh_replace': "It replaces the one from an earlier mission, along with any job left in it. Field Academy saves its evidence first and asks you before it removes anything.",
@@ -113,25 +113,31 @@ MISSION = {'id': 'f.safety',
                   'Have you ever needed /rollback for real? What happened?',
                   "When would you tell a client to run Hermes in a container, and when is that overkill?"],
  'record_example': 'md/f.safety.record-example.md',
- 'lab': {'body': "The practice folder has a few files to work with. Before you arrived, Field Academy changed one of "
-                 "the practice profile's safety settings to a value that works against you. Finding which one is "
-                 'part of the job.\n'
+ 'lab': {'body': "The practice folder has a few files to work with. Before you arrived, Field Academy added one "
+                 "connector to the practice profile and left it at Hermes's default trust. Finding it is part of the "
+                 'job. Field Academy never changes your approval settings, and it never runs a command for you. The '
+                 "approval card in this mission is Hermes's own, and you answer it.\n"
                  '\n'
                  '1. Set up the practice profile so a mistake can be caught before it happens and undone after. Use '
-                 '**Settings → Safety**, with **Applies to** set to `academy-practice`.\n'
+                 '**Settings → Safety**, with **Applies to** set to `academy-practice`. Open **Approvals**, read the '
+                 'mode and the **Command Allowlist** box, and leave the mode on Smart or choose Manual. Leave the '
+                 "allowlist empty. Then open the practice profile's connectors.\n"
                  '2. Check the **Working folder** line on the mission page says pass. Then press **Open practice '
                  'chat** and give Hermes a real tidying job in the practice folder, such as merging the two donation '
-                 "files. Paste the folder's location from the mission page into your request. Then prove each of the "
-                 'four checks in your standard.\n'
+                 "files and deleting the `old-tests` folder. Paste the folder's location from the mission page into "
+                 'your request. When the approval card for the delete appears, read it, deny it once, ask again, and '
+                 'choose **Allow this session**. Never **Always allow**. Then prove each of the four checks in your '
+                 'standard.\n'
                  '3. Fill in the six cells of the grid for the practice profile as you left it. One line per cell: '
-                 "what's there, and how you know. For the connector row, say there's no connector and what a new one "
-                 'would bring.\n'
+                 "what's there, and how you know. For the connector row, say what the connector there does "
+                 'once you have left it.\n'
                  '\n'
                  "When you're done, press **Save what I did** below. Then score yourself, and run the checks on the Check step.",
          'checks_text': "Field Academy reads the practice profile's settings and checkpoint list itself, in the "
                         'background.\n'
                         '\n'
-                        '- Settings: are checkpoints on, and is the planted problem gone? *Field Academy reads this.*\n'
+                        '- Settings: are checkpoints on, are approvals on with nothing risky always allowed, and is the connector '
+                        "no longer acting without asking? *Field Academy reads these. It changes none of them.*\n"
                         '- Checkpoint list: a snapshot for the practice folder, and the safety snapshot Hermes takes '
                         'whenever you roll back. *Field Academy reads this.*\n'
                         '- The restored file: does it match the snapshot you rolled back to? *Open it yourself: Field '
@@ -167,8 +173,8 @@ MISSION = {'id': 'f.safety',
                          {'id': 'worry', 'label': "The cell you'd worry about most, and the one setting that shrinks that "
                                                   'worry', 'kind': 'long', 'for': 'transfer', 'required': True, 'min': 15,
                           'max': 600}],
-         'plants': ['always_allow', 'approvals_off'],
-         'plants_at': {'beginner': 1, 'intermediate': 1, 'advanced': 2}},
+         'plants': ['open_connector'],
+         'plants_at': {'beginner': 1, 'intermediate': 1, 'advanced': 1}},
  'live_checks': [{'id': 'checkpoints_on', 'reader': 'safety.checkpoints_on', 'visible': True},
                  {'id': 'rolled_back', 'reader': 'safety.rolled_back', 'visible': True},
                  {'id': 'approvals_safe', 'reader': 'safety.approvals_safe', 'visible': True},
@@ -183,7 +189,7 @@ MISSION = {'id': 'f.safety',
                         3: 'Names what would have stopped it beforehand (an untrusted connector), and explains why '
                            "approvals don't see it: they watch terminal commands",
                         4: 'Adds a point from your own run: the cell your try landed in, a cell you found empty when '
-                           'you opened the profile, or an always-allow entry carrying into scheduled jobs'},
+                           'you opened the profile, or what an always-allow entry would do in a scheduled job'},
              'pass_level': 3,
              'after': ''},
  'transfer': {'body': "Fill in the grid for a client's shared work computer, where three people use one Hermes profile "

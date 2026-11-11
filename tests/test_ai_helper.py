@@ -247,12 +247,29 @@ class CallTests(AiCase):
 
 
 class SwitchTests(AiCase):
-    def test_both_switches_default_on_and_only_take_true_or_false(self):
-        self.assertEqual(self.state.ai_settings(), {"ai_help": True, "practice_offer": True})
-        self.assertEqual(self.state.set_ai_settings(ai_help=False), {"ai_help": False, "practice_offer": True})
+    def test_switch_defaults_and_both_only_take_true_or_false(self):
+        self.assertEqual(self.state.ai_settings(), {"ai_help": True, "practice_offer": False, "practice_offer_asked": False})
+        self.assertEqual(self.state.set_ai_settings(ai_help=False), {"ai_help": False, "practice_offer": False, "practice_offer_asked": False})
         with self.assertRaises(ValueError):
             self.state.set_ai_settings(ai_help="yes")
-        self.assertEqual(self.state.set_ai_settings(practice_offer=False, ai_help=True), {"ai_help": True, "practice_offer": False})
+        self.assertEqual(self.state.set_ai_settings(practice_offer=True, ai_help=True), {"ai_help": True, "practice_offer": True, "practice_offer_asked": True})
+        self.assertEqual(self.state.set_ai_settings(practice_offer=False), {"ai_help": True, "practice_offer": False, "practice_offer_asked": True})
+
+    def test_until_the_learner_answers_the_question_nothing_is_added_to_a_chat(self):
+        calls = []
+        self.state.claim_spotlight = lambda session_id="": calls.append(session_id) or {"id": "m", "title": "T", "promise": "P"}
+        self.assertFalse(self.state.ai_settings()["practice_offer_asked"])
+        self.assertIsNone(self.pkg._pre_llm_call(session_id="20261108_101010_abcd", platform="desktop"))
+        self.assertEqual(calls, [], "claim_spotlight is not even asked before a yes")
+
+    def test_not_now_counts_as_an_answer_so_the_page_asks_once(self):
+        out = self.state.set_ai_settings(practice_offer=False)
+        self.assertEqual((out["practice_offer"], out["practice_offer_asked"]), (False, True))
+
+    def test_yes_turns_suggestions_on(self):
+        self.state.claim_spotlight = lambda session_id="": {"id": "m", "title": "T", "promise": "P"}
+        self.state.set_ai_settings(practice_offer=True)
+        self.assertIsNotNone(self.pkg._pre_llm_call(session_id="20261108_101010_abcd", platform="desktop"))
 
     def test_ai_help_off_means_no_call_at_all(self):
         self.state.set_ai_settings(ai_help=False)
@@ -264,6 +281,7 @@ class SwitchTests(AiCase):
     def test_practice_offer_off_keeps_the_chat_hook_silent_and_the_watermark_still(self):
         calls = []
         self.state.claim_spotlight = lambda session_id="": calls.append(session_id) or {"id": "m", "title": "T", "promise": "P"}
+        self.state.set_ai_settings(practice_offer=True)
         self.assertIsNotNone(self.pkg._pre_llm_call(session_id="20261108_101010_abcd", platform="desktop"))
         self.state.set_ai_settings(practice_offer=False)
         self.assertIsNone(self.pkg._pre_llm_call(session_id="20261108_101010_abcd", platform="desktop"))

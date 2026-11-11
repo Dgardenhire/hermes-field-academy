@@ -67,12 +67,12 @@ MISSION = {'id': 'f.teach-profile',
                  'Hermes works for and keep their rule in their words.\n'
                  '3. **Put the fact in memory.** In a practice chat, ask Hermes to remember it. Then press **Show memory '
                  'file** and see it there.\n'
-                 '4. **Make it safe for them.** Approvals on. In **Capabilities**, **Tools**, switch off what runs programs.\n'
+                 '4. **Make it safe for them.** Open **Settings → Safety → Approvals** for the practice profile and read the mode. Leave it on Smart or choose Manual yourself; never Off. In **Capabilities**, **Tools**, switch off what runs programs.\n'
                  '5. **Meet their Hermes.** In a new practice chat, without saying their name, ask: "Who do you work for, '
                  'and what should you never do?"\n'
                  '\n'
-                 'Field Academy has also set one trap in the profile. At Advanced there are two. If a check fails when '
-                 "you thought it should pass, that's your lead.\n"
+                 'Field Academy has also set one trap in the profile. At Advanced there are two. It never changes the '
+                 "approval setting for you or for them. If a check fails when you thought it should pass, that's your lead.\n"
                  '\n'
                  "When you're done, press **Save what I did** below. Then score yourself, and run the checks on the "
                  'Check step.',
@@ -80,7 +80,7 @@ MISSION = {'id': 'f.teach-profile',
                         '\n'
                         '- SOUL.md. Does it name who Hermes works for, and keep their rule?\n'
                         '- Memory. Is their fact a line in MEMORY.md?\n'
-                        '- Settings. Are approvals on, and is the terminal toolset off?\n'
+                        '- Settings. Are approvals on (Smart or Manual), and is the terminal toolset off? *Field Academy only reads this.*\n'
                         '- A new chat. Did it answer as their Hermes without being told?\n'
                         '\n'
                         'Field Academy lines up each result with what you predicted.',
@@ -100,7 +100,7 @@ MISSION = {'id': 'f.teach-profile',
                           'for': 'transfer', 'required': True, 'choices': [{'value': 'yes', 'label': 'Yes'}, {'value': 'no', 'label': 'No'}]},
                          {'id': 't_change', 'label': "What you'd change, and why", 'kind': 'long', 'for': 'transfer',
                           'required': True, 'min': 10, 'max': 800}],
-         'plants': ['approvals_off', 'wide_connector'],
+         'plants': ['open_connector', 'wide_connector'],
          'plants_at': {'beginner': 1, 'intermediate': 1, 'advanced': 2}},
  'live_checks': [{'id': 'soul', 'reader': 'teach.soul_for_them', 'visible': True},
                  {'id': 'memory', 'reader': 'teach.memory_for_them', 'visible': True},

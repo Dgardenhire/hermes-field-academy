@@ -219,8 +219,13 @@ export function bracketWords(replay) {
 export function fixChanges(first, after) {
   const before = Object.fromEntries(arr(obj(first).checks).map(c => [c.id, c]))
   return arr(obj(after).checks).filter(c => c && c.passed && before[c.id] && before[c.id].passed === false).map(c => {
-    const was = arr(before[c.id].facts)[0]
-    const now = arr(c.facts).find(f => was && f.label === was.label) || arr(c.facts)[0]
+    // The fact that changed, not the first one listed: a save that landed in USER.md showed MEMORY.md's unchanged
+    // numbers as its before and after (Nov 11 live check).
+    const wasAll = arr(before[c.id].facts)
+    const nowAll = arr(c.facts)
+    const changed = wasAll.find(w => { const n = nowAll.find(f => f.label === w.label); return n && n.value !== w.value })
+    const was = changed || wasAll[0]
+    const now = nowAll.find(f => was && f.label === was.label) || nowAll[0]
     return { id: c.id, title: c.title, was: was ? `${was.label}: ${was.value}` : '', now: was && now ? `${now.label}: ${now.value}` : str(c.detail) }
   })
 }

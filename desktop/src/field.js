@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useReducedMotion } from 'hermes-ui-kit'
 import {
-  bezelTicks, compassReading, contourPaths, layoutProfile, layoutRow, pathBetween,
+  bezelTicks, compassReading, contourPaths, countWords, layoutProfile, layoutRow, pathBetween,
 } from './trail.js'
 
 /* --------------------------------------------------------------- styles -- */
@@ -64,6 +64,7 @@ export const FIELD_CSS = `
 .fa-map-head{grid-column:2;position:relative;height:34px;border-bottom:1px dashed var(--hk-stroke)}
 .fa-map-head span{position:absolute;top:12px;transform:translateX(-50%);white-space:nowrap;font-size:var(--hk-fs-sm)}
 .fa-map-head[data-lines]{height:66px}
+@container (min-width:521px){.fa-map-head .fa-map-tight{font-size:12px;letter-spacing:0}.fa-map-head .fa-map-two{top:3px;line-height:1.15;text-align:center}}
 .fa-map-head .fa-map-col{display:grid;gap:3px;justify-items:center;text-align:center;white-space:normal}
 .fa-map-head .fa-map-col>span{position:static;transform:none}
 .fa-map-line{display:block;font-size:12px;line-height:1.3;font-weight:400;letter-spacing:0;text-transform:none;opacity:.85}
@@ -75,7 +76,8 @@ export const FIELD_CSS = `
 .fa-trail-label:focus-visible{outline:2px solid var(--hk-accent);outline-offset:-2px}
 .fa-trail-top{display:flex;align-items:baseline;gap:8px;min-width:0}
 .fa-trail-name{font-size:var(--hk-fs-h2);font-weight:600;flex:1;min-width:0;line-height:1.25}
-.fa-trail-promise{font-size:var(--hk-fs-sm);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.fa-trail-sub{font-size:var(--hk-fs-sm);font-weight:600;line-height:1.3}
+.fa-trail-promise{font-size:var(--hk-fs-sm);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .fa-trail-cert{font-size:var(--hk-fs-sm);display:inline-flex;gap:5px;align-items:center}
 .fa-trail-cert .codicon{color:var(--fa-blaze-ink)}
 .fa-map-svg{grid-column:2;display:block;overflow:visible}
@@ -369,8 +371,10 @@ function trailLines(model, stops, segs, from) {
 }
 
 const ROW = 138
+/** Where a long camp name breaks when its column is narrow, so it reads whole on two lines instead of being cut. */
+const HEAD_BREAKS = { Intermediate: ['Inter-', 'mediate'] }
 
-function TrailRow({ model, layout, y, active, onOpenMission, onOpenTrack }) {
+function TrailRow({ model, layout, y, active, marked = true, onOpenMission, onOpenTrack }) {
   const { stops, segs } = layout
   const motion = useTrailMotion(`map:${model.id}`, model.marker)
   const at = stops[Math.min(motion.shown, stops.length - 1)]
@@ -380,7 +384,7 @@ function TrailRow({ model, layout, y, active, onOpenMission, onOpenTrack }) {
     jsx('circle', { className: 'fa-start', cx: stops[0].x, cy: stops[0].y, r: 3.5 }),
     ...stops.filter(s => s.kind === 'waypoint').map(stop => jsx(Waypoint, { stop, onOpen: onOpenMission }, stop.point.id)),
     jsx(SummitFlag, { stop: stops[stops.length - 1], status: model.summit.status, onOpen: () => onOpenTrack(model.id) }),
-    model.total ? jsx(Marker, { x: at.x, y: at.y }) : null,
+    model.total && marked ? jsx(Marker, { x: at.x, y: at.y }) : null,
   ] })
 }
 
@@ -397,7 +401,9 @@ function trailCertWords(model) {
  * summit flag. Trail labels are the keyboard list (j/k, Enter opens the path);
  * waypoints and flags are buttons too.
  */
-export function TrailMap({ models, list, onOpenTrack, onOpenMission, foot, lines = null, summitLine = '' }) {
+/** ``here``: the one trail that carries the "You are here" marker. Undefined marks every trail (a one-trail map);
+ *  an empty string marks none. */
+export function TrailMap({ models, list, onOpenTrack, onOpenMission, foot, lines = null, summitLine = '', here }) {
   const [ref, width] = useWidth()
   const camps = models[0] ? models[0].camps : []
   const height = models.length * ROW
@@ -412,12 +418,19 @@ export function TrailMap({ models, list, onOpenTrack, onOpenMission, foot, lines
         ? [
             ...camps.map((camp, i) => {
               const col = columns.camps[Math.min(i, columns.camps.length - 1)]
-              const name = col.x1 - col.x0 < 150 ? (camp.short || camp.name) : `${camp.short || camp.name} camp`
+              // Narrow columns (a small window, 200% zoom) set a long name in tighter type rather than cutting it,
+              // so "Intermediate" always reads whole; the full name stays in the tooltip.
+              const span = col.x1 - col.x0
+              const bare = camp.short || camp.name
+              const tight = span < 100 && bare.length > 9
+              const split = tight && HEAD_BREAKS[bare]
+              const name = split ? [split[0], jsx('br', {}, 'br'), split[1]] : span < 150 ? bare : `${bare} camp`
+              const cls = split ? 'fa-sc fa-map-tight fa-map-two' : tight ? 'fa-sc fa-map-tight' : 'fa-sc'
               const line = lines && lines[camp.id]
               return line
                 ? jsxs('span', { className: 'fa-map-col', style: { left: (col.x0 + col.x1) / 2, width: Math.max(80, col.x1 - col.x0 - 10) }, children: [
-                    jsx('span', { className: 'fa-sc', children: name }), jsx('small', { className: 'fa-map-line', children: line })] }, camp.id)
-                : jsx('span', { className: 'fa-sc', style: { left: (col.x0 + col.x1) / 2 }, children: name }, camp.id)
+                    jsx('span', { className: cls, title: camp.name, children: name }), jsx('small', { className: 'fa-map-line', children: line })] }, camp.id)
+                : jsx('span', { className: cls, title: camp.name, style: { left: (col.x0 + col.x1) / 2 }, children: name }, camp.id)
             }),
             summitLine
               ? jsxs('span', { className: 'fa-map-col', style: { left: 'auto', right: 4, transform: 'none', width: 64, justifyItems: 'end', textAlign: 'right' }, children: [
@@ -432,21 +445,24 @@ export function TrailMap({ models, list, onOpenTrack, onOpenMission, foot, lines
           model.eyebrow ? jsx('span', { className: 'fa-sc fa-sc-blaze', children: model.eyebrow }) : null,
           jsxs('span', { className: 'fa-trail-top', children: [
             jsx('span', { className: 'fa-trail-name', children: model.name }),
-            jsxs('span', { className: 'fa-num fa-num-m', children: [model.passed, jsx('small', { children: `of ${model.total}` })] }),
+            jsxs('span', { className: 'fa-num fa-num-m', title: countWords(model), children: [model.recordPassed ?? model.passed, jsx('small', { children: `of ${model.recordTotal ?? model.total}` })] }),
           ] }),
-          model.promise ? jsx('span', { className: 'fa-trail-promise', title: model.promise, children: model.promise }) : null,
+          // One line of what the trail teaches. The longer promise stays as the hover text: both together overran
+          // the row and the promise was cut off mid-line (Guide row, Nov 11).
+          model.subtitle ? jsx('span', { className: 'fa-trail-sub', title: model.promise || undefined, children: model.subtitle }) : null,
+          model.promise && !model.subtitle ? jsx('span', { className: 'fa-trail-promise', title: model.promise, children: model.promise }) : null,
           jsx('span', { className: 'fa-trail-cert', children: trailCertWords(model) }),
         ],
       }, model.id)),
       width
         ? jsxs('svg', {
             className: 'fa-map-svg', width, height, viewBox: `0 0 ${width} ${height}`, style: { gridRow: `2 / span ${models.length}` },
-            role: 'group', 'aria-label': 'Trail map of your paths',
+            role: 'group', 'aria-label': 'Trail map of your trails',
             children: [
               ...(columns ? [...columns.camps.slice(1).map(c => c.x0), columns.camps[columns.camps.length - 1].x1 + 8]
                 .map((x, i) => jsx('line', { className: 'fa-divider', x1: x, x2: x, y1: 0, y2: height }, `d${i}`)) : []),
               ...models.map((model, i) => jsx(TrailRow, {
-                model, layout: layouts[i], y: i * ROW, active: list.index === i, onOpenMission, onOpenTrack,
+                model, layout: layouts[i], y: i * ROW, active: list.index === i, marked: here === undefined || here === model.id, onOpenMission, onOpenTrack,
               }, model.id)),
             ],
           })

@@ -138,7 +138,7 @@ def f8_watch(kit):
 
 
 def f9_checked(kit):
-    kit.lab(["approvals_off"])
+    kit.lab(["open_connector"])
     import sys
 
     sys.path.insert(0, str(base.ROOT / "tests"))
@@ -150,8 +150,8 @@ def f9_checked(kit):
     yk = importlib.import_module(kit.f.__name__.rsplit(".", 1)[0] + ".yaml_keys")
     path = kit.home() / "config.yaml"
     path.write_text(yk.set_values(path.read_text(encoding="utf-8"), {"checkpoints.enabled": True}), encoding="utf-8")
-    kit.entry("lab_note", {"for": "first", "tb": "nothing", "tb_why": "Settings, Safety, Approvals reads Off.", "ta": "undo", "fb": "nothing",
-                           "fa": "undo", "cb": "no_connector", "cb_why": "No connectors; a new one starts at full trust.", "ca": "nothing"})
+    kit.entry("lab_note", {"for": "first", "tb": "asks", "tb_why": "Settings, Safety, Approvals reads Smart.", "ta": "undo", "fb": "nothing",
+                           "fa": "undo", "cb": "nothing", "cb_why": "One connector at full trust, so nothing asks before it writes.", "ca": "nothing"})
     kit.entry("self_score", {"checks": {c["id"]: {"pass": True} for c in kit.mission["standard"]}})
     sample = {"source": "rollback.list", "enabled": True, "checkpoints": [{"message": "pre-rollback snapshot (restoring to 1a2b3c4d)"},
                                                                          {"message": "before write_file notes.md"}]}
@@ -163,7 +163,7 @@ def f10_lab(kit):
 
 
 def f11_lab(kit):
-    kit.lab(["memory_full", "always_allow"])
+    kit.lab(["memory_full", "open_connector"])
     kit.entry("lab_note", {"for": "first", "job": "Turn a messy client export into one clean table."})
 
 

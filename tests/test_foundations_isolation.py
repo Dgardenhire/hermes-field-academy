@@ -22,7 +22,7 @@ from foundations_support import FoundationsCase  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 MODULES = ("practice", "practice_write", "plants", "hermes_read", "matching", "yaml_keys", "scrub",
-           "foundations", "foundations_checks", "calibration", "foundations_content")
+           "foundations", "foundations_checks", "calibration", "foundations_content", "connector_reach")
 WRITERS = {"write_text", "write_bytes", "mkdir", "makedirs", "mkstemp", "fdopen", "replace", "rename", "unlink", "rmtree",
            "rmdir", "remove", "touch", "chmod", "symlink_to", "copy", "copy2", "copyfile", "copytree", "move", "truncate"}
 FORBIDDEN = {
@@ -98,7 +98,7 @@ class Static(unittest.TestCase):
             for node in ast.walk(tree):
                 if isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docstrings:
                     if re.search(r"(?<![\w-])\.env\b|auth\.json", node.value):
-                        self.assertIn(node.value, (".env", "auth.json", ".env.lock", "auth.lock"), f"{name}.py line {node.lineno}: {node.value[:40]!r}")
+                        self.assertIn(node.value, (".env", "auth.json", ".env.lock", "auth.lock", ".anthropic_oauth.json"), f"{name}.py line {node.lineno}: {node.value[:40]!r}")
 
 
 class FullRun(FoundationsCase):

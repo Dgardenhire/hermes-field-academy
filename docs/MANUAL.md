@@ -79,7 +79,7 @@ If you start a mission without the ones before it, its Recall says so and asks f
 
 ### The practice profile
 
-Every mission runs in a practice profile, a separate Hermes profile with its own memory, settings and chats. Field
+Every Foundations mission runs in a practice profile, a separate Hermes profile with its own memory, settings and chats. Field
 Academy asks Hermes to make it when you press the button on the mission page. It's called `academy-practice`. A
 mission that needs two profiles also makes `academy-practice-b`, and a new try makes `academy-practice-2`.
 
@@ -151,8 +151,8 @@ what surprised you, then press **Check my fix**. Your first result stays on the 
 stays on the page; nothing is saved or graded.
 
 **Missions 2, 7 and 9** show a warning on the Practice and Your turn steps, before your first chat: what the practice
-profile's connector does (missions 2 and 7), and that until you fix mission 9's planted setting, the terminal can reach
-your whole computer.
+profile's connector does (missions 2 and 7), and that until you fix mission 9's planted connector, it can write in the
+practice folder without asking. Field Academy never changes your approval settings.
 
 ![The scheduled-jobs mission in light mode: two scheduled runs have landed, and you score yourself first](shots/foundations-schedule.png)
 
@@ -380,9 +380,15 @@ Yes, if they change their own saved data, or send Field Academy a made-up result
 
 ### Does Foundations touch my own Hermes profile?
 
-No. Every mission runs in a practice profile Field Academy makes. It only writes to a practice profile before its
-first chat, and only a few named settings, the two memory files and sample files. It never reads or writes your own
-profiles, and never touches `.env` or `auth.json` anywhere.
+No. Every Foundations mission runs in a practice profile Field Academy makes. It only writes to a practice profile
+before its first chat, and only a few named settings, the two memory files and sample files. In Foundations it never
+reads or writes your own profiles, and it never touches `.env` or `auth.json` anywhere.
+
+### Do the trail missions touch my own Hermes profile?
+
+Yes. The missions on the five trails are done in your own Hermes: that is the point of them. Most pass on a
+document you write. The Traveler trail has you save a memory, make a skill and put one job on a schedule in your own
+profile, each named with `academy-` so you can find it. The README's Uninstall section says how to remove each one.
 
 ### What does a Foundations mission cost?
 
@@ -403,7 +409,7 @@ No. Your progress is saved apart from the plugin, and it carries over from earli
 
 ### How do I start over?
 
-Delete the field-academy folder, and Field Academy starts fresh the next time you open it. On Windows it's in `%LOCALAPPDATA%\hermes\plugin-data`, and on a Mac or Linux it's in `~/.hermes/plugin-data`.
+Open **Your data** at the foot of Field Academy's home page, or in Hermes under Settings, Plugins, Field Academy. Press **Delete my progress** to start fresh and keep your saved Field Records, or **Delete everything** to remove them too. Each asks for a yes first. If you've already removed the plugin, delete the field-academy folder by hand. On Windows it's in `%LOCALAPPDATA%\hermes\plugin-data`, and on a Mac or Linux it's in `~/.hermes/plugin-data`.
 
 ### Is Field Academy made by Nous Research?
 

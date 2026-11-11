@@ -432,3 +432,4 @@ def settings(home) -> dict:
                       for k, v in list(aux.items())[:30] if isinstance(v, dict)} if isinstance(aux, dict) else {},
         "disabled_toolsets": names("agent.disabled_toolsets"),
     }
+

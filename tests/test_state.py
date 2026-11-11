@@ -258,6 +258,7 @@ class FieldAcademyTests(unittest.TestCase):
 
     def test_the_offer_carries_the_registered_directive(self):
         # The offer only names a mission on the learner's chosen path.
+        self.state.set_ai_settings(practice_offer=True)
         self.state.set_goal("operator")
         self.state.observe_tool("operator.runtime", "terminal", "sess-1")
         context = self.pkg._pre_llm_call(session_id="sess-1")["context"]
@@ -312,6 +313,7 @@ class FieldAcademyTests(unittest.TestCase):
 
     def test_directive_stays_out_of_messaging_apps(self):
         # Gateway session ids carry no prefix, so the platform Hermes passes decides.
+        self.state.set_ai_settings(practice_offer=True)
         self.state.set_goal("operator")
         self.state.observe_tool("operator.runtime", "terminal", "20261015_090000_ab12")
         for platform in ("telegram", "slack", "webhook", "cron"):

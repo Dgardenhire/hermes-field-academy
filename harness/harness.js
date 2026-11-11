@@ -66,6 +66,8 @@ function reviewSession() {
   return data.review_open
 }
 
+const aiSettings = { ai_help: true, practice_offer: false }
+
 async function rest(path, options = {}) {
   const method = (options.method || 'GET').toUpperCase()
   await pause(40)
@@ -74,6 +76,10 @@ async function rest(path, options = {}) {
   if (desk) {
     const answer = await desk.rest(method, path, options.body || {})
     if (answer !== undefined) return answer
+  }
+  if (path === '/settings/ai') {
+    for (const name of ['ai_help', 'practice_offer']) if (method === 'POST' && typeof options.body?.[name] === 'boolean') aiSettings[name] = options.body[name]
+    return { ...aiSettings }
   }
   if (method === 'GET' && path === '/passport') return data.passport
   if (method === 'POST' && path.startsWith('/gate/')) {

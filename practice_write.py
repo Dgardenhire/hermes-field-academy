@@ -11,12 +11,24 @@ profile's first chat. Three files, and named keys only:
 * ``practice-folder/...``: sample text files for missions 7 to 11 (orders, CSVs, notes), through
   ``write_practice_file``, at most two folders deep inside the practice folder;
 * for missions 7 to 11, the keys in WRITABLE_KEYS_B: connector entries, ``agent.disabled_toolsets``,
-  ``command_allowlist`` and ``fallback_providers`` (cleared for mission 10, so a broken model isn't hidden).
+  and ``fallback_providers`` (cleared for mission 10, so a broken model isn't hidden).
+
+Approvals are never written. No ``approvals.*`` key and not ``command_allowlist`` (the saved "always" answers) is
+writable, so Field Academy cannot switch approvals off, loosen them or pre-approve a command in any profile. The learner
+changes those in Hermes's own Settings, and Field Academy only reads them afterward.
 
 Every write refuses when: the profile isn't recorded (status ``ready`` or ``planted``) at exactly this path; the
 folder, the file or the ``memories`` folder is a link; the profile's backend is up (``gateway.pid``); or anyone has
 sent a message in it (Hermes freezes memory per chat, and a planted problem must be in place before the first one).
 Writes go through a fresh temporary file in the same folder, then ``os.replace``, the way Cabinet writes SOUL.md.
+
+* ``settings-copy/``: a made-up stand-in for the profile's own folder (settings, instructions, memory, no sign-in),
+  which the "wide connector" problem in mission 13 and the Teach mission is aimed at (``write_settings_copy``).
+
+No connector Field Academy writes may reach a sign-in file. Hermes copies the learner's sign-in (``.env``,
+``auth.json``, ``mcp-tokens/`` and the rest of ``connector_reach.SIGN_IN_PATHS``) into every new profile, and a filesystem connector has none
+of Hermes's own read guards, so ``check_connector_reach`` refuses any connector argument that is the profile's folder,
+a folder above it, or a folder that holds or sits inside one of those paths.
 
 Never written, whatever asks: any other file, ``.env``, ``auth.json``, ``mcp-tokens/``, ``pairing/``, ``platforms/``,
 any profile Field Academy didn't record, and the learner's own profiles.
@@ -32,13 +44,12 @@ import sys
 import tempfile
 from pathlib import Path
 
-from . import hermes_read, practice, yaml_keys
+from . import connector_reach, hermes_read, practice, yaml_keys
 
 ALLOWED_FILES = ("config.yaml", "memories/MEMORY.md", "memories/USER.md")
 WRITABLE_KEYS = (
     re.compile(r"^memory\.write_approval$"),
     re.compile(r"^skills\.write_approval$"),
-    re.compile(r"^approvals\.(?:mode|timeout|cron_mode)$"),
     re.compile(r"^checkpoints\.enabled$"),
     re.compile(r"^cron\.model$"),
     re.compile(r"^delegation\.model$"),
@@ -46,13 +57,12 @@ WRITABLE_KEYS = (
     re.compile(r"^mcp_servers\.[A-Za-z0-9_-]+\.trust$"),
     re.compile(r"^terminal\.cwd$"),
 )
-# Missions 7 to 11: connector entries (command, arguments, on/off, trust, tool filters), switched-off toolsets and the
-# always-allow list, practice profiles only, before the first chat.
+# Missions 7 to 11: connector entries (command, arguments, on/off, trust, tool filters) and switched-off toolsets,
+# practice profiles only, before the first chat.
 WRITABLE_KEYS_B = (
     re.compile(r"^mcp_servers\.[A-Za-z0-9_-]+\.(?:command|args|enabled|trust)$"),
     re.compile(r"^mcp_servers\.[A-Za-z0-9_-]+\.tools\.(?:include|exclude)$"),
     re.compile(r"^agent\.disabled_toolsets$"),
-    re.compile(r"^command_allowlist$"),
     re.compile(r"^fallback_providers$"),
     # The Intermediate core missions: how many helper agents may run at once (f.delegation).
     re.compile(r"^delegation\.max_concurrent_children$"),
@@ -223,6 +233,7 @@ def add_mcp_server_a(home, row, name: str, command: str, args, enabled: bool = T
     if not SERVER_NAME.match(str(name)):
         raise Refused("Field Academy names its own connectors academy-something.")
     args = [str(a) for a in (args or [])]
+    check_connector_reach(home, args)
     if not re.fullmatch(r"[A-Za-z0-9._-]{1,40}", str(command)) or any("\n" in a or len(a) > 400 for a in args) or len(args) > 10:
         raise Refused("That connector command can't be written.")
     path = _target(home, "config.yaml")
@@ -294,6 +305,9 @@ def set_config(home, row, values: dict) -> dict:
             raise Refused(f"Field Academy never changes {key}.")
     if "terminal.cwd" in values and (not isinstance(values["terminal.cwd"], str) or not (_same_place(values["terminal.cwd"], home) or _same_place(values["terminal.cwd"], home / PRACTICE_FOLDER))):
         raise Refused("A practice profile's working folder can only be its own folder.")
+    for key, value in values.items():
+        if re.match(r"^mcp_servers\.[A-Za-z0-9_-]+\.args$", key):
+            check_connector_reach(home, value)
     path = _target(home, "config.yaml")
     text = ""
     if path.exists():
@@ -364,3 +378,54 @@ def ensure_practice_folder(home, row) -> str:
         raise Refused("The practice folder is a link, so Field Academy won't use it.")
     folder.mkdir(exist_ok=True)
     return str(folder.resolve())
+
+
+# ------------------------------------------------------------ connector reach --
+#
+# A filesystem connector is a separate program with none of Hermes's own read guards, so no connector Field Academy
+# writes may reach the practice profile's own folder, anything above it, or a sign-in path (connector_reach.SIGN_IN_PATHS).
+
+
+def check_connector_reach(home, args) -> None:
+    """Refuse connector arguments that would put the learner's sign-in within a practice chat's reach."""
+    for raw in args if isinstance(args, (list, tuple)) else [args]:
+        if connector_reach.reaches_sign_in(home, raw):
+            raise Refused("Field Academy never aims a connector where the practice profile keeps its sign-in.")
+
+
+# ------------------------------------------------------------- settings copy --
+#
+# Mission 13 (f.toolsets) and the Teach mission plant a connector that "reaches the profile's own folder". It is aimed
+# at this stand-in, <home>/settings-copy/, so the lesson holds (a connector there can rewrite settings, instructions
+# and memory) while the real folder, with the sign-in Hermes copied in, stays out of reach.
+
+SETTINGS_COPY = "settings-copy"
+SETTINGS_COPY_FILES = {
+    "config.yaml": ("# A stand-in for this practice profile's config.yaml, made by Field Academy.\n"
+                    "# A connector that reaches this folder can rewrite it. The real settings sit one folder up.\n"
+                    "model:\n  default: practice-model\nmemory:\n  write_approval: true\nagent:\n  disabled_toolsets: []\n"),
+    "SOUL.md": "A stand-in for this practice profile's instructions, made by Field Academy.\n",
+    "memories/MEMORY.md": "A stand-in for this practice profile's memory, made by Field Academy.\n",
+}
+
+
+def write_settings_copy(home, row) -> str:
+    """Make <home>/settings-copy with made-up copies of the settings files and no sign-in. Returns its absolute path."""
+    home = guard(home, row)
+    folder = home / SETTINGS_COPY
+    if folder.is_symlink():
+        raise Refused("The settings copy is a link, so Field Academy won't use it.")
+    folder.mkdir(exist_ok=True)
+    for rel, text in SETTINGS_COPY_FILES.items():
+        path = _plain_folders(folder, rel)
+        _write_atomic_new(path, text)
+    resolved = folder.resolve()
+    if resolved.parent != home.resolve():
+        raise Refused("The settings copy would land outside the practice profile.")
+    return str(resolved)
+
+
+def _write_atomic_new(path: Path, text: str) -> None:
+    if path.exists() and not path.is_file():
+        raise Refused(f"{path.name} isn't a plain file.")
+    _write_atomic(path, text)

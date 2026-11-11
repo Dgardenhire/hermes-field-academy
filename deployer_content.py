@@ -9,6 +9,7 @@ from __future__ import annotations
 
 TITLE = "Guide"
 EYEBROW = "For clients, in practice"
+SUBTITLE = "Run Hermes for a client and prove it recovers"
 LORE = (
     "Hermes was a guide: he led travelers all the way to where they were going. You take a client the "
     "whole way, from finding what is wrong to a service that runs and recovers."
@@ -16,6 +17,11 @@ LORE = (
 PROMISE = (
     "Set up, deploy and manage Hermes for a small client: find what is wrong on their machine, decide what each helper may reach, "
     "run a real service for several days, break it on purpose and prove it recovers, then show an expert your work."
+)
+
+REVIEWER_NOTE = (
+    "To finish this trail you need a reviewer you choose, with a signing key, to sign your packet. Field Academy's own "
+    "reviewer list is empty, so without one you end at Guide, awaiting review."
 )
 
 PHASES = [

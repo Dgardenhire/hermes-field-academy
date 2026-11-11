@@ -34,7 +34,7 @@ RECORD_FORMAT = 2
 FOUNDATIONS_RECORD_FORMAT = 3
 
 ABOUT = (
-    "A Field Record is your own learning record for a path. You build it mission by mission, "
+    "A Field Record is your own learning record for a trail. You build it mission by mission, "
     "and Field Academy writes it on your computer with the proof of what you did. "
     "Field Academy is a free community plugin by Damon Gardenhire. "
     "Nous Research doesn't issue, review or endorse Field Records."
@@ -48,7 +48,7 @@ WHAT_IT_SHOWS = (
 )
 
 RECEIVE = [
-    "A Field Record with your name, the path, and the date you finished it",
+    "A Field Record with your name, the trail, and the date you finished it",
     "The proof behind every mission: what each check found, your score on each question, "
     "and the fingerprint of every document you wrote",
     "A record number made from that proof. It shows the record hasn't been changed by accident, but it isn't proof by itself",
@@ -137,7 +137,7 @@ def certificate_route(track, issued=None):
         "remaining": total - passed,
         "steps": [
             {
-                "title": "Pass every mission on this path",
+                "title": "Pass every mission on this trail",
                 "detail": (
                     f"{total} missions: three levels, Beginner to Advanced, then a capstone on your own problem. "
                     f"You've passed {passed} of {total}. {EACH_MISSION}"
@@ -196,9 +196,9 @@ def next_up(tracks, goal_track, goal_text=""):
         if mission_id:
             item = next(m for m in track["missions"] if m["id"] == mission_id)
             if item["status"] == "not_started" and not any(m["status"] != "not_started" for m in track["missions"]):
-                reason = f"It's where the {track['name']} path starts."
+                reason = f"It's where the {track['name']} trail starts."
             elif item["status"] == "not_started":
-                reason = f"It's the next mission on your {track['name']} path."
+                reason = f"It's the next mission on your {track['name']} trail."
             else:
                 reason = "You've started it. Pick up where you left off."
             return {

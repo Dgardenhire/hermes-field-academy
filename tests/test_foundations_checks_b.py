@@ -581,10 +581,13 @@ class AllFixed(ReaderCase):
     """plants.all_fixed"""
 
     def test_fixed_and_unfixed_plants(self):
-        self.ctx["planted"] = {"approvals_off": {"mode": "off"}}
-        hf.write_config(self.home, hf.CONFIG.replace("mode: manual", 'mode: "off"'))
+        self.ctx["planted"] = {"open_connector": {"server": "docs"}}
+        block = "mcp_servers:\n  docs:\n    command: npx\n    args: [-y, pkg, /tmp/x]\n"
+        hf.write_config(self.home, hf.CONFIG + "\n" + block)
         out = self.run_reader("plants.all_fixed")
         self.assertFalse(out["passed"])
+        hf.write_config(self.home, hf.CONFIG + "\n" + block.replace("args:", "trust: untrusted\n    args:"))
+        self.assertTrue(self.run_reader("plants.all_fixed")["passed"])
         hf.write_config(self.home, hf.CONFIG)
         self.assertTrue(self.run_reader("plants.all_fixed")["passed"])
         self.assertFalse(self.run_reader("plants.all_fixed", planted={})["readable"])

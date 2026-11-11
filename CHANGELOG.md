@@ -1,12 +1,80 @@
 # Changelog
 
-## 0.9.0 (2026-11-08)
+## 0.9.0 (2026-11-10)
 
 Foundations: eleven new missions that teach how Hermes really works, each one checked by reading Hermes itself.
 Your progress on the paths and your Field Records carry over.
 
+Fixed before release (Nov 10 and 11):
+
+- **Your sign-in stays out of every planted connector's reach.** Hermes copies your provider sign-in (`.env`,
+  `auth.json`, `mcp-tokens/`) into each practice profile it makes. Mission 13 and the Teach mission used to aim a
+  filesystem connector at the whole practice profile, so a practice chat could have read those files. The connector
+  now reaches `settings-copy/`, a made-up stand-in for the profile's folder with no sign-in, and Field Academy refuses
+  to write any connector that would reach the profile's own folder, a folder above it, or a sign-in file. A test
+  plants every problem and checks.
+- **Counts agree.** A trail's count is what its Field Record needs ("0 of 5" on Crossroads, "0 of 9 parts" on the
+  Guide); the practice and Teach missions placed in its camps are counted beside it as extra. The banner counts every
+  waypoint on all five trails, and Where you are counts the same set.
+- **Mission suggestions in your chats, and Field Academy asks first.** Once you pick a path, Hermes may end a reply
+  in your own chats with one line suggesting a mission that fits what you were just doing. The first time you open
+  Field Academy, a card at the top of the home page asks whether you want that, **Yes, suggest missions** or **Not
+  now**, and nothing is added to any chat until you say yes. Afterward the card shows which way it is set with one
+  button to change it; the same switch, **Suggest missions while I chat**, sits beside AI help under Settings and in
+  Hermes under Settings, Plugins, Field Academy.
+- **What the docs claim now matches what the missions do.** The listing, README, privacy notes and security notes
+  used to say Field Academy writes "never an approvals setting", runs no shell commands and starts no background
+  processes, while missions turn on Hermes's memory write approval, have Hermes download a filesystem connector with
+  `npx`, and can leave hourly practice jobs running. They now say exactly that: in practice profiles only it may turn
+  on Hermes's memory or skill write-approval setting and never changes `approvals.*` or the command allowlist; some
+  missions have Hermes run a connector it downloads with `npx`; repaired practice jobs run hourly on your model
+  provider until you pause them; and Field Academy's own code runs no shell commands and starts no background processes.
+- **Delete your data from inside Field Academy.** Your data, at the foot of the home page and in Settings, Plugins,
+  Field Academy, offers two choices, each behind its own yes. Delete my progress removes progress, answers, practice
+  labs, caches and database backups and keeps your saved Field Records. Delete everything removes the records too. Any
+  practice profile still set up is deleted first. Your two switches keep their values, and records saved outside the
+  data folder are never touched. The page's open-fast copy is cleared too, so the next open no longer shows the
+  deleted progress for a moment.
+- **The Fix step drafts each command in turn.** When a fix takes more than one command, each press of **Put it in the
+  practice chat** puts the next one in the chat's box, so you never type a slash command by hand. Before, only the
+  first went in, and a second typed past Hermes's command picker came out wrong in a live run.
+- **Your fix worked shows the file that changed.** A save that landed in `USER.md` used to show `MEMORY.md`'s
+  unchanged numbers as the before and after.
+- **Record stays on In your record.** After you add an entry to your Field Record, the step keeps showing it. It used
+  to reload into a fresh, blank try at the same mission.
+- **Text fields you can see.** On the dark theme, the borders of Field Academy's text fields were nearly invisible.
+- **The manual from the home page.** **The manual**, beside the counts in the banner, opens the manual on
+  linchpin.studio in your browser.
+- **Foundations beside Start here,** and one "You are here" on the map, not one per trail.
+- **AI help on Claude.** When Claude refuses the structured-output schema, Field Academy asks again for JSON in plain
+  text and reads it itself, so Give me a hint and Score my answer still answer.
+- **The Guide trail says when it fails to load,** and Refresh asks for both the map and the Guide trail again.
+- **No count flash on open.** The map waits for the Guide trail before it shows its counts, so it no longer shows four
+  trails and then five.
+- **Opens at once.** The page keeps a small, credential-free copy of what the map reads and draws from it while the
+  live answers load, and sends the map's requests together.
+- **Plain words when the backend is missing,** never a bare "Not Found", and the narrow map's camp headings no longer
+  run together.
+- **Docs.** A short catalog description with a Disclosure: sentence and known_issues, an Uninstall section in the
+  README, and the manual's link to the public repo.
+
+- **The School of Hermes and a trail map.** The home page is now a map of Mount Olympus. Everyone starts at the
+  Foundations trailhead, and five trails climb from it: Messenger (introductions), Traveler (yourself), Crossroads
+  (clients), Boundary Keeper (an organization) and Guide (clients, in practice). Each of the first four has four camps,
+  Beginner, Intermediate, Advanced and Capstone, and a summit flag where its Field Record is. Guide has its own four
+  camps. The Field Record now shows how far you got on each trail. Five practice missions sit on the trails in the
+  camps where they fit, and the plugin's name in Hermes now describes the School of Hermes and five trails, not four
+  paths.
+- **Field Academy never touches approvals.** Missions 9 and 11 and the Teach mission *Set Hermes up for someone else*
+  used to plant approvals switched off, or a saved "always allow" for a recursive delete, in the practice profile.
+  Field Academy no longer writes any approval setting or the always-allow list, and a test fails if a write comes back.
+  The planted problem in those missions is now a connector left at Hermes's default trust, which you mark untrusted or
+  switch off yourself. You read the practice profile's approval mode and Command Allowlist in Hermes's Settings, change
+  them there if they need it, and answer Hermes's own approval card when it asks about a delete. A walkthrough draft
+  that tells someone to say yes to every card is still the trap in the Teach walkthrough mission, and you cut it.
+
 - **Eleven Foundations missions.** Watch the loop, cost, memory, new chats, skills, profiles, connectors,
-  scheduled jobs, guardrails and undo, fixing what broke, and a review. They sit first on the map.
+  scheduled jobs, guardrails and undo, fixing what broke, and a review. They sit beside Start here on the home page.
 - **Practice profiles.** Each mission runs in a profile Field Academy makes for you (`academy-practice`, and
   `academy-practice-b` when a mission needs two). The checks never read your own profiles; grading your explanation
   adds one chat to your own profile and nothing else. Delete a practice profile from the page when you're done.

@@ -19,7 +19,7 @@ import {
   useKeys, useListKeys, usePolled,
 } from 'hermes-ui-kit'
 import { Bezel, CampLine, CertCorners, Compass, Contours, ElevationProfile, FIELD_CSS, Legend, Seal, TrailMap, TrailMark } from './field.js'
-import { compassReading, overview, trailModel, withPlaced } from './trail.js'
+import { compassReading, countWords, overview, trailModel, withPlaced } from './trail.js'
 import { DEPLOYER_CSS, createDeployerViews, partFor } from './deployer.js'
 import { BANNER_CSS, Banner } from './banner.js'
 import { PROSE_CSS, Prose, withoutExampleWord } from './prose.js'
@@ -27,6 +27,7 @@ import { FOUNDATIONS_CSS, createFoundationsViews } from './foundations.js'
 import { DESK_CSS } from './desk.js'
 import { homeAction, isPracticeProfile } from './loop.js'
 import { folderUrl, sampleFromHermes, versionFrom } from './deploy.js'
+import { HOLD_SELECTOR, OPEN_CACHE_KINDS, openPlan, openScope, previewIntent, readSnapshot, writeSnapshot } from './opencache.js'
 import {
   CONNECTION_KEYS, blob, classifyConnection, dueWords, flattenSkills, jobHasSchedule, jobRequest, jobRequestRead, minutesWords, norm, pastedMatches, promptCues,
   recordTime, startsWithMarker, strengthWord,
@@ -51,6 +52,7 @@ const MISSION_ID_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/i
  *  register (kit injector, removed on dispose), so the page, the status chip and the
  *  in-chat offer all have it. */
 const CSS = `
+.hk input:not([type=checkbox]):not([type=radio]):not([type=range]),.hk textarea{border-color:color-mix(in srgb,currentColor 45%,transparent)}
 .fa-paths{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
 .fa-links{display:grid;gap:6px}
 .fa-link{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:8px 10px;border-radius:var(--hk-radius);border:1px solid var(--hk-stroke);background:var(--hk-surface);color:inherit;font:inherit;cursor:pointer;transition:border-color 140ms ease,background-color 140ms ease}
@@ -530,11 +532,66 @@ function ctxRest(path, options) {
   return api.rest(path, options || {}).then(out => { noteHome(); return out })
 }
 
+/* ------------------------------------------------------- open fast ----- */
+//
+// The first answer on an open waits for Hermes to start this plugin's backend and reach the gateway: 2 to 3 seconds.
+// So the page keeps a small copy of the last answers the map was drawn from (opencache.js says what is kept and what
+// never is) in ctx.storage, draws the map from it at once and swaps in the live answers when they come. The requests
+// the map needs go out together when the page opens, not one after another.
+
+/** Which Hermes a kept copy belongs to: the profile and connection Field Academy runs in. */
+function currentScope() {
+  const profile = activeProfile()
+  if (!profile || isPracticeProfile(profile)) {
+    const target = knownHome()
+    return target ? openScope(target.profile, target.connectionId) : ''
+  }
+  let connectionId = null
+  try { connectionId = host.state?.connectionId?.get?.() ?? null } catch (error) { connectionId = null }
+  return openScope(profile, connectionId)
+}
+
+/** A request that keeps a copy of its answer for the next open, under the scope it was asked in. */
+function kept(kind, request) {
+  const scope = currentScope()
+  return request().then(out => { writeSnapshot(api?.storage, kind, out, scope); return out })
+}
+
+/** The kept copies for the Hermes the page is about to talk to. Read once when the page opens. */
+function keptCopies() {
+  const scope = currentScope()
+  return Object.fromEntries(OPEN_CACHE_KINDS.map(kind => [kind, readSnapshot(api?.storage, kind, scope)]))
+}
+
+/** Requests the map makes from inside its cards, started when the page opens so they run beside the passport. The
+ *  first card that asks takes the answer; one more than a few seconds old is asked for again. */
+const EARLY_MS = 15000
+const early = new Map()
+
+function startEarly(path) {
+  const now = Date.now()
+  const held = early.get(path)
+  if (held && now - held.at < EARLY_MS) return
+  const promise = ctxRest(path)
+  promise.catch(() => { /* the card that takes it shows the error */ })
+  early.set(path, { at: now, promise })
+}
+
+function takeEarly(path) {
+  const held = early.get(path)
+  early.delete(path)
+  return held && Date.now() - held.at < EARLY_MS ? held.promise : ctxRest(path)
+}
+
+const loadFoundations = () => kept('foundations', () => takeEarly('/foundations'))
+const loadSample = () => takeEarly('/replay/sample')
+const keptFoundations = () => readSnapshot(api?.storage, 'foundations', currentScope())
+
 /** The passport: polled lightly, kept on screen while it refreshes or if a refresh fails. */
 function usePassport() {
   return usePolled({
     key: QUERY_KEY,
-    fn: () => ctxRest('/passport'),
+    fn: () => kept('passport', () => ctxRest('/passport')),
     staleTime: 5000,
     options: { refetchOnWindowFocus: true },
   })
@@ -552,7 +609,7 @@ const DEPLOYER_KEY = ['field-academy', 'deployer']
 function useDeployer() {
   return usePolled({
     key: DEPLOYER_KEY,
-    fn: () => ctxRest('/deployer'),
+    fn: () => kept('deployer', () => ctxRest('/deployer')),
     staleTime: 5000,
     options: { refetchOnWindowFocus: true },
   })
@@ -635,14 +692,20 @@ async function syncVersion(deployer) {
   }
 }
 
+const MANUAL_URL = 'https://linchpin.studio/school-of-hermes/manual/'
+
 function openLink(url) {
   if (api?.os?.openExternal) api.os.openExternal(url)
 }
 
+/** A route that isn't there answers a bare "Not Found": Field Academy's backend isn't loaded. Say that plainly. */
+const NO_BACKEND = "Field Academy's backend isn't answering. In Hermes, open Capabilities, then Plugins, and check Field Academy is on, then quit Hermes and open it again."
+
 function errorText(error) {
   const raw = String(error?.message || error || '')
   const match = raw.match(/"detail"\s*:\s*"([^"]+)"/)
-  return match ? match[1] : raw
+  const text = match ? match[1] : raw
+  return /^(?:404:?\s*)?not found\.?$/i.test(text.trim()) ? NO_BACKEND : text
 }
 
 function shortDate(iso) {
@@ -712,7 +775,7 @@ function CertificateBezel({ track, size = 64 }) {
   const total = (track.missions || []).length
   return jsx(Bezel, { passed: track.verified_missions || 0, total, size, children: [
     jsx('span', { className: 'fa-num fa-num-m', children: track.verified_missions || 0 }, 'n'),
-    jsx('span', { className: 'fa-sc', style: { fontSize: 11 }, children: `of ${total}` }, 'of'),
+    jsx('span', { className: 'fa-sc', style: { fontSize: 12 }, children: `of ${total}` }, 'of'),
   ] })
 }
 
@@ -804,7 +867,7 @@ function scrollToId(id) {
   target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
 }
 
-const foundationsViews = createFoundationsViews({ Frame, Label, ctxRest, errorText, copyText, openFolder, sendInNewChat, plural, longDate })
+const foundationsViews = createFoundationsViews({ Frame, Label, ctxRest, errorText, copyText, openFolder, sendInNewChat, plural, longDate, loadFoundations, loadSample, keptFoundations })
 
 const deployerViews = createDeployerViews({
   Prose, withoutExampleWord, Frame, Label, Result, Feedback, ctxRest, errorText, shortDate, longDate, plural, sendToHermes, refreshDeployer, openFolder, copyText, readHermes, scrollToId,
@@ -851,7 +914,7 @@ function GoalCard({ data }) {
   return jsx(Card, { tone: 'info', tint: !goal.asked, className: 'hk-enter', children: jsxs('div', { className: 'hk-stack', style: { gap: 8 }, children: [
     jsx(Label, { children: goal.asked ? 'Your goal' : 'Before you start' }),
     jsx('h2', { className: 'hk-h2', children: 'What do you want Hermes to do for you?' }),
-    jsx('p', { children: 'One or two sentences about your own work. Your answer becomes the example in the practice prompts and missions on the paths. Foundations uses its own made-up examples. You can change it any time, or skip it.' }),
+    jsx('p', { children: 'One or two sentences about your own work. Your answer becomes the example in the practice prompts and missions on the trails. Foundations uses its own made-up examples. You can change it any time, or skip it.' }),
     jsx(Textarea, {
       style: { minHeight: '4.5rem', width: '100%' },
       value: text,
@@ -870,14 +933,17 @@ function GoalCard({ data }) {
   ] }) })
 }
 
-function WherePanel({ info, data }) {
+function WherePanel({ info: paths, data, deployer }) {
+  // Counted over every trail on the map, the Guide's waypoints included, so it matches the banner's count.
+  const guide = deployer && deployer.track ? trailModel(deployer.track) : null
+  const info = guide ? { ...paths, passed: paths.passed + guide.passed, total: paths.total + guide.total } : paths
   const { goal, camp } = info
   const started = info.passed > 0 || info.tracks.some(track => track.waypoints.some(w => w.status !== 'waiting'))
   const where = !goal || !started
     ? 'At the trailhead'
     : camp
-      ? `${goal.name} path, ${camp.name} camp`
-      : goal.summit.status === 'issued' ? `${goal.name} path, at the summit` : `${goal.name} path, below the summit`
+      ? `${goal.name} trail, ${camp.name} camp`
+      : goal.summit.status === 'issued' ? `${goal.name} trail, at the summit` : `${goal.name} trail, below the summit`
   const honest = data.honest || { passed: 0, holding: 0 }
   return jsxs('div', { className: 'fa-panel fa-where hk-enter', children: [
     jsx(Bezel, { passed: info.passed, total: info.total, children: [
@@ -902,22 +968,22 @@ function NextStep({ next, info, go }) {
     return jsxs('div', { className: 'fa-panel fa-next hk-enter', children: [
       jsx(Label, { children: 'Next best step' }),
       jsx('h2', { className: 'hk-h2', children: 'Every mission passed' }),
-      jsx('p', { children: 'Create a Field Record for each path you finished. Each one waits at the summit of its trail.' }),
+      jsx('p', { children: 'Create a Field Record for each trail you finished. Each one waits at the summit of its trail.' }),
     ] })
   }
   const started = info.tracks.some(track => track.waypoints.some(w => w.status !== 'waiting'))
   return jsxs('div', { className: `fa-panel fa-next hk-enter${started ? '' : ' fa-next-quiet'}`, children: [
     // Foundations holds the page's one Start here; this card is the next step on the paths (0.9 persona test).
-    jsx(Label, { children: started ? 'Next best step on the paths' : 'When you want a path' }),
+    jsx(Label, { children: started ? 'Next best step on the trails' : 'When you want a trail' }),
     jsx('h2', { className: 'hk-h2', children: next.title }),
     jsxs('div', { className: 'fa-next-meta', children: [
-      jsxs('span', { children: [jsx(Codicon, { name: 'location', size: 13 }), `${next.track_name} path`] }),
+      jsxs('span', { children: [jsx(Codicon, { name: 'location', size: 13 }), `${next.track_name} trail`] }),
       jsxs('span', { children: [jsx(Codicon, { name: 'milestone', size: 13 }), `${next.level_name} camp`] }),
       jsxs('span', { children: [jsx(Codicon, { name: 'watch', size: 13 }), minutesWords(next.minutes)] }),
     ] }),
     jsx('p', { children: next.reason }),
     next.use_text ? jsx('div', { className: 'fa-use', children: [jsx(Label, { plain: true, children: 'Why this matters to you' }, 'l'), jsx('p', { children: next.use_text }, 'p')] }) : null,
-    jsx('div', { className: 'hk-actions', children: jsx(Button, { variant: started ? 'default' : 'secondary', onClick: () => go({ name: 'mission', id: next.mission_id }), children: started ? 'Continue' : 'Start this path mission' }) }),
+    jsx('div', { className: 'hk-actions', children: jsx(Button, { variant: started ? 'default' : 'secondary', onClick: () => go({ name: 'mission', id: next.mission_id }), children: started ? 'Continue' : 'Start this trail mission' }) }),
   ] })
 }
 
@@ -1010,7 +1076,7 @@ function ChangesPanel({ data, go }) {
     }
   }
 
-  const title = changes.length ? 'What changed since you learned this' : 'New on paths you started'
+  const title = changes.length ? 'What changed since you learned this' : 'New on trails you started'
   return jsx(Section, { title, count: changes.length + fresh.length, children: jsxs('div', { className: 'hk-stack', children: [
     changes.length ? jsx('p', { className: 'hk-small', children: 'Your passes stay passed. When a check changed after you passed a mission, you can run the new one to re-verify. If it misses, the mission stays passed.' }) : null,
     problem ? jsx(Result, { result: { passed: false, title: problem } }) : null,
@@ -1018,7 +1084,7 @@ function ChangesPanel({ data, go }) {
       jsxs('div', { className: 'hk-row', style: { flexWrap: 'wrap', gap: 10 }, children: [
         jsxs('div', { className: 'hk-grow', children: [
           jsx('strong', { children: change.title }),
-          jsx('div', { className: 'hk-small', children: `${change.track_name} path · ${change.level_name} · you passed version ${change.passed_version}, now version ${change.version}${change.carried_over ? ' · passed before version 0.5' : ''}` }),
+          jsx('div', { className: 'hk-small', children: `${change.track_name} trail · ${change.level_name} · you passed version ${change.passed_version}, now version ${change.version}${change.carried_over ? ' · passed before version 0.5' : ''}` }),
         ] }),
         jsx(Pill, { tone: change.needs === 'check' ? 'warn' : 'info', children: change.needs === 'check' ? 'The check changed' : 'The lesson changed' }),
       ] }),
@@ -1033,7 +1099,7 @@ function ChangesPanel({ data, go }) {
     ...fresh.map(item => jsx(Card, { tone: 'info', children: jsxs('div', { className: 'hk-row', style: { flexWrap: 'wrap', gap: 10 }, children: [
       jsxs('div', { className: 'hk-grow hk-stack', style: { gap: 2 }, children: [
         jsx('strong', { children: `New: ${item.title}` }),
-        jsx('div', { className: 'hk-small', children: `${item.track_name} path · ${item.level_name}` }),
+        jsx('div', { className: 'hk-small', children: `${item.track_name} trail · ${item.level_name}` }),
         jsx('p', { children: item.summary }),
       ] }),
       jsx(Button, { variant: 'secondary', onClick: () => go({ name: 'mission', id: item.mission_id }), children: 'Open it' }),
@@ -1043,14 +1109,14 @@ function ChangesPanel({ data, go }) {
 
 const MAP_SHAPE = [{ title: true, lines: 2, button: true, dot: true }, { title: true, lines: 6 }]
 
-function DeployerTrailPanel({ deployer, list, offset, go }) {
+function DeployerTrailPanel({ deployer, list, offset, go, here }) {
   const model = trailModel(deployer.track)
   const mine = { index: list.index - offset, itemProps: i => list.itemProps(i + offset) }
-  return jsx(Section, { title: `${deployer.track.name} path`, children: jsxs('div', { className: 'hk-stack', children: [
+  return jsx(Section, { title: `${deployer.track.name} trail`, children: jsxs('div', { className: 'hk-stack', children: [
     jsx(Prose, { text: 'Set up, deploy and run Hermes for a small client. You do the real work:\n- Repair four broken client setups\n- Write a proposal\n- Answer nine hard cases\n- Run a real service for several days, then break it and recover it' }),
-    jsx('p', { className: 'hk-small', children: 'The Guide Field Record needs a reviewer you choose to read and sign your evidence. Until someone signs, the path ends at Guide, awaiting review.' }),
+    jsx('p', { className: 'hk-small', children: 'The Guide Field Record needs a reviewer you choose to read and sign your evidence. Until someone signs, the trail ends at Guide, awaiting review.' }),
     jsx(TrailMap, {
-      models: [model], list: mine,
+      models: [model], list: mine, here,
       onOpenTrack: () => go({ name: 'path', id: 'deployer' }),
       onOpenMission: id => go(partFor(id)),
       foot: [jsx('span', { className: 'hk-small', key: 'tip' }, deployer.certificate.label)],
@@ -1068,21 +1134,32 @@ function bannerCamps(info, deployer) {
 }
 
 /** The banner's facts line, counted from the passport and the Foundations list so it can never drift from the page.
- *  Foundations is counted first, since it comes first (0.9 persona test). */
+ *  Foundations is counted first, since it comes first (0.9 persona test). The trails' count is every waypoint on the
+ *  map, on all of them, the Guide's parts and teaching missions included, so it matches what the map shows. */
+/** One line that squares the banner's count with each trail's own count. The README says the same words. */
+const COUNT_LINE = 'The banner counts every waypoint on the map. A trail\'s number, like 0 of 5, counts what its Field Record needs; the practice and teaching missions placed on a trail are extra.'
+
 function bannerFacts(info, deployer, foundations = 0) {
-  const paths = info.tracks.length + (deployer && deployer.track ? 1 : 0)
+  const guide = deployer && deployer.track ? trailModel(deployer.track) : null
+  const paths = info.tracks.length + (guide ? 1 : 0)
+  const stops = info.total + (guide ? guide.total : 0)
   const first = foundations ? [plural(foundations, 'Foundations mission', 'Foundations missions')] : []
-  return [...first, `${plural(info.total, 'mission', 'missions')} on ${plural(paths, 'trail', 'trails')}`, 'Checks on real work']
+  const trails = first.length ? `${stops} more on ${plural(paths, 'trail', 'trails')}` : `${plural(stops, 'mission', 'missions')} on ${plural(paths, 'trail', 'trails')}`
+  return [...first, trails, 'Checks on real work']
 }
 
 function MapView({ data, go, deployer }) {
   const info = overview(data)
-  const foundations = foundationsViews.useFoundations()
+  const foundations = foundationsViews.useFoundations(true, { fromCopy: true })
   // Foundations proper: the practice missions placed on the trails count with their trails.
   const placedIds = new Set((data.tracks || []).flatMap(t => (t.placed || []).map(m => m.id)))
   const fCount = (foundations.data?.missions || []).filter(m => !m.trail && !placedIds.has(m.id)).length
   const camps = bannerCamps(info, deployer)
   const models = info.tracks
+  // One "You are here": on the trail the learner is working toward (their goal, else the next mission's trail), and
+  // on none before they've started any trail, when Start here is the first step.
+  const anyStarted = models.some(m => m.waypoints.some(w => w.status !== 'waiting'))
+  const mapHere = data.goal_track === 'deployer' && deployer && deployer.track ? 'deployer' : anyStarted && info.goal ? info.goal.id : ''
   const extra = deployer && deployer.track ? 1 : 0
   const list = useListKeys({
     count: models.length + extra,
@@ -1092,43 +1169,51 @@ function MapView({ data, go, deployer }) {
   const banner = jsx(Banner, {
     promise: data.school_line || 'Get good at Hermes by using it, learn all of what it can do, then learn to help other people use it.',
     facts: bannerFacts(info, deployer, fCount),
+    // The manual on linchpin.studio, in the user's own browser (Nov 11: no plugin linked its manual).
+    links: [{ label: 'The manual', title: 'Open the manual in your browser', onClick: () => openLink(MANUAL_URL) }],
     camps,
     summitDone: camps.length > 0 && camps.every(camp => camp.done),
     compact: true,
   }, 'head')
   return jsx(Frame, { onKey: list.keyProps.onKeyDown, children: [
     banner,
+    jsx(ChatSuggestCard, {}, 'suggest'),
     jsxs('div', { className: 'fa-top', children: [
       jsx('div', { className: 'fa-top-map', children: jsx('div', { children: [
           jsx(Section, { title: 'Trail map', count: models.length + extra, actions: jsx(KeyHint, { keys: ['J', 'K'], label: 'to move between trails, Enter to open' }),
             children: jsx(TrailMap, {
-              models, list,
+              models, list, here: mapHere,
               onOpenTrack: id => go({ name: 'path', id }),
               onOpenMission: id => go({ name: 'mission', id }),
               lines: data.camp_lines || null, summitLine: data.summit_line || '',
-              foot: [jsx(Legend, {}, 'legend'), jsx('span', { className: 'hk-small', children: 'Click a trail, a waypoint or a flag to open it.' }, 'tip')],
+              foot: [jsx(Legend, {}, 'legend'), jsx('span', { className: 'hk-small', children: 'Click a trail, a waypoint or a flag to open it.' }, 'tip'),
+                jsx('span', { className: 'hk-small', style: { flexBasis: '100%' }, children: COUNT_LINE }, 'counts')],
             }) }, 'map')
       ] }) }),
-      jsx('div', { className: 'fa-top-start', children: jsx(foundationsViews.FirstFlightCard, { go, foundations, compact: true }) }),
+      jsxs('div', { className: 'fa-top-start', children: [
+        jsx(foundationsViews.FirstFlightCard, { go, foundations, compact: true }, 'first'),
+        jsx(foundationsViews.FoundationsCard, { go, foundations, compact: true }, 'foundations'),
+      ] }),
     ] }, 'top'),
-    extra ? jsx(DeployerTrailPanel, { deployer, list, offset: models.length, go }, 'deployer') : null,
-    jsx('p', { className: 'hk-lead', children: `${plural(models.length + extra, 'path', 'paths')} up the mountain, each named for one of Hermes's old jobs. Every path climbs from Beginner to Advanced, then a capstone on your own problem, and ends at the summit with a Field Record of the work you did.` }, 'lead'),
+    extra ? jsx(DeployerTrailPanel, { deployer, list, offset: models.length, go, here: mapHere }, 'deployer') : null,
+    jsx('p', { className: 'hk-lead', children: `${plural(models.length + extra, 'trail', 'trails')} up the mountain, each named for one of Hermes's old jobs. Messenger, Traveler, Crossroads and Boundary Keeper climb from Beginner to Advanced, then a capstone on your own problem. The Guide climbs from an audit to staged verification. Each trail ends at the summit with a Field Record of the work you did.` }, 'lead'),
     jsx(GoalCard, { data }, 'goal'),
     jsxs('div', { className: 'fa-here', children: [
-      jsx(WherePanel, { info, data }, 'where'),
+      jsx(WherePanel, { info, data, deployer }, 'where'),
       jsx(NextStep, { next: data.next_up, info, go }, 'next'),
     ] }, 'here'),
     jsx(ReviewQueue, { data, go }, 'review'),
     jsx(ChangesPanel, { data, go }, 'changes'),
-    jsx(foundationsViews.FoundationsCard, { go, foundations }, 'foundations'),
+    jsx(Section, { title: 'Settings', children: jsx(SettingsPanel, {}) }, 'settings'),
+    jsx(Section, { title: 'Your data', children: jsx(DataPanel, {}) }, 'data'),
     jsxs(Section, { title: 'How the trail works', children: [
       jsxs('ol', { className: 'fa-numbered', children: [
-        jsx('li', { children: jsx('span', { children: 'Foundations, just above, works differently: each of its missions runs in a practice profile Field Academy makes, with a problem planted first. The steps below are for the paths.' }) }),
+        jsx('li', { children: jsx('span', { children: 'Foundations, beside the map, works differently: each of its missions runs in a practice profile Field Academy makes, with a problem planted first. The steps below are for the trails.' }) }),
         jsx('li', { children: jsx('span', { children: 'Pick a trail and open its first mission. Each mission shows how long it takes before you start.' }) }),
         jsx('li', { children: jsx('span', { children: 'Read a short lesson, then see a finished example, then fill the gaps in a half-finished one. The help fades, and then you do it on your own.' }) }),
         jsx('li', { children: jsx('span', { children: 'Try it in your own Hermes, answer one question in your own words, and click Check my work. Each check reads something you made.' }) }),
         jsx('li', { children: jsx('span', { children: 'When you miss, you see exactly what was missing, then a hint, then a worked example. You can retry as often as you like.' }) }),
-        jsx('li', { children: jsx('span', { children: 'Pass every mission and the capstone on a trail to reach its summit and create your Field Record for that path. Already know a level? Take the placement check on the path.' }) }),
+        jsx('li', { children: jsx('span', { children: 'Pass every mission and the capstone on a trail to reach its summit and create your Field Record for that trail. Already know a level? Take the placement check on the trail.' }) }),
       ] }),
       jsx('p', { className: 'hk-small', children: data.credential_note }),
     ] }, 'how'),
@@ -1169,7 +1254,7 @@ function Camp({ rung, track, go, rows, list }) {
             jsx(TrailMark, { status: markStatus(mission.status), here }),
             jsxs('span', { className: 'hk-grow', children: [
               jsx('span', { style: { display: 'block', fontWeight: 600 }, children: mission.title }),
-              jsx('span', { className: 'fa-row-meta', children: `${minutesWords(mission.minutes)} · ${statusWords(mission)}` }),
+              jsx('span', { className: 'fa-row-meta', children: `${mission.where ? `${mission.where} · ` : ''}${minutesWords(mission.minutes)} · ${statusWords(mission)}${mission.engine === 'foundations' ? ' · Practice mission, extra to the Field Record' : ''}` }),
             ] }),
             here ? jsx('span', { className: 'fa-here-tag', children: 'Next' }) : null,
             jsx(Codicon, { name: 'chevron-right', size: 13 }),
@@ -1232,7 +1317,7 @@ function CertificateRoute({ track, go }) {
       jsxs('div', { className: 'hk-grow hk-stack', style: { gap: 3 }, children: [
         jsx(Label, { children: 'Summit' }),
         jsx('strong', { children: route.status === 'issued' ? 'Field Record created' : route.status === 'ready' ? 'Every mission passed' : `${plural(route.remaining, 'mission', 'missions')} to go` }),
-        jsx('p', { className: 'hk-small', children: `${track.verified_missions} of ${track.missions.length} missions on this trail passed.` }),
+        jsx('p', { className: 'hk-small', children: countWords(trailModel(track)) }),
       ] }),
       route.status === 'issued'
         ? jsx(Button, { onClick: () => go({ name: 'certificate', id: track.id }), children: 'View your Field Record' })
@@ -1243,7 +1328,7 @@ function CertificateRoute({ track, go }) {
     route.status === 'ready'
       ? jsxs(Card, { tone: 'warn', tint: true, className: 'hk-enter', children: [
           jsx('h3', { className: 'hk-h2', children: 'Create your Field Record' }, 'h'),
-          jsx('p', { children: 'Every mission on this path passed. Type your name the way you want it on your record. Field Academy writes the record on your computer, and it stays yours.' }, 'p'),
+          jsx('p', { children: 'Every mission on this trail passed. Type your name the way you want it on your record. Field Academy writes the record on your computer, and it stays yours.' }, 'p'),
           jsxs('div', { className: 'hk-actions', key: 'a', children: [
             jsx('div', { style: { minWidth: '16rem', flex: 1 }, children: jsx(Input, { value: name, onChange: event => setName(event.target.value), placeholder: 'Your name', 'aria-label': 'Name on the Field Record',
               onKeyDown: e => { if (e.key === 'Enter' && !e.nativeEvent?.isComposing) claim() } }) }),
@@ -1309,7 +1394,7 @@ function PathView({ track: own, go }) {
   return jsx(Frame, { width: 'narrow', up: () => go({ name: 'map' }), onKey: list.keyProps.onKeyDown, children: [
     jsx(PageHeader, {
       back: jsx(Back, { label: 'Trail map', onClick: () => go({ name: 'map' }) }),
-      eyebrow: jsx(Label, { children: track.eyebrow }), title: `${track.name} path`, lead: track.promise,
+      eyebrow: jsx(Label, { children: track.eyebrow }), title: track.subtitle ? `${track.name}: ${track.subtitle}` : `${track.name} trail`, lead: track.promise,
     }, 'head'),
     track.lore ? jsx('p', { className: 'fa-lore', children: track.lore }, 'lore') : null,
     jsx(ElevationProfile, {
@@ -1318,8 +1403,8 @@ function PathView({ track: own, go }) {
       onOpenSummit: () => scrollToId(`fa-route-${track.id}`),
       children: [
         jsx('p', { children: rung
-          ? `You're at Camp ${rung.number}, ${rung.name}. ${track.verified_missions} of ${track.missions.length} missions passed.`
-          : 'Every mission on this path passed. The summit is yours.' }, 'where'),
+          ? `You're at Camp ${rung.number}, ${rung.name}. ${countWords(model)}`
+          : 'Every mission on this trail passed. The summit is yours.' }, 'where'),
         jsx(Legend, {}, 'legend'),
       ],
     }, 'profile'),
@@ -1877,7 +1962,7 @@ function PassedBanner({ mission, track, go }) {
     jsxs('div', { className: 'hk-grow hk-stack', style: { gap: 2 }, children: [
       jsx('strong', { children: `Passed ${shortDate(mission.passed_at)}` }),
       jsx('p', { children: next ? `Next waypoint: ${next.title} · ${next.level_name} · ${minutesWords(next.minutes)}`
-        : ready ? 'Every mission on this path passed. Your Field Record is ready to create at the summit.' : 'Every mission on this path passed.' }),
+        : ready ? 'Every mission on this trail passed. Your Field Record is ready to create at the summit.' : 'Every mission on this trail passed.' }),
       due ? jsx('p', { className: 'hk-small', children: `This mission comes back for a short review. ${due}.` }) : null,
     ] }),
     next
@@ -1897,8 +1982,8 @@ function MissionView({ mission, track, go, onChanged, changes = [], focus }) {
   const change = changes.find(item => item.mission_id === mission.id)
   return jsx(Frame, { width: 'narrow', up: () => go({ name: 'path', id: track.id }), children: [
     jsx(PageHeader, {
-      back: jsx(Back, { label: `${track.name} path`, onClick: () => go({ name: 'path', id: track.id }) }),
-      eyebrow: jsx(Label, { children: `Field note · ${track.name} path · ${mission.level_name} camp` }),
+      back: jsx(Back, { label: `${track.name} trail`, onClick: () => go({ name: 'path', id: track.id }) }),
+      eyebrow: jsx(Label, { children: `Field note · ${track.name} trail · ${mission.level_name} camp${mission.where ? ` · ${mission.where}` : ''}` }),
       title: mission.title, lead: mission.promise,
     }, 'head'),
     jsx(StepStrip, { mission }, 'strip'),
@@ -1929,13 +2014,13 @@ function CertificateView({ track, go }) {
 
   if (!issued) {
     return jsx(Frame, { width: 'narrow', up, children: [
-      jsx(Back, { label: `${track.name} path`, onClick: up }, 'back'),
+      jsx(Back, { label: `${track.name} trail`, onClick: up }, 'back'),
       jsx('div', { className: 'fa-panel', key: 'none', children: jsxs('div', { className: 'hk-row', style: { flexWrap: 'nowrap', gap: 16 }, children: [
         jsx(CertificateBezel, { track, size: 72 }),
         jsxs('div', { className: 'hk-stack', style: { gap: 3 }, children: [
           jsx(Label, { children: 'Summit' }),
           jsx('h1', { className: 'hk-h1', children: 'No Field Record yet' }),
-          jsx('p', { children: `Pass every mission on the ${track.name} path to create it.` }),
+          jsx('p', { children: `Pass every mission on the ${track.name} trail to create it.` }),
         ] }),
       ] }) }),
     ] })
@@ -1956,7 +2041,7 @@ function CertificateView({ track, go }) {
   }
 
   return jsx(Frame, { up, children: [
-    jsx(Back, { label: `${track.name} path`, onClick: up }, 'back'),
+    jsx(Back, { label: `${track.name} trail`, onClick: up }, 'back'),
     jsx('article', { className: 'fa-cert hk-enter', 'aria-label': `Field Record for ${body.name}, self-issued with Field Academy`, children: jsxs('div', { className: 'fa-cert-inner', children: [
       jsx(Contours, { width: 900, height: 600, seed: 7 }),
       jsx(CertCorners, {}),
@@ -1974,7 +2059,7 @@ function CertificateView({ track, go }) {
         jsx(Label, { plain: true, children: 'Kept by' }),
         jsx('p', { className: 'fa-cert-name', children: body.name }),
         jsx(Label, { plain: true, children: 'who passed every mission on the' }),
-        jsx('h1', { className: 'fa-cert-path', children: `${body.path} path` }),
+        jsx('h1', { className: 'fa-cert-path', children: `${body.path} trail` }),
         jsx('p', { className: 'fa-cert-promise', children: body.path_promise }),
         jsx('p', { children: `Created ${longDate(body.issued_at)}, on the holder's own computer` }),
       ] }),
@@ -2177,7 +2262,7 @@ function PlacementView({ trackId, track, go }) {
     return () => { live = false }
   }, [trackId])
 
-  if (error) return jsx(Frame, { width: 'narrow', up, children: [jsx(Back, { label: `${track?.name || 'Path'} path`, onClick: up }, 'back'), jsx(Result, { result: { passed: false, title: error } }, 'err')] })
+  if (error) return jsx(Frame, { width: 'narrow', up, children: [jsx(Back, { label: `${track?.name || 'This'} trail`, onClick: up }, 'back'), jsx(Result, { result: { passed: false, title: error } }, 'err')] })
   if (!spec) return jsx(Frame, { width: 'narrow', children: jsx(SkeletonPage, { label: 'Getting the placement check', cards: [{ title: true, lines: 5 }] }) })
 
   const answered = spec.questions.every(q => picks[q.id] !== undefined)
@@ -2211,7 +2296,7 @@ function PlacementView({ trackId, track, go }) {
 
   return jsx(Frame, { width: 'narrow', up, children: [
     jsx(PageHeader, {
-      back: jsx(Back, { label: `${track?.name || 'Path'} path`, onClick: up }),
+      back: jsx(Back, { label: `${track?.name || 'This'} trail`, onClick: up }),
       eyebrow: jsx(Label, { children: 'Placement check' }),
       title: spec.title,
       lead: spec.intro,
@@ -2239,7 +2324,7 @@ function PlacementView({ trackId, track, go }) {
           }),
           jsxs('div', { className: 'hk-actions', children: [
             jsx(Button, { variant: 'secondary', onClick: () => { setOutcome(null); setPicks({}); setApplied(null) }, children: 'Take it again' }),
-            jsx(Button, { onClick: up, children: `Back to the ${track?.name || ''} path` }),
+            jsx(Button, { onClick: up, children: `Back to the ${track?.name || ''} trail` }),
           ] }, 'after'),
         ]
       : [
@@ -2279,9 +2364,9 @@ function Offline({ error, onRetry }) {
 /** The Deployer path needs the 0.6.0 backend. An older one answers 404, so say what to do instead of showing a blank page. */
 function DeployerUnavailable({ loading, error, go }) {
   return jsx(Frame, { width: 'narrow', up: () => go({ name: 'map' }), children: [
-    jsx(PageHeader, { back: jsx(Back, { label: 'Trail map', onClick: () => go({ name: 'map' }) }), eyebrow: jsx(Label, { children: 'For clients, in practice' }), title: 'Deployer path', lead: loading ? 'Loading.' : 'The part of Field Academy that saves your progress does not know this path yet.' }, 'head'),
+    jsx(PageHeader, { back: jsx(Back, { label: 'Trail map', onClick: () => go({ name: 'map' }) }), eyebrow: jsx(Label, { children: 'For clients, in practice' }), title: 'Guide trail', lead: loading ? 'Loading.' : 'The part of Field Academy that saves your progress does not know this trail yet.' }, 'head'),
     loading ? null : jsx(Card, { key: 'why', tone: 'warn', children: jsxs('div', { className: 'hk-stack', children: [
-      jsx('p', { children: 'The Deployer path needs Field Academy 0.6.0 or newer running inside Hermes. Quit Hermes and open it again to load it.' }),
+      jsx('p', { children: 'The Guide trail needs Field Academy 0.6.0 or newer running inside Hermes. Quit Hermes and open it again to load it.' }),
       error ? jsx('p', { className: 'hk-small', children: errorText(error) }) : null,
     ] }) }),
   ] })
@@ -2303,8 +2388,15 @@ function Page() {
   const [away, setAway] = useState(false)
   const query = usePassport()
   const deployerQuery = useDeployer()
-  const deployer = deployerQuery.data && deployerQuery.data.track ? deployerQuery.data : null
+  const liveDeployer = deployerQuery.data && deployerQuery.data.track ? deployerQuery.data : null
   const [view, setView] = useState(() => readView())
+  const [copies] = useState(() => keptCopies())
+
+  // The cards' own requests go out now, beside the passport and the Guide trail, not after the map has drawn.
+  const startCards = () => {
+    startEarly('/foundations')
+    startEarly('/replay/sample')
+  }
 
   const goHome = async () => {
     const ok = await comeHome()
@@ -2313,21 +2405,72 @@ function Page() {
     if (ok) {
       refresh()
       refreshDeployer()
+      if (view.name === 'map') startCards()
     }
   }
 
   // Opening a practice chat moved the app to the practice profile. Coming back to this page moves it home first.
-  useEffect(() => { if (!homeReady) goHome() }, [])
+  useEffect(() => {
+    if (!homeReady) goHome()
+    else if (view.name === 'map') startCards()
+  }, [])
 
   useEffect(() => {
-    if (deployer) syncVersion(deployer)
-  }, [Boolean(deployer)])
+    if (liveDeployer) syncVersion(liveDeployer)
+  }, [Boolean(liveDeployer)])
+
+  const deployerSettled = !(deployerQuery.loading && !deployerQuery.data)
+  const plan = openPlan({
+    live: { passport: query.data, deployer: deployerQuery.data, deployerSettled },
+    cached: copies, view: view.name, homeReady,
+  })
+  const deployer = plan.deployer && plan.deployer.track ? plan.deployer : null
+  const offline = homeReady && Boolean(query.error) && !query.data && deployerSettled
+  const previewing = plan.state === 'ready' && plan.preview && !away && !offline
+
+  // While the map is a kept copy, nothing on it acts on the copy. A click on a control is held and replayed on that
+  // control once the live answers have redrawn it; navigation waits the same way (opencache.js, previewIntent).
+  const preview = useRef(previewing)
+  preview.current = previewing
+  const held = useRef(null)
+  const [holding, setHolding] = useState(false)
 
   // A capability or teaching mission placed in a trail's camp runs on the practice-profile engine, like Foundations.
-  const go = next => {
+  const goNow = next => {
     const id = next && (next.name === 'mission' ? next.id : next.name === 'deployer' ? next.part : '')
     setView(/^f\./.test(String(id || '')) ? { name: 'f-mission', id } : next)
   }
+  const go = next => {
+    if (!preview.current) return goNow(next)
+    held.current = { next }
+    setHolding(true)
+  }
+  const onPreviewEvent = event => {
+    if (!preview.current) return
+    const what = previewIntent(event)
+    if (what === 'pass') return
+    event.preventDefault()
+    event.stopPropagation()
+    if (what === 'hold') {
+      held.current = { control: event.target.closest(HOLD_SELECTOR) }
+      setHolding(true)
+    }
+  }
+  useEffect(() => {
+    if (previewing) return
+    if (!held.current) {
+      if (holding) setHolding(false)
+      return
+    }
+    const { control, next } = held.current
+    held.current = null
+    setHolding(false)
+    if (control) {
+      if (control.isConnected) control.click()
+    } else if (next) {
+      goNow(next)
+    }
+  }, [previewing])
 
   // An in-chat offer can ask for a mission while the page is already open.
   useEffect(() => {
@@ -2342,12 +2485,14 @@ function Page() {
   let body = null
   if (away) {
     body = jsx(AwayFromHome, { onRetry: goHome })
-  } else if (!homeReady || query.loading) {
-    body = jsx(Frame, { children: jsx(SkeletonPage, { label: 'Loading your paths', cards: MAP_SHAPE }) })
-  } else if (query.error && !query.data) {
+  } else if (offline) {
     body = jsx(Offline, { error: query.error, onRetry: () => query.refetch() })
+  } else if (plan.state === 'skeleton') {
+    // Wait for the Guide trail too, so the map and its counts appear once, not 4 then 5. Only the very first open
+    // waits here; after that the map is drawn from the kept copy (open fast, above).
+    body = jsx(Frame, { children: jsx(SkeletonPage, { label: 'Loading your trails', cards: MAP_SHAPE }) })
   } else {
-    const data = query.data || {}
+    const data = plan.passport || {}
     const track = (data.tracks || []).find(item => item.id === view.id)
     if (view.name === 'foundations') {
       body = jsx(foundationsViews.FoundationsPath, { go })
@@ -2384,8 +2529,19 @@ function Page() {
   }
 
   return jsxs('div', { className: 'fa-root', style: { height: '100%', minHeight: 0, display: 'grid', gridTemplateRows: 'auto 1fr' }, children: [
-    query.stale ? jsx('div', { className: 'hk', style: { padding: '8px 24px 0' }, children: jsx(StaleNotice, { error: query.error, updatedAt: query.updatedAt, onRetry: query.refetch }) }) : jsx('span', {}),
-    jsx('div', { style: { minHeight: 0 }, children: body }, `${view.name}:${view.id || ''}`),
+    // A failed refresh of either read shows the notice, and Refresh asks for both: the Guide trail has no poll of its own, so
+    // without this a timed-out first read would leave the map one trail short with nothing said.
+    // Only over a page that is showing something: with nothing kept, the Offline card says it once, in plain words.
+    query.data && (query.stale || (deployerQuery.error && !deployerQuery.data && !deployerQuery.loading))
+      ? jsx('div', { className: 'hk', style: { padding: '8px 24px 0' }, children: jsx(StaleNotice, { error: new Error(errorText(query.error || deployerQuery.error)), updatedAt: query.updatedAt, onRetry: refreshDeployer }) })
+      : jsx('span', {}),
+    jsx('div', {
+      style: { minHeight: 0, cursor: holding ? 'progress' : undefined },
+      'aria-busy': previewing ? 'true' : undefined,
+      onClickCapture: onPreviewEvent,
+      onKeyDownCapture: onPreviewEvent,
+      children: body,
+    }, `${view.name}:${view.id || ''}`),
   ] })
 }
 
@@ -2399,6 +2555,166 @@ function StatusChip() {
   return jsxs('button', { type: 'button', className: 'hk fa-chip', onClick: () => host.navigate(ROUTE), children: [
     track ? jsx(Ring, { value: track.missions.length ? track.verified_missions / track.missions.length : 0, size: 14, stroke: 2, tone: 'info' }) : null,
     label,
+  ] })
+}
+
+/* ---------------------------------------------------------------- settings -- */
+//
+// Field Academy's two switches (state.ai_settings, GET and POST /settings/ai). Shown in Settings, Plugins, Field
+// Academy where the host offers ctx.registerSettingsPage (0.22.0 and later), and at the foot of the home page either way.
+
+const SWITCHES = [
+  { name: 'ai_help', label: 'AI help',
+    text: 'The Field guide, Explain my miss, replay notes and Score my answer ask your own model. Off, Field Academy makes no model calls. Checks still work, because they never use a model.' },
+  { name: 'practice_offer', label: 'Suggest missions while I chat',
+    text: 'Field Academy asks you about this the first time it opens. On, after you pick a trail, Hermes may end a reply in your own chats with one line suggesting a mission that fits what you were just doing. Off, Field Academy adds nothing to any chat.' },
+]
+
+// One copy of the two switches for the whole page, so the card at the top of the home page and the Settings panel at
+// its foot always agree (flip one and the other follows).
+const aiSettings = { values: null, problem: '', busy: '', loading: false, listeners: new Set() }
+function tellAiSettings(patch) {
+  Object.assign(aiSettings, patch)
+  for (const listener of aiSettings.listeners) listener()
+}
+// Hermes can still be starting when the page opens (the read then fails with "Gateway starting"), so a failed read
+// tries again every three seconds for about a minute, while a page is still showing the switches.
+function loadAiSettings(attempt) {
+  aiSettings.loading = true
+  ctxRest('/settings/ai').then(values => { aiSettings.loading = false; tellAiSettings({ values, problem: '' }) }).catch(error => {
+    tellAiSettings({ problem: errorText(error) })
+    if (attempt < 20 && aiSettings.listeners.size) setTimeout(() => loadAiSettings(attempt + 1), 3000)
+    else aiSettings.loading = false
+  })
+}
+function useAiSettings() {
+  const [, bump] = useState(0)
+  useEffect(() => {
+    const listener = () => bump(n => n + 1)
+    aiSettings.listeners.add(listener)
+    // Read again each time a page showing the switches opens, so a change made on Hermes's own Settings page (or
+    // by Delete my data) shows here. One read at a time.
+    if (!aiSettings.loading) loadAiSettings(0)
+    return () => { aiSettings.listeners.delete(listener) }
+  }, [])
+  const flip = async (name, on) => {
+    tellAiSettings({ busy: name, problem: '' })
+    try {
+      tellAiSettings({ values: await ctxRest('/settings/ai', { method: 'POST', body: { [name]: on } }), busy: '' })
+    } catch (error) {
+      tellAiSettings({ problem: errorText(error), busy: '' })
+    }
+  }
+  return { values: aiSettings.values, problem: aiSettings.problem, busy: aiSettings.busy, flip }
+}
+
+function SettingsPanel() {
+  const { values, problem, busy, flip } = useAiSettings()
+  return jsxs('div', { className: 'hk-stack fa-settings', style: { gap: 12 }, children: [
+    ...SWITCHES.map(item => jsxs('label', { className: 'fa-switch', children: [
+      jsx('input', { type: 'checkbox', checked: Boolean(values && values[item.name]), disabled: !values || Boolean(busy),
+        onChange: event => flip(item.name, event.target.checked), 'aria-describedby': `fa-set-${item.name}` }),
+      jsxs('span', { className: 'hk-stack', style: { gap: 2 }, children: [
+        jsx('strong', { children: `${item.label}: ${!values ? '…' : values[item.name] ? 'on' : 'off'}` }),
+        jsx('span', { id: `fa-set-${item.name}`, className: 'hk-small', children: item.text }),
+      ] }),
+    ] }, item.name)),
+    problem ? jsx('p', { role: 'status', className: 'hk-small', children: problem }) : null,
+  ] })
+}
+
+// The same switch, at the top of the home page beside Start here. The first time, it is a question: Field Academy asks
+// before it ever adds a line to a chat (Nov 11). Once answered, it shows which way it is set and one button to change it.
+function ChatSuggestCard() {
+  const { values, problem, busy, flip } = useAiSettings()
+  if (!values) return null
+  const on = Boolean(values.practice_offer)
+  const asked = Boolean(values.practice_offer_asked)
+  const trouble = problem ? jsx('p', { role: 'status', className: 'hk-small', children: problem }) : null
+  // A strip across the page above the map and Start here: words on the left, the buttons on the right. It wraps to
+  // two rows when the page is narrow.
+  const strip = (words, buttons) => jsxs('div', { className: 'fa-suggest', style: { display: 'flex', flexWrap: 'wrap', gap: '10px 24px', alignItems: 'center', justifyContent: 'space-between' }, children: [
+    jsx('div', { className: 'hk-stack', style: { gap: 4, flex: '1 1 420px', minWidth: 0 }, children: words }),
+    jsx('div', { className: 'hk-row', style: { gap: 10, flexWrap: 'wrap', flex: '0 0 auto' }, children: buttons }),
+  ] })
+  if (!asked) {
+    return jsx(Card, { tone: 'info', tint: true, className: 'hk-enter', children: strip([
+      jsx(Label, { children: 'One question' }, 'l'),
+      jsx('h2', { className: 'hk-h2', children: 'Want mission suggestions while you chat?' }, 'h'),
+      jsx('p', { children: 'Say yes and Field Academy shows up in your Hermes chats: once you pick a trail, Hermes may end a reply with one line suggesting a mission that fits what you were just doing. It adds nothing unless you say yes.' }, 'p'),
+      jsx('span', { className: 'hk-small', children: 'Only in the desktop app and terminal, never in messaging apps or scheduled runs. You can change this any time.' }, 's'),
+      trouble,
+    ], [
+      jsx(Button, { loading: busy === 'practice_offer', onClick: () => flip('practice_offer', true), children: 'Yes, suggest missions' }, 'y'),
+      jsx(Button, { variant: 'secondary', disabled: Boolean(busy), onClick: () => flip('practice_offer', false), children: 'Not now' }, 'n'),
+    ]) })
+  }
+  return jsx(Card, { tone: on ? 'info' : undefined, children: strip([
+    jsx(Label, { children: 'In your chats' }, 'l'),
+    jsx('strong', { children: on ? 'Mission suggestions are on' : 'Mission suggestions are off' }, 'h'),
+    jsx('span', { className: 'hk-small', children: on
+      ? 'Once you pick a trail, Hermes may end a reply with one line suggesting a mission that fits what you were just doing. Say no and it moves on.'
+      : 'Field Academy adds nothing to your Hermes chats. Turn this on and, once you pick a trail, Hermes may suggest a mission that fits what you were just doing.' }, 'p'),
+    trouble,
+  ], [
+    jsx(Button, { variant: on ? 'secondary' : 'default', disabled: Boolean(busy), 'aria-pressed': on,
+      onClick: () => flip('practice_offer', !on), children: on ? 'Turn off' : 'Turn on' }, 'b'),
+  ]) })
+}
+
+// Delete my Field Academy data (forget.delete_data, POST /data/delete). Two choices, each behind its own yes. Any
+// practice profile still set up is deleted first, the same way a mission's Delete practice does, because once the
+// database is gone Field Academy can no longer find it.
+const DELETE_CHOICES = {
+  progress: { keep: true, button: 'Delete my progress', ask: 'Delete your progress, answers, practice labs and history? Your saved Field Records stay.', yes: 'Yes, delete my progress' },
+  everything: { keep: false, button: 'Delete everything', ask: 'Delete everything Field Academy keeps, saved Field Records included? This can\'t be undone.', yes: 'Yes, delete everything' },
+}
+
+function DataPanel() {
+  const [sure, setSure] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [words, setWords] = useState('')
+  const [problem, setProblem] = useState('')
+  const run = async which => {
+    setBusy(true)
+    setProblem('')
+    try {
+      const { practice_left: left = [] } = await ctxRest('/data/delete')
+      for (const name of left) {
+        if (typeof host.deleteProfile !== 'function') {
+          throw new Error(`This Hermes app can't delete a profile from here. Delete ${name} in Settings, Profiles, then try again.`)
+        }
+        await ctxRest('/foundations/practice/remove', { method: 'POST', body: { name, confirm: true } })
+        await host.deleteProfile(name)
+        await ctxRest('/foundations/practice/removed', { method: 'POST', body: { name } })
+      }
+      const out = await ctxRest('/data/delete', { method: 'POST', body: { keep_records: DELETE_CHOICES[which].keep } })
+      setWords(out.words)
+      setSure('')
+      // The page's open-fast copy of the map would otherwise show the deleted progress on the next open (Nov 11 check).
+      try { for (const kind of OPEN_CACHE_KINDS) api?.storage?.remove?.(`open-cache.${kind}`) } catch (e) { /* nothing kept */ }
+      queryClient.invalidateQueries()
+    } catch (error) {
+      setProblem(errorText(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+  const choice = DELETE_CHOICES[sure]
+  return jsxs('div', { className: 'hk-stack', style: { gap: 10 }, children: [
+    jsx('p', { style: { margin: 0 }, children: 'Field Academy keeps your progress and saved Field Records on this computer only. Delete them here. Your own profiles and any record you saved somewhere else are never touched.' }),
+    choice
+      ? jsxs('div', { className: 'hk-actions', children: [
+        jsx('span', { children: choice.ask }),
+        jsx(Button, { variant: 'destructive', loading: busy, onClick: () => run(sure), children: choice.yes }),
+        jsx(Button, { variant: 'ghost', disabled: busy, onClick: () => setSure(''), children: 'Cancel' }),
+      ] })
+      : jsxs('div', { className: 'hk-actions', children: [
+        jsx(Button, { variant: 'secondary', onClick: () => { setWords(''); setSure('progress') }, children: DELETE_CHOICES.progress.button }),
+        jsx(Button, { variant: 'ghost', onClick: () => { setWords(''); setSure('everything') }, children: DELETE_CHOICES.everything.button }),
+      ] }),
+    words ? jsx('p', { role: 'status', className: 'hk-small', children: words }) : null,
+    problem ? jsx('p', { role: 'alert', className: 'hk-small', children: problem }) : null,
   ] })
 }
 
@@ -2419,7 +2735,7 @@ function PracticeOffer({ attrs }) {
 export default {
   id: 'field-academy',
   name: 'Field Academy',
-  description: 'Learn Hermes along four paths, Beginner to Advanced, then a capstone on your own problem, with checks on real work, spaced review and a Field Record you keep for each path.',
+  description: 'The School of Hermes. Learn Hermes by using it: eleven Foundations missions in practice profiles, then five trails, Messenger, Traveler, Crossroads, Boundary Keeper and Guide, done in your own Hermes, with checks that read Hermes itself, spaced review and a Field Record you keep.',
   defaultEnabled: true,
   register(ctx) {
     api = ctx
@@ -2435,10 +2751,15 @@ export default {
         keywords: ['learn', 'field record', 'training', 'hermes', 'academy', 'path'],
         run: () => host.navigate(ROUTE),
       }],
-      keybinds: [{ id: 'field-academy.open', label: 'Field Academy: open your paths', run: () => host.navigate(ROUTE) }],
+      keybinds: [{ id: 'field-academy.open', label: 'Field Academy: open your trails', run: () => host.navigate(ROUTE) }],
       extra: [
         { id: 'practice', area: TRANSCRIPT_DIRECTIVE_AREA, data: { name: DIRECTIVE, render: ({ attrs }) => jsx(PracticeOffer, { attrs }) } },
       ],
     })
+    // Settings, Plugins, Field Academy: the same two switches. Feature-detected, as the SDK asks.
+    if (typeof ctx.registerSettingsPage === 'function') {
+      ctx.registerSettingsPage({ id: 'settings', title: 'Field Academy', icon: 'mortar-board',
+        render: () => jsx('div', { className: 'hk hk-stack', style: { padding: 4, gap: 20 }, children: [jsx(SettingsPanel, {}, 's'), jsx(DataPanel, {}, 'd')] }) })
+    }
   },
 }

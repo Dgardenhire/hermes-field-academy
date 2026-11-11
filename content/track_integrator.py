@@ -597,7 +597,7 @@ MISSIONS = {
         "lab": {
             "body": (
                 "Hermes asks before a risky command, not before a connected tool acts.\n"
-                "1. Set command approvals to manual (approvals.mode in config.yaml).\n"
+                "1. In Settings, set command approvals to manual yourself.\n"
                 "2. Make a scratch folder of copies.\n"
                 "3. Ask Hermes to delete it. Turn it down once, then approve it.\n"
                 "4. Note each choice."

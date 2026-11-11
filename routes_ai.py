@@ -6,6 +6,8 @@ page's other requests keep moving while a model thinks. Shapes are fixed by the 
 
 * ``POST /ai/grade/{mission_id}/{step_id}``  body ``{answer}``: Score my answer (``grading.grade_inline``).
 * ``GET|POST /settings/ai``  body ``{ai_help?, practice_offer?}``: the two switches.
+* ``POST /data/delete``  body ``{keep_records: bool}``: Delete my progress (true) or Delete everything (false), from
+  ``forget.delete_data``. A 400 names any practice profile still set up.
 * ``GET /guide/{attempt_id}?step=&active=``: the Field guide column (``guide.guide_view``). ``active=practice`` while
   the practice profile is the active one: nothing is fetched then.
 * ``POST /guide/{attempt_id}/help``  body ``{rung: 1|2|3, step}`` or ``{action: "explain"|"do_it_with_me", step}``.
@@ -62,6 +64,18 @@ def mount(router) -> None:
     async def ai_settings_set(body: dict):
         body = body or {}
         return guard(state.set_ai_settings, body.get("ai_help"), body.get("practice_offer"))
+
+    @router.get("/data/delete")
+    async def data_delete_check():
+        from . import forget
+
+        return {"practice_left": forget.live_practice()}
+
+    @router.post("/data/delete")
+    async def data_delete(body: dict):
+        from . import forget
+
+        return guard(forget.delete_data, (body or {}).get("keep_records"))
 
     try:
         from . import recorder

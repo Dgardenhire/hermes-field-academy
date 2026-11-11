@@ -28,8 +28,8 @@ KINDS = ("text", "long", "choice", "number")
 # Missions 2, 5 and 6's ids from the part-A branch: extra_connector (M2's unused connector), steps_in_memory and
 # greedy_neighbor (M5). M2's extra toolsets and M6's client fact have no standalone planter yet, so they aren't drawn.
 REVIEW_A = ("write_approval", "memory_full", "extra_connector", "steps_in_memory", "greedy_neighbor")
-REVIEW_B = ("twin_connector", "always_allow", "approvals_off", "broken_connector")
-CONNECTOR_KINDS = frozenset({"twin_connector", "broken_connector", "extra_connector"})
+REVIEW_B = ("twin_connector", "open_connector", "broken_connector")
+CONNECTOR_KINDS = frozenset({"twin_connector", "open_connector", "broken_connector", "extra_connector"})
 
 
 # --------------------------------------------------------------- lab notes --

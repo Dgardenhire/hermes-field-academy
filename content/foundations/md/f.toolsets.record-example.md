@@ -14,9 +14,10 @@ Kofi's entry, from his run:
 >
 > **Evidence:** the Tools tab list from the profile's settings; the chat where `date` ran nothing; the brief.
 >
-> **What I missed:** a connector called `notes` reached the whole practice profile folder, settings and memory
-> included. It was in the settings the whole time. My toolsets were right and Hermes could still rewrite its own
-> `config.yaml` through it. I switched it off.
+> **What I missed:** a connector called `notes` reached `settings-copy`, Field Academy's stand-in for the profile's
+> own folder, settings and memory included. It was in the settings the whole time. My toolsets were right and a chat
+> could still rewrite `config.yaml` through it. Aimed at the real folder, it could have read the sign-in too. I
+> switched it off.
 >
 > **Transfer:** a chat there gets file and web. Terminal is on the Tools tab list and also switched off in
 > `agent.disabled_toolsets`, so it can't run a program. It can still change anything in their home folder through

@@ -107,18 +107,25 @@ def set_use_goal(text="", skipped=False):
 
 # ── AI help and the in-chat practice offer (0.9 premium) ─────────────────────
 #
-# Two switches in Settings. ``ai_help`` turns every Field Academy model call off: the guide column, Explain my miss,
+# Two switches, shown by the page's SettingsPanel at the foot of the home page and on Hermes's Settings, Plugins, Field
+# Academy page (ctx.registerSettingsPage). ``ai_help`` turns every Field Academy model call off: the guide column, Explain my miss,
 # replay pins, Do it with me's line and inline grading. Checks never need a model, so they keep working. Default on.
 # ``practice_offer`` is the one-sentence practice offer the ``pre_llm_call`` hook can add to a learner's own chat. It
-# defaults on, as it always has, and still stays silent until the learner picks a path (claim_spotlight needs a
-# recorded opportunity on the learner's track).
+# is ASKED FOR: the first time the home page opens, a card at the top asks "Want mission suggestions while you chat?"
+# with Yes and Not now (Nov 11, Damon: ask people to approve it, don't decide for them either way). Until they
+# answer, it is off and nothing is added to any chat. ``practice_offer_asked`` says whether they have answered (a
+# stored ``setting:practice_offer`` either way), so the page knows to ask once and then just show the switch. Even
+# when on it stays silent until the learner picks a path (claim_spotlight needs a recorded opportunity on the learner's track).
 
 AI_SWITCHES = ("ai_help", "practice_offer")
+AI_DEFAULTS = {"ai_help": "1", "practice_offer": "0"}
 
 
 def ai_settings():
     with _connection() as conn:
-        return {name: _meta_get(conn, f"setting:{name}", "1") != "0" for name in AI_SWITCHES}
+        out = {name: _meta_get(conn, f"setting:{name}", AI_DEFAULTS[name]) != "0" for name in AI_SWITCHES}
+        out["practice_offer_asked"] = _meta_get(conn, "setting:practice_offer", None) is not None
+        return out
 
 
 def set_ai_settings(ai_help=None, practice_offer=None):
@@ -1580,7 +1587,7 @@ def issue_certificate(track_id, name):
     remaining = track["certificate"]["remaining"]
     if remaining:
         noun = "mission" if remaining == 1 else "missions"
-        raise ValueError(f"Pass every mission on this path first. You have {remaining} {noun} to go.")
+        raise ValueError(f"Pass every mission on this trail first. You have {remaining} {noun} to go.")
     if not clean_name:
         raise ValueError("Type the name you want on your Field Record.")
     issued_at = _now()

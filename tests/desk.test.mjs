@@ -181,3 +181,12 @@ test('Compare wires Retry to the replay, and useReplay gives up after a wait', (
   assert.match(d, /retry: \(\) => setTries/)
   assert.doesNotMatch(f, /heldText = held \? String\(held\.text/)
 })
+
+test('fixChanges shows the file whose numbers changed, not the first one listed (Nov 11 live check)', () => {
+  const facts = (mem, user) => [{ label: 'MEMORY.md', value: mem }, { label: 'USER.md', value: user }]
+  const first = { checks: [{ id: 'in_file', passed: false, facts: facts('457 of 2,200 characters', '0 of 1,375 characters') }] }
+  const after = { checks: [{ id: 'in_file', passed: true, title: 'Your fact is in USER.md', facts: facts('457 of 2,200 characters', '58 of 1,375 characters') }] }
+  const [ch] = fixChanges(first, after)
+  assert.equal(ch.was, 'USER.md: 0 of 1,375 characters')
+  assert.equal(ch.now, 'USER.md: 58 of 1,375 characters')
+})

@@ -289,40 +289,79 @@ class Safety(MissionCase):
         text = yk.set_values(text, {"approvals.mode": mode, "checkpoints.enabled": checkpoints, "command_allowlist": list(allow)})
         path.write_text(text, encoding="utf-8")
 
-    def test_each_plant_is_detected_and_fixed(self):
-        aid = self.lab(["always_allow"])
-        key = self.practice.planted("academy-practice")["always_allow"]["key"]
-        self.assertIn(key, self.mod("hermes_read_b").settings(self.h)["command_allowlist"])
+    def untrust(self, server):
+        path = self.h / "config.yaml"
+        path.write_text(self.mod("yaml_keys").set_values(path.read_text(encoding="utf-8"), {f"mcp_servers.{server}.trust": "untrusted"}), encoding="utf-8")
+
+    def sample(self):
+        return {"source": "rollback.list", "checkpoints": [{"message": "pre-rollback snapshot (restoring to 1a2b3c4d)"}]}
+
+    def test_the_plant_is_an_open_connector_and_approvals_are_never_touched(self):
+        aid = self.lab(["open_connector"])
+        read = self.mod("hermes_read_b").settings(self.h)
+        self.assertNotEqual(read["approvals_mode"], "off")
+        self.assertEqual(read["command_allowlist"], [], "Field Academy never saves an always-allow answer")
+        text = (self.h / "config.yaml").read_text(encoding="utf-8")
+        self.assertNotIn("yolo", text.lower())
+        server = self.practice.planted("academy-practice")["open_connector"]["server"]
+        verify = self.mod("plants_b").REGISTRY["open_connector"]["verify"]
+        details = self.practice.planted("academy-practice")["open_connector"]
+        self.assertFalse(verify(self.h, details)["fixed"])
         self.assertTrue((self.folder() / "originals" / "notes.md").exists())
         hb.checkpoint_branch(self.h, self.folder())
-        self.settings(allow=[])
-        grid = {"tb": "asks", "ta": "undo", "fb": "nothing", "fa": "undo", "cb": "no_connector", "ca": "nothing"}
-        self.note(aid, **grid)
-        sample = {"source": "rollback.list", "checkpoints": [{"message": "pre-rollback snapshot (restoring to 1a2b3c4d)"}]}
-        out = self.first(aid, sample)
-        self.assertTrue(out["passed"], out)
-        plant = self.f.attempt_view(aid)["compare"]["plants"][0]
-        self.assertEqual(plant["kind"], "always_allow")
-        self.assertFalse(plant["fired"])
+        self.settings()
+        self.note(aid, tb="asks", ta="undo", fb="nothing", fa="undo", cb="nothing", ca="nothing")
+        out = self.first(aid, self.sample())
+        self.assertTrue(self.visible(out)["approvals_safe"], out)
+        self.assertTrue(self.visible(out)["grid_matches"], out)
+        self.untrust(server)
+        self.assertTrue(verify(self.h, details)["fixed"])
 
-    def test_approvals_off_left_on_fails_check_three(self):
-        aid = self.lab(["approvals_off"])
-        self.assertEqual(self.mod("hermes_read_b").settings(self.h)["approvals_mode"], "off")
+    def test_a_pass_after_the_learner_marks_the_connector_untrusted(self):
+        aid = self.lab(["open_connector"])
+        server = self.practice.planted("academy-practice")["open_connector"]["server"]
+        hb.checkpoint_branch(self.h, self.folder())
+        self.settings(allow=[])
+        self.untrust(server)
+        self.note(aid, tb="asks", ta="undo", fb="nothing", fa="undo", cb="asks", ca="nothing")
+        out = self.first(aid, self.sample())
+        self.assertTrue(out["passed"], [(c["id"], c.get("detail")) for c in out["checks"] if not c["passed"]])
+        plant = self.f.attempt_view(aid)["compare"]["plants"][0]
+        self.assertEqual(plant["kind"], "open_connector")
+
+    def test_approvals_the_learner_switches_off_fail_check_three(self):
+        """The learner's own change, made in Hermes: Field Academy reads it and says so. It never makes it."""
+        aid = self.lab(["open_connector"])
         hb.checkpoint_branch(self.h, self.folder())
         self.settings(mode="off")
-        self.note(aid, tb="nothing", ta="undo", fb="nothing", fa="undo", cb="no_connector", ca="nothing")
-        out = self.first(aid, {"source": "rollback.list", "checkpoints": [{"message": "pre-rollback snapshot (restoring to aa)"}]})
+        self.note(aid, tb="nothing", ta="undo", fb="nothing", fa="undo", cb="nothing", ca="nothing")
+        out = self.first(aid, self.sample())
         self.assertFalse(self.visible(out)["approvals_safe"])
         self.assertTrue(self.visible(out)["grid_matches"], "the grid describes the profile as left, so it matches")
 
-    def test_without_the_apps_snapshot_list_check_two_says_how_to_look(self):
-        aid = self.lab(["always_allow"])
+    def test_an_always_allow_the_learner_saved_fails_check_three(self):
+        aid = self.lab(["open_connector"])
         hb.checkpoint_branch(self.h, self.folder())
-        self.note(aid, tb="asks", ta="undo", fb="nothing", fa="undo", cb="no_connector", ca="nothing")
+        self.settings(allow=["recursive delete"])
+        self.note(aid, tb="some_slip", ta="undo", fb="nothing", fa="undo", cb="nothing", ca="nothing")
+        out = self.first(aid, self.sample())
+        self.assertFalse(self.visible(out)["approvals_safe"])
+        self.assertTrue(self.visible(out)["grid_matches"])
+
+    def test_without_the_apps_snapshot_list_check_two_says_how_to_look(self):
+        aid = self.lab(["open_connector"])
+        hb.checkpoint_branch(self.h, self.folder())
+        self.note(aid, tb="asks", ta="undo", fb="nothing", fa="undo", cb="nothing", ca="nothing")
         out = self.first(aid)
         check = next(c for c in out["checks"] if c["id"] == "rolled_back")
         self.assertFalse(check["readable"])
         self.assertIn("/rollback", check["detail"])
+
+    def test_no_planted_kind_writes_an_approval_setting(self):
+        for kind in ("open_connector",):
+            self.assertIn(kind, self.mod("plants").REGISTRY)
+        for gone in ("always_allow", "approvals_off"):
+            self.assertNotIn(gone, self.mod("plants").REGISTRY)
 
 
 # --------------------------------------------------------------- mission 10 --
@@ -384,12 +423,12 @@ class Review(MissionCase):
             self.assertIn(got[0], self.fb.REVIEW_A)
             self.assertIn(got[1], self.fb.REVIEW_B)
             self.assertFalse(set(got) <= self.fb.CONNECTOR_KINDS)
-        self.assertNotIn("always_allow", self.fb.review_pick(["always_allow", "twin_connector", "approvals_off"], "s"))
+        self.assertNotIn("twin_connector", self.fb.review_pick(["twin_connector", "open_connector"], "s"))
         self.assertEqual(self.fb.review_pick(["memory_full", "write_approval"], "s", {"memory_full", "write_approval", "twin_connector"}),
                          ["memory_full", "twin_connector"], "a group with nothing new gives back the kind met longest ago")
 
     def test_start_snapshot_accounts_and_the_record(self):
-        aid = self.lab(["memory_full", "approvals_off"], level="advanced")
+        aid = self.lab(["memory_full", "open_connector"], level="advanced")
         base = self.fb.baseline_view("academy-practice")
         self.assertTrue(base["ready"])
         self.assertTrue(base["memory"], "the memory plant is visible in the snapshot, unlabelled")

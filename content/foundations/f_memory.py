@@ -117,7 +117,7 @@ MISSION = {'id': 'f.memory',
                  '1. Pick one real fact Hermes should know about how you work: a deadline, a preference, a tool you '
                  'use. Keep it to one line.\n'
                  '2. Press **Open practice chat** and ask Hermes to save it to memory.\n'
-                 '3. Prove each of the four checks above. How you prove them is up to you. For a new chat, press '
+                 '3. Prove each of the four checks under How you\'ll know. How you prove them is up to you. For a new chat, press '
                  '**Open practice chat** again. For the file, press **Show memory file**; it shows both `MEMORY.md` '
                  'and `USER.md`.\n'
                  '\n'

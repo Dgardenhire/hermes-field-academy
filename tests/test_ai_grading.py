@@ -252,8 +252,8 @@ class GradeRoute(GradingCase):
         self.assertEqual(caught.exception.status_code, 400)
 
     def test_settings_route(self):
-        self.assertEqual(self.call("GET", "/settings/ai"), {"ai_help": True, "practice_offer": True})
-        self.assertEqual(self.call("POST", "/settings/ai", {"ai_help": False}), {"ai_help": False, "practice_offer": True})
+        self.assertEqual(self.call("GET", "/settings/ai"), {"ai_help": True, "practice_offer": False, "practice_offer_asked": False})
+        self.assertEqual(self.call("POST", "/settings/ai", {"ai_help": False}), {"ai_help": False, "practice_offer": False, "practice_offer_asked": False})
         with self.assertRaises(Exception) as caught:
             self.call("POST", "/settings/ai", {"ai_help": "off"})
         self.assertEqual(caught.exception.status_code, 400)

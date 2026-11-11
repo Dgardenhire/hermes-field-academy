@@ -301,6 +301,11 @@ class WideConnector(Case):
         self.assertTrue(verify(self.home, {"server": "notes"}, "")["fixed"])
         hb.write_servers(self.home, hb.server_block("notes", ["-y", hb.FS, str(self.home)], enabled=False))
         self.assertTrue(verify(self.home, {"server": "notes"}, "")["fixed"])
+        copy = self.home / "settings-copy"
+        hb.write_servers(self.home, hb.server_block("notes", ["-y", hb.FS, str(copy)]))
+        self.assertFalse(verify(self.home, {"server": "notes"}, "")["fixed"], "the settings copy stands in for the profile folder")
+        hb.write_servers(self.home, hb.server_block("notes", ["-y", hb.FS, str(copy / "memories")]))
+        self.assertFalse(verify(self.home, {"server": "notes"}, "")["fixed"])
 
 
 if __name__ == "__main__":

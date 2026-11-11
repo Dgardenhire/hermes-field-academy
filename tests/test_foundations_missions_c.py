@@ -89,7 +89,7 @@ class Toolsets(MissionCase):
         self.assertEqual([s["name"] for s in wide], ["notes"])
         # The learner trims the toolsets, tests, does the job, and narrows the connector.
         text = (self.h / "config.yaml").read_text() + "platform_toolsets:\n  cli: [file, memory]\n"
-        text = text.replace(str(self.h.resolve()) + '"', str(self.folder().resolve()) + '"')
+        text = text.replace(str((self.h / "settings-copy").resolve()) + '"', str(self.folder().resolve()) + '"')
         (self.h / "config.yaml").write_text(text)
         con = hf.state_db(self.h)
         sid = hf.add_session(con, started_at=hf.now_epoch() + 50)
@@ -108,14 +108,15 @@ class TeachProfile(MissionCase):
     MID = "f.teach-profile"
 
     def test_setup_and_a_full_pass(self):
-        aid = self.lab(["approvals_off"])
+        aid = self.lab(["open_connector"])
         person = self.mod("practice").setup_details("academy-practice")["person"]
         self.assertIn(person["never"], (self.folder() / "brief.txt").read_text())
         (self.h / "SOUL.md").write_text(f"You work for {person['first']}, who runs {person['work']}.\n{person['never']}.\n")
         hf.write_memory(self.h, memory=[person["fact"] + "."])
         text = (self.h / "config.yaml").read_text() + "platform_toolsets:\n  cli: [file, memory]\n"
-        import re
-        (self.h / "config.yaml").write_text(re.sub(r"mode: [\"']?off[\"']?", "mode: manual", text))
+        server = self.mod("practice").planted("academy-practice")["open_connector"]["server"]
+        self.assertNotIn("mode: off", text.replace('"', "").replace("'", ""), "Field Academy never switches approvals off")
+        (self.h / "config.yaml").write_text(self.mod("yaml_keys").set_values(text, {f"mcp_servers.{server}.trust": "untrusted"}))
         con = hf.state_db(self.h)
         sid = hf.add_session(con, started_at=hf.now_epoch() + 50)
         hf.add_message(con, sid, "user", "Who do you work for, and what should you never do?", hf.now_epoch() + 51)

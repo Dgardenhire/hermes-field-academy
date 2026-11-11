@@ -41,13 +41,23 @@ class PracticeFolderWrites(FoundationsCase):
 
     def test_new_keys_are_allowed_and_cwd_may_be_the_practice_folder_only(self):
         folder = self.practice_write.ensure_practice_folder(self.h, self.rec)
-        self.practice_write.set_config(self.h, self.rec, {"terminal.cwd": folder, "command_allowlist": ["recursive delete"],
+        self.practice_write.set_config(self.h, self.rec, {"terminal.cwd": folder,
                                                           "mcp_servers.files.trust": "untrusted", "agent.disabled_toolsets": ["file"]})
         with self.assertRaises(self.practice_write.Refused):
             self.practice_write.set_config(self.h, self.rec, {"terminal.cwd": str(self.tmp)})
         for key in ("mcp_servers.files.env", "mcp_servers.files.headers", "agent.system_prompt"):
             with self.assertRaises(self.practice_write.Refused):
                 self.practice_write.set_config(self.h, self.rec, {key: "x"})
+
+    def test_approvals_and_the_always_allow_list_can_never_be_written(self):
+        """Catalog rule 12: Field Academy never switches approvals off, loosens them or pre-approves a command."""
+        for key, value in (("approvals.mode", "off"), ("approvals.mode", "manual"), ("approvals.timeout", 5),
+                           ("approvals.cron_mode", "approve"), ("approvals.deny", []), ("command_allowlist", ["recursive delete"]),
+                           ("security.yolo", True), ("yolo", True)):
+            with self.assertRaises(self.practice_write.Refused, msg=key):
+                self.practice_write.set_config(self.h, self.rec, {key: value})
+        text = (self.h / "config.yaml").read_text(encoding="utf-8")
+        self.assertNotIn("recursive delete", text)
 
 
 if __name__ == "__main__":

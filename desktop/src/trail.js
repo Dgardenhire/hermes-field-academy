@@ -60,6 +60,7 @@ export function withPlaced(track) {
  * stands. Stops are numbered 0 (trailhead), 1..n (waypoints), n+1 (summit).
  */
 export function trailModel(track) {
+  const extraIds = new Set(arr(obj(track).placed).map(m => obj(m).id).filter(Boolean))
   const t = obj(withPlaced(track))
   const missions = arr(t.missions).filter(m => m && typeof m === 'object' && str(m.id))
   const byId = new Map(missions.map(m => [m.id, m]))
@@ -102,6 +103,7 @@ export function trailModel(track) {
         status,
         passed: status === 'passed',
         here: id === here,
+        extra: extraIds.has(id),
         minutes: num(m.minutes, 0),
         camp: ci,
         index: waypoints.length,
@@ -115,6 +117,9 @@ export function trailModel(track) {
   }
 
   const passed = waypoints.filter(w => w.passed).length
+  // The trail's own missions (or parts) make its Field Record. Practice missions placed in its camps are extra.
+  const own = waypoints.filter(w => !w.extra)
+  const extras = waypoints.filter(w => w.extra)
   const hereIndex = waypoints.findIndex(w => w.here)
   const allPassed = waypoints.length > 0 && passed === waypoints.length
   const marker = hereIndex >= 0 ? hereIndex + 1 : allPassed ? waypoints.length + 1 : 0
@@ -124,16 +129,36 @@ export function trailModel(track) {
     id: str(t.id, 'path'),
     name: str(t.name, 'Path'),
     eyebrow: str(t.eyebrow),
+    subtitle: str(t.subtitle),
     promise: str(t.promise),
     unit: str(t.unit, 'missions'),
     camps,
     waypoints,
     passed,
     total: waypoints.length,
+    recordPassed: own.filter(w => w.passed).length,
+    recordTotal: own.length,
+    extraPassed: extras.filter(w => w.passed).length,
+    extraTotal: extras.length,
     marker,
     currentCamp: camps.findIndex(c => c.current),
-    summit: { status, remaining: num(cert.remaining, waypoints.length - passed), words: str(cert.words) },
+    summit: { status, remaining: num(cert.remaining, own.length - own.filter(w => w.passed).length), words: str(cert.words) },
   }
+}
+
+/**
+ * One sentence on a trail's counts that always agrees with its Field Record: "2 of 5 missions passed", then the
+ * practice missions placed in its camps, counted apart because the Field Record doesn't need them.
+ */
+export function countWords(model) {
+  const m = obj(model)
+  const unit = str(m.unit, 'missions') === 'parts' ? ['part', 'parts'] : ['mission', 'missions']
+  const total = num(m.recordTotal, num(m.total, 0))
+  const head = `${num(m.recordPassed, num(m.passed, 0))} of ${total} ${total === 1 ? unit[0] : unit[1]} passed`
+  const extra = num(m.extraTotal, 0)
+  if (!extra) return `${head}.`
+  const kind = m.id === 'deployer' ? ['teaching mission', 'teaching missions'] : ['practice mission', 'practice missions']
+  return `${head}, plus ${num(m.extraPassed, 0)} of ${extra} ${extra === 1 ? kind[0] : kind[1]} placed here, which the Field Record doesn't need.`
 }
 
 /** The whole passport at a glance: every path as a trail, and totals with each mission counted once. */

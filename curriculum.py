@@ -372,6 +372,7 @@ TRACKS = {
             "say what Hermes is, honestly, to someone who has never used it."
         ),
         "eyebrow": "For introductions",
+        "subtitle": "Explain Hermes to someone new",
         "promise": "Watch Hermes do a real job, explain it honestly, spot a real opportunity, and pass it to the person who will build it.",
         "proof": "A two-minute explanation, notes on a real opportunity, and a clean handoff to the builder.",
         "level_meanings": {
@@ -510,6 +511,7 @@ TRACKS = {
             "keep it running."
         ),
         "eyebrow": "For yourself",
+        "subtitle": "Run Hermes day to day on your own computer",
         "promise": "Run Hermes on your own computer and keep one daily job working.",
         "proof": "Hermes is connected, your chats are saved, your skills are set up, and a job runs on a schedule.",
         "level_meanings": {
@@ -657,6 +659,7 @@ TRACKS = {
             "tools."
         ),
         "eyebrow": "For clients",
+        "subtitle": "Connect Hermes to a client's tools",
         "promise": "Set Hermes up for a client, connect it to their tools, and hand it over.",
         "proof": "A written scope, a working connection, a tested approval step, and a handover guide.",
         "level_meanings": {
@@ -743,7 +746,7 @@ TRACKS = {
                     lab(
                         "approval",
                         "Test the approval step",
-                        "Set Hermes's command approvals to manual for the test, then ask it to delete a scratch folder you made for the purpose. Turn the approval request down once, then approve it once.",
+                        "In Hermes's Settings, set command approvals to manual yourself. Ask it to delete a scratch folder you made. Turn the request down once, then approve it once.",
                         action="coach",
                         prompt="Help me test your approval prompt safely. Tell me how to set command approvals to manual for this test. Then I will make a scratch folder of copies, and you ask to delete it, which needs my approval. I turn it down once and approve it the second time. Tell me where each choice shows up afterward, and the smallest permission my real client tool needs, with draft-only sending where a person presses send.",
                     ),
@@ -797,6 +800,7 @@ TRACKS = {
             "who owns what, who approves what, and how it recovers."
         ),
         "eyebrow": "For an organization",
+        "subtitle": "Plan Hermes for a whole organization",
         "promise": "Plan Hermes for a whole organization: who owns what, who approves what, and how it recovers.",
         "proof": "A map with owners, a written rule set, a working task board, and a recovery plan with real numbers.",
         "level_meanings": {
@@ -1393,6 +1397,21 @@ def mission_for_tool(tool_name):
     return None
 
 
+# Where a mission happens, from how its check is verified: a practice copy Field Academy makes (the Foundations
+# engine), your own Hermes (a gate that reads this window's Hermes), or a written plan (a document checked for its
+# headings and length).
+WHERE_PRACTICE = "Practice copy"
+WHERE_BY_VERIFY = {"desktop": "Your Hermes", "artifact": "Written plan"}
+
+
+def where_of(item) -> str:
+    """The place a mission happens, read from its own check: the Foundations engine, or its gate's ``verify``."""
+    if item.get("engine") == "foundations":
+        return WHERE_PRACTICE
+    gate_step = next((step for step in item.get("steps") or [] if step.get("kind") == "gate"), None)
+    return WHERE_BY_VERIFY.get((gate_step or {}).get("verify", ""), "")
+
+
 def _public(item):
     current = deepcopy(item)
     # Review questions are delivered a session at a time, and the model answers
@@ -1408,6 +1427,7 @@ def _public(item):
     current["watch"] = watch
     gate_step = next((step for step in current["steps"] if step["kind"] == "gate"), None)
     current["proof"] = gate_step["proof"] if gate_step else ""
+    current["where"] = where_of(current)
     for step in current["steps"]:
         if step["kind"] == "lesson":
             step["watch"] = watch

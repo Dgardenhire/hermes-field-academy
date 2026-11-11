@@ -140,8 +140,11 @@ place: a practice profile it planned and recorded itself.
   record let go. A name that was planned but never recorded is deleted only when the folder there is the one Field
   Academy asked for: made after the plan, carrying the planned SOUL.md (not a link), and not a Hermes Bots profile.
 - **Planted problems act like real settings** until the learner fixes them: a filesystem connector Hermes starts
-  with `npx` (a pinned npm package, so Hermes downloads and runs it, scoped to a folder in the practice profile), an
-  approval safeguard switched off in mission 9 (the terminal tool still reaches the whole computer), and hourly jobs.
+  with `npx` (a pinned npm package, so Hermes downloads and runs it, scoped to a folder in the practice profile), a
+  connector left at Hermes's default trust in mission 9 and the Teach mission, and hourly jobs that, once repaired, run
+  on the learner's model provider until paused. In practice profiles only, Field Academy may turn on
+  `memory.write_approval` (and its write list allows `skills.write_approval`); it never writes an `approvals.*` key or
+  the always-allow list (`command_allowlist`), and its own code never runs a command; the learner changes those in Hermes.
   See `docs/privacy.md`, "What the planted problems do while they stand".
 - **Gateway calls into a practice profile** go through `host.requestProfile` on that profile's local route:
   `cron.manage` (`add`, then `pause`, and `remove` for a job that won't pause) for the jobs a mission needs,

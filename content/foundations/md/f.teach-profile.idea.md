@@ -30,13 +30,15 @@ Put each thing in one place. A rule in SOUL.md and again in memory is two copies
 People who are new to Hermes often say some version of "I don't want it doing things on its own." Take that
 literally:
 
-1. **Approvals on.** When Hermes wants to run something risky, it asks first (mission 9). Check that nobody switched
-   them off before you arrived.
+1. **Approvals on.** When Hermes wants to run something risky, it asks first (mission 9). Open **Settings → Safety →
+   Approvals** and read the mode yourself. Smart or Manual is right; if you find Off, change it there yourself. Field
+   Academy only reads this setting and never changes it.
 2. **Programs off, if they asked.** In **Capabilities**, **Tools**, switch off what runs programs: terminal and code
    execution, and the browser and web unless the job needs them. The Tools tab saves the list in the profile's
    settings. (As of Hermes 0.23.)
 3. **Connectors only where the job is.** A connector that reaches more than the job's folder gives back what you
-   switched off (f.toolsets).
+   switched off (f.toolsets). A connector left at full trust acts without asking, because approvals watch terminal
+   commands, not connector tools (mission 9); mark it untrusted, or switch it off.
 
 ### Prove it as them
 

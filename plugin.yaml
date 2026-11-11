@@ -3,7 +3,7 @@ version: 0.9.0
 requires_hermes: ">=0.22.0"
 manifest_version: 2
 api_version: 1
-description: Learn Hermes by proving it. Eleven Foundations missions run in practice profiles Field Academy makes for you, each with a planted problem and a check that reads Hermes itself, then four paths from Beginner to Advanced and a Guide path for client work. Spaced review, and a Field Record you keep with a fingerprint for every file, your own self-issued learning record. Not issued or endorsed by Nous Research.
+description: "The School of Hermes. Learn Hermes by using it: Field Academy makes a practice profile with one problem planted in it, you do a job there, and it reads Hermes's own files and chat records to show what actually happened. Eleven Foundations missions come first, then five trails. Messenger, Traveler, Crossroads and Boundary Keeper climb from Beginner to a Capstone; Guide climbs from an audit to staged verification. Every trail ends at the summit, Olympus. Short spaced reviews, and a Field Record you save with a fingerprint for every file. Not issued or endorsed by Nous Research."
 author: Damon Gardenhire
 license: MIT
 tags: [learning, progress-tracking, desktop]

@@ -2,7 +2,7 @@
 
 ## Step 1: She fills in the grid before she lets it touch a file
 - **Did:** Filled in the grid for the profile as she found it, on the shared computer in the church office.
-- **Saw:** Terminal: approvals on, but `recursive delete` in the always-allow list; checkpoints off. File edits: nothing asks, nothing undoes. Email connector: full trust, and nothing ever undoes a send.
+- **Saw:** Terminal: approvals on, but `recursive delete` in the always-allow list, saved by someone months ago; checkpoints off. File edits: nothing asks, nothing undoes. Email connector: full trust, and nothing ever undoes a send.
 - **Noticed:** Five of six cells were empty or weaker than she'd assumed.
 - **Ruled out:** Starting work on a profile she hadn't read.
 

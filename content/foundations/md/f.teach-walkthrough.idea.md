@@ -64,7 +64,7 @@ Answer in the box, then show the answer.
 
 > From the profile's **Skills** tab, which shows the name in its `SKILL.md`. Copy it; don't type it from memory.
 
-**2. A draft says: "If Hermes keeps asking permission, switch approvals off." What do you do with that line?**
+**2. A draft says: "If Hermes keeps asking permission, say yes to every card without reading it." What do you do with that line?**
 
 > Take it out, and say what to do with a permission card instead.
 

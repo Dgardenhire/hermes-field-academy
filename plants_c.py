@@ -184,19 +184,24 @@ WIDE = "notes"
 
 
 def _plant_wide_connector(ctx) -> dict:
-    home = Path(ctx["home"])
-    target = str(home.resolve(strict=False))
+    """A filesystem connector that reaches the profile's settings, instructions and memory. It is aimed at
+    practice_write's settings copy, a made-up stand-in for the profile's folder, never at the folder itself: Hermes
+    copies the learner's sign-in (.env, auth.json, mcp-tokens/) into every new profile, and a filesystem connector has
+    none of Hermes's own read guards. The lesson and the checks are the same either way."""
+    target = practice_write.write_settings_copy(ctx["home"], ctx["row"])
     practice_write.set_config(ctx["home"], ctx["row"], {f"mcp_servers.{WIDE}.command": "npx",
                                                         f"mcp_servers.{WIDE}.args": ["-y", plants_b.FS_PACKAGE, target]})
     return {"server": WIDE, "reaches": target}
 
 
 def wide_servers(home) -> list:
-    """Enabled connectors whose folder is the profile's own folder or above it: they can rewrite Hermes's settings."""
+    """Enabled connectors whose folder is the profile's own folder or above it, or its settings copy (or inside it):
+    they can rewrite Hermes's settings."""
     found = hermes_read_b.mcp_servers(home)
     if not found.get("readable"):
         return []
     root = Path(home).resolve(strict=False)
+    copy = (Path(home) / practice_write.SETTINGS_COPY).resolve(strict=False)
     out = []
     for server in found["servers"]:
         if not server["enabled"]:
@@ -206,7 +211,7 @@ def wide_servers(home) -> list:
                 path = Path(raw).expanduser().resolve(strict=False)
             except (OSError, ValueError):
                 continue
-            if path == root or path in root.parents:
+            if path == root or path in root.parents or path == copy or copy in path.parents:
                 out.append(server)
                 break
     return out
@@ -218,9 +223,9 @@ def _detect_wide_connector(home, details) -> dict:
     used = [m for m in found.get("messages", []) if found.get("readable") and m.get("role") == "tool"
             and hermes_read_b.is_connector_tool(m.get("tool_name"), details.get("server", WIDE))]
     return {"fired": bool(used),
-            "facts": [{"label": "Connectors that reach the profile's own folder", "value": ", ".join(s["name"] for s in wide) or "none"},
+            "facts": [{"label": "Connectors that reach the profile's settings and memory", "value": ", ".join(s["name"] for s in wide) or "none"},
                       {"label": f"Tool calls through {details.get('server', WIDE)}", "value": str(len(used))}],
-            "evidence": [("setting", "config.yaml", f"mcp_servers.{details.get('server', WIDE)}: reaches the whole profile folder")]}
+            "evidence": [("setting", "config.yaml", f"mcp_servers.{details.get('server', WIDE)}: reaches the profile's settings and memory")]}
 
 
 def _verify_wide_connector(home, details, fact="", note=None) -> dict:
@@ -229,9 +234,8 @@ def _verify_wide_connector(home, details, fact="", note=None) -> dict:
         return {"fixed": False, "why": "The practice profile's settings couldn't be read."}
     wide = wide_servers(home)
     if wide:
-        return {"fixed": False, "why": f"The connector {wide[0]['name']} still reaches the practice profile's own folder, "
-                                       "where its settings and memory live."}
-    return {"fixed": True, "why": "No connector reaches the practice profile's own folder."}
+        return {"fixed": False, "why": f"The connector {wide[0]['name']} still reaches the practice profile's settings and memory."}
+    return {"fixed": True, "why": "No connector reaches the practice profile's settings and memory."}
 
 
 REGISTRY = {

@@ -72,10 +72,11 @@ its backend isn't running:
 
 - `config.yaml`, named keys only (the list is in `practice_write.py`): `terminal.cwd`, always set to the practice
   profile's own folder or its practice folder; `memory.write_approval` and `skills.write_approval`;
-  `approvals.mode`, `approvals.timeout` and `approvals.cron_mode`; `checkpoints.enabled`; `model.default`,
+  `checkpoints.enabled`; `model.default`,
   `cron.model` and `delegation.model`; connector entries under `mcp_servers.<name>` (`command`, `args`, `enabled`,
-  `trust`, `tools.include`, `tools.exclude`); `agent.disabled_toolsets`, `command_allowlist` and
-  `fallback_providers`;
+  `trust`, `tools.include`, `tools.exclude`); `agent.disabled_toolsets` and `fallback_providers`. Never an
+  `approvals.*` key and never `command_allowlist`: Field Academy cannot switch approvals off, loosen them or
+  pre-approve a command, and tests refuse any attempt;
 - `memories/MEMORY.md` and `memories/USER.md`: a few seed notes, and for one planted problem enough notes to fill
   memory close to its limit;
 - sample files (orders, notes, a CSV) in the profile's practice folder, at most two folders deep.
@@ -113,10 +114,16 @@ touches your own profiles. Read this before a mission, not after:
   Hermes makes, not Field Academy) and keeps it running as a background program while the chat is open. It can reach
   only the folder it is given. Mission 10 points a connector at a program inside the practice folder that isn't
   there, so Hermes fails to start it; don't put a program at that path to "fix" it.
-- **Safety settings (mission 9).** One of `approvals.mode: off` or a recursive delete in `command_allowlist` is
-  planted. While it stands, a terminal command in a practice chat can run without the approval prompt, and the
-  terminal tool reaches your whole computer, not only the practice folder. Find and fix the setting before you give
-  Hermes the tidying job, and never point a practice chat at files you care about.
+- **A wide connector (mission 13 and the Teach mission).** A filesystem connector called `notes` reaches
+  `settings-copy/` in the practice profile: made-up copies of `config.yaml`, `SOUL.md` and the memory file, and no
+  sign-in. It stands in for the profile's own folder, where Hermes keeps the sign-in it copied in, so the lesson holds
+  without putting your keys in a practice chat's reach. Field Academy refuses to aim any connector at a profile's own
+  folder, above it, or at any sign-in file (`.env`, `auth.json`, `mcp-tokens/`, `pairing/`, `platforms/`).
+- **Safety (mission 9, the Foundations review and the Teach mission).** One connector is added to the practice
+  profile and left at Hermes's default trust, so nothing asks before it acts. It works inside a folder in the practice
+  profile. Mark it untrusted or switch it off in Settings. Field Academy does not touch approvals: you read the mode
+  and the Command Allowlist box yourself, change them yourself if they need it, and answer Hermes's own approval card
+  for the delete in the tidying job. Never point a practice chat at files you care about.
 - **Scheduled jobs (missions 8, 10 and 11).** Jobs are made through Hermes's own `cron.manage`, most of them paused.
   Mission 10's job is left on with a misspelled delivery place, so Hermes blocks each hourly run before it starts.
   A job you repair runs every hour on your provider and delivers where you point it: use `local` unless you mean to
@@ -145,7 +152,8 @@ No analytics, no crash reporting, no update checks, no third-party endpoints.
 Two hooks and six tools read the plugin's own database:
 
 - `pre_llm_call` may add one sentence to the user message, offering a single
-  practice, at most once per opportunity, only in an interactive session (the
+  practice, at most once per opportunity, only while
+  **Suggest missions while I chat** is on (off until you say yes to the question at the top of the home page), only in an interactive session (the
   desktop app, the terminal UI or the CLI, never a messaging app, webhook or
   scheduled job). The
   context is appended to the **user message**, never the system prompt, and the
@@ -156,6 +164,14 @@ Two hooks and six tools read the plugin's own database:
   `field_academy_grade_review`, `field_academy_grade_deployer` and `field_academy_record_evidence` read and write the tables above.
 
 ## Deleting it
+
+In Field Academy, open **Your data** (at the foot of the home page, or in Hermes under Settings, Plugins, Field
+Academy). **Delete my progress** removes everything in the data folder except your saved Field Records and the two
+tables that list them (`certificates`, `f_issued`). **Delete everything** removes those too. Each asks for a yes
+first, deletes any practice profile still set up, keeps the two switches, and compacts the database so deleted rows
+don't stay in the file. Records you saved outside the data folder are never touched.
+
+If the plugin is already removed, delete the folder by hand:
 
 ```bash
 rm -rf "$HERMES_HOME/plugin-data/field-academy"

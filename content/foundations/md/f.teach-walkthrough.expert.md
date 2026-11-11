@@ -13,7 +13,7 @@
 - **Ruled out:** Screenshots of her own screen. His sidebar won't look the same.
 
 ## Step 3: She deletes a tip she'd planned
-- **Did:** Cut a line she'd drafted: "If it keeps asking permission, turn approvals off."
+- **Did:** Cut a line she'd drafted: "If it keeps asking permission, say yes to every card."
 - **Saw:** The permission cards are the one safeguard between him and a bad command.
 - **Noticed:** A walkthrough that makes the job smoother by making it less safe is worse than one that's a little slower.
 - **Ruled out:** Any step that switches a safeguard off. She wrote what to do with a card instead.

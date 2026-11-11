@@ -14,7 +14,7 @@ import { Notice, Spinner } from 'hermes-ui-kit'
 import { bracketWords, heldSentence, explainMerged, explainShown, runHeadline, scoreSentence, sourceWords, bracketAt, clockWords, compareLine, fetchingWords, guideFetching, phaseBarWords, phaseRows, quoteParts, replayRows, usedRungs } from './desk_logic.js'
 
 export const DESK_CSS = `
-.fa-root kbd[data-slot=kbd]{font-size:12px}
+.fa-root .hk-keys kbd{font-size:12px}
 .fa-desk{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);align-items:start;padding:16px 20px 40px;width:100%;max-width:1500px;margin:0 auto}
 .fa-desk-head{display:grid;gap:6px}
 .fa-desk-rail{display:none}
@@ -155,6 +155,9 @@ export const DESK_CSS = `
 .fa-top{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);align-items:start}
 @container (min-width:1000px){.fa-top{grid-template-columns:minmax(0,1fr) 340px}}
 .fa-top-map,.fa-top-start{min-width:0}
+.fa-top-start{display:grid;gap:12px;align-content:start}
+.fa-switch{display:flex;gap:10px;align-items:flex-start;cursor:pointer;max-width:70ch}
+.fa-switch input{margin-top:3px;width:16px;height:16px;flex:none;accent-color:var(--fa-blaze,currentColor)}
 .fa-top-map{container-type:inline-size}
 @container (max-width:700px){.fa-map-head span{font-size:12px;letter-spacing:0}}
 @container (max-width:520px){.fa-map-head span{font-size:0}.fa-map-head span::first-letter{font-size:12px}}
@@ -407,16 +410,25 @@ export function createDeskViews(ui) {
    *  that puts the first in the practice chat's box without sending, and a copy button. */
   function FixCommands({ commands, attemptId, practiceName }) {
     const [drafted, setDrafted] = useState('')
+    // Which command the button drafts next. Each press puts one command in the practice chat's box, so the learner never
+    // types a slash command by hand: Hermes's command picker opens on "/" and a typed one went wrong in a live run.
+    const [next, setNext] = useState(0)
     const text = commands.join('\n')
+    const ordinal = i => ['first', 'second', 'third', 'fourth'][i] || `next`
     return jsxs('div', { className: 'hk-stack', style: { gap: 8 }, children: [
       jsx('ol', { className: 'fa-guide-cmd', children: commands.map(c => jsx('li', { children: jsx('code', { children: c }) }, c)) }),
       jsxs('div', { className: 'fa-f-row', children: [
         jsx(Button, { variant: 'secondary', onClick: async () => {
-          const ok = draftInPractice ? await draftInPractice(practiceName, commands[0] || '') : false
-          setDrafted(ok ? 'The first command is in the practice chat, not sent. Press Enter there, then send the second.' : 'Copied. Paste them in the practice chat and press Enter after each.')
+          const i = Math.min(next, commands.length - 1)
+          const ok = draftInPractice ? await draftInPractice(practiceName, commands[i] || '') : false
+          const more = i + 1 < commands.length
+          setDrafted(ok
+            ? `The ${ordinal(i)} command is in the practice chat, not sent. Press Send there${more ? ', then come back and press this button for the next one.' : '.'}`
+            : 'Copied. Paste them in the practice chat and press Send after each.')
           if (!ok) copyText(text, 'Copied the commands.')
-          post(`/guide/${attemptId}/help`, { action: 'do_it_with_me', step: 'fix' }).catch(() => null)
-        }, children: 'Put it in the practice chat' }),
+          else setNext(more ? i + 1 : 0)
+          if (i === 0) post(`/guide/${attemptId}/help`, { action: 'do_it_with_me', step: 'fix' }).catch(() => null)
+        }, children: next > 0 && commands.length > 1 ? `Put the ${ordinal(next)} command in the practice chat` : 'Put it in the practice chat' }),
         jsx(Button, { variant: 'secondary', onClick: () => copyText(text, 'Copied the commands.'), children: 'Copy the commands' }),
       ] }),
       drafted ? jsx('p', { className: 'hk-small', role: 'status', style: { margin: 0 }, children: drafted }) : null,

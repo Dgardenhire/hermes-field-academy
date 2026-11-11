@@ -13,7 +13,7 @@ import { jsx, jsxs } from 'react/jsx-runtime'
 import { Button, Codicon, Input, Textarea } from '@hermes/plugin-sdk'
 import { Back, Card, Details, Facts, PageHeader, Pill, Ring, Section, useListKeys } from 'hermes-ui-kit'
 import { CertCorners, Contours, ElevationProfile, Legend, Seal, TrailMark } from './field.js'
-import { trailModel, withPlaced } from './trail.js'
+import { countWords, trailModel, withPlaced } from './trail.js'
 import { stateWords } from './deploy.js'
 
 export const DEPLOYER_CSS = `
@@ -66,7 +66,7 @@ export function createDeployerViews(ui) {
     const up = () => go({ name: 'path', id: 'deployer' })
     return jsx(Frame, { width: 'narrow', up, children: [
       jsx(PageHeader, {
-        back: jsx(Back, { label: 'Guide path', onClick: up }),
+        back: jsx(Back, { label: 'Guide trail', onClick: up }),
         eyebrow: jsx(Label, { children: TITLE_FOR_PART[part] || 'Guide' }), title, lead,
       }, 'head'),
       ...children,
@@ -147,7 +147,7 @@ export function createDeployerViews(ui) {
         ? jsx('p', { children: 'Every part is done. Your Guide Field Record still needs the reviewer you chose to read and sign your packet. Until then you hold Guide, awaiting review.' })
         : cert.status === 'issued'
           ? jsx('p', { children: 'Created with the signed sign-off of the reviewer you chose, on the Hermes version shown on the record.' })
-          : jsx('p', { children: 'Your Guide Field Record needs all nine parts of this path, and the signature of a reviewer you choose on your packet. Without that signature the most you hold is Guide, awaiting review.' }),
+          : jsx('p', { children: 'Your Guide Field Record needs all nine parts of this trail, and the signature of a reviewer you choose on your packet. Without that signature the most you hold is Guide, awaiting review.' }),
       reverify && reverify.status === 'reverify'
         ? jsx(Pill, { tone: 'warn', icon: 'history', children: 'Re-verify needed' })
         : reverify && reverify.status === 'current'
@@ -223,7 +223,7 @@ export function createDeployerViews(ui) {
     // The teaching missions placed in the Guide's camps show beside its own parts (school.PLACEMENTS).
     const track = withPlaced(data.track)
     const model = trailModel(track)
-    const placed = (data.track.placed || []).map(m => ({ id: m.id, title: m.title, minutes: m.minutes, detail: 'Practice mission',
+    const placed = (data.track.placed || []).map(m => ({ id: m.id, title: m.title, minutes: m.minutes, detail: 'Teaching mission, extra to the Field Record',
       state: m.status === 'verified' ? 'verified' : m.status === 'not_started' ? 'not_started' : 'in_progress' }))
     const itemById = Object.fromEntries([...data.items, ...placed].map(item => [item.id, item]))
     const rows = track.levels.flatMap(level => level.missions)
@@ -231,16 +231,17 @@ export function createDeployerViews(ui) {
     return jsx(Frame, { width: 'narrow', up: () => go({ name: 'map' }), onKey: list.keyProps.onKeyDown, children: [
       jsx(PageHeader, {
         back: jsx(Back, { label: 'Trail map', onClick: () => go({ name: 'map' }) }),
-        eyebrow: jsx(Label, { children: track.eyebrow }), title: `${track.name} path`, lead: track.promise,
+        eyebrow: jsx(Label, { children: track.eyebrow }), title: track.subtitle ? `${track.name}: ${track.subtitle}` : `${track.name} trail`, lead: track.promise,
       }, 'head'),
       track.lore ? jsx('p', { className: 'fa-lore', children: track.lore }, 'lore') : null,
+      data.track.reviewer_note ? jsx(Card, { tone: 'warn', tint: true, children: jsx('p', { children: data.track.reviewer_note }) }, 'reviewer') : null,
       jsx(AboutPanel, { about: data.about }, 'about'),
       jsx(ElevationProfile, {
         model,
         onOpenMission: id => go(partFor(id)),
         onOpenSummit: () => scrollToId('fa-dp-route'),
         children: [
-          jsx('p', { children: `${data.track.verified_missions} of ${data.track.missions.length} parts passed. ${data.certificate.label}.` }, 'where'),
+          jsx('p', { children: `${countWords(model)} ${data.certificate.label}.` }, 'where'),
           jsx(Legend, {}, 'legend'),
         ],
       }, 'profile'),
@@ -683,7 +684,7 @@ export function createDeployerViews(ui) {
       status === 'locked' && waiting.length
         ? jsx(Card, { key: 'locked', tone: 'info', children: jsxs('div', { className: 'hk-stack', style: { gap: 4 }, children: [
             jsx('strong', { children: 'Not yet' }),
-            jsx('p', { children: 'The packet is built when everything else on the path is done. Still to do:' }),
+            jsx('p', { children: 'The packet is built when everything else on the trail is done. Still to do:' }),
             jsx(Bullets, { items: waiting }),
           ] }) })
         : null,
@@ -752,7 +753,7 @@ export function createDeployerViews(ui) {
     if (cert.status === 'awaiting_review') {
       return jsx(Card, { tone: 'warn', tint: true, children: jsxs('div', { className: 'hk-stack', style: { gap: 4 }, children: [
         jsx('strong', { children: 'Guide, awaiting review' }),
-        jsx('p', { children: 'You can create your Field Record once your reviewer\'s signed sign-off is loaded and every part of the path stands. You are not missing anything else.' }),
+        jsx('p', { children: 'You can create your Field Record once your reviewer\'s signed sign-off is loaded and every part of the trail stands. You are not missing anything else.' }),
       ] }) })
     }
     if (cert.status !== 'ready') return null
@@ -804,11 +805,11 @@ export function createDeployerViews(ui) {
     const up = () => go({ name: 'path', id: 'deployer' })
     if (!issued) {
       return jsx(Frame, { width: 'narrow', up, children: [
-        jsx(Back, { label: 'Guide path', onClick: up }, 'back'),
+        jsx(Back, { label: 'Guide trail', onClick: up }, 'back'),
         jsx('div', { className: 'fa-panel', key: 'none', children: jsxs('div', { className: 'hk-stack', style: { gap: 3 }, children: [
           jsx(Label, { children: 'Summit' }),
           jsx('h1', { className: 'hk-h1', children: data.certificate.label }),
-          jsx('p', { children: 'There is no Field Record yet. It needs every part of the path and the signed sign-off of a reviewer you choose.' }),
+          jsx('p', { children: 'There is no Field Record yet. It needs every part of the trail and the signed sign-off of a reviewer you choose.' }),
         ] }) }),
       ] })
     }
@@ -816,7 +817,7 @@ export function createDeployerViews(ui) {
     const display = issued.display || { issuer: body.issuer, shows: body.shows, does_not_show: body.does_not_show, disclaimer: body.disclaimer || (data.about && data.about.disclaimer) || '' }
     const rv = data.certificate.reverify
     return jsx(Frame, { up, children: [
-      jsx(Back, { label: 'Guide path', onClick: up }, 'back'),
+      jsx(Back, { label: 'Guide trail', onClick: up }, 'back'),
       jsx('article', { key: 'cert', className: 'fa-cert hk-enter', 'aria-label': `Guide Field Record for ${body.name}, self-issued with Field Academy`, children: jsxs('div', { className: 'fa-cert-inner', children: [
         jsx(Contours, { width: 900, height: 600, seed: 11 }),
         jsx(CertCorners, {}),
@@ -828,7 +829,7 @@ export function createDeployerViews(ui) {
           jsx(Label, { plain: true, children: 'Kept by' }),
           jsx('p', { className: 'fa-cert-name', children: body.name }),
           jsx(Label, { plain: true, children: 'who completed every part of the' }),
-          jsx('h1', { className: 'fa-cert-path', children: 'Guide path' }),
+          jsx('h1', { className: 'fa-cert-path', children: 'Guide trail' }),
           jsx('p', { className: 'fa-cert-promise', children: body.path_promise }),
           jsx('p', { children: `Created ${longDate(body.issued_at)}, on the holder's own computer. Recorded on Hermes ${body.hermes_version.value}.` }),
         ] }),

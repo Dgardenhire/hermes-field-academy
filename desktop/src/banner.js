@@ -121,7 +121,7 @@ export function BannerArt({ camps = [], summitDone = false }) {
 }
 
 /** The home banner: the plate, a scrim, the wordmark lockup and one promise. */
-export function Banner({ eyebrow, promise, facts = [], camps = [], summitDone = false, compact = false }) {
+export function Banner({ eyebrow, promise, facts = [], links = [], camps = [], summitDone = false, compact = false }) {
   return jsxs('header', { className: 'fa-bn hk-enter', 'data-compact': compact ? '' : undefined, children: [
     jsx(BannerArt, { camps, summitDone }, 'art'),
     jsx('span', { className: 'fa-bn-scrim', 'aria-hidden': 'true' }, 'scrim'),
@@ -133,7 +133,10 @@ export function Banner({ eyebrow, promise, facts = [], camps = [], summitDone = 
         jsx('span', { children: 'Academy' }, 'b'),
       ] }, 'mark'),
       jsx('p', { className: 'fa-bn-promise', children: promise }, 'promise'),
-      facts.length ? jsx('p', { className: 'fa-bn-facts', children: facts.map(f => jsx('span', { children: f }, f)) }, 'facts') : null,
+      facts.length || links.length ? jsx('p', { className: 'fa-bn-facts', children: [
+        ...facts.map(f => jsx('span', { children: f }, f)),
+        ...links.map(l => jsx('button', { type: 'button', className: 'fa-bn-link', onClick: l.onClick, title: l.title, children: l.label }, l.label)),
+      ] }, 'facts') : null,
     ] }, 'copy'),
   ] })
 }
@@ -177,6 +180,9 @@ export const BANNER_CSS = `
 .fa-bn-promise{font-size:14px;line-height:1.5;max-width:44ch}
 .fa-bn-facts{display:flex;flex-wrap:wrap;gap:6px;font-size:var(--hk-fs-sm);font-weight:600}
 .fa-bn-facts span{padding:1px 8px;border-radius:999px;border:1px solid var(--hk-stroke);background:color-mix(in srgb,var(--hk-bg) 82%,transparent)}
+.fa-bn-link{font:inherit;color:var(--hk-accent);cursor:pointer;padding:1px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--hk-accent) 55%,transparent);background:color-mix(in srgb,var(--hk-bg) 82%,transparent)}
+.fa-bn-link:hover{background:color-mix(in srgb,var(--hk-accent) 14%,var(--hk-bg))}
+.fa-bn-link:focus-visible{outline:2px solid var(--hk-accent);outline-offset:2px}
 @container (max-width:640px){
   .fa-bn{flex-direction:column;align-items:stretch;min-height:0}
   .fa-bn-art{position:relative;inset:auto;height:150px;order:-1;border-bottom:1px solid var(--hk-stroke)}

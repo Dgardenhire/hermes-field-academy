@@ -1238,7 +1238,7 @@ def issue_certificate(name):
         if status == "awaiting_review":
             raise ValueError("Guide, awaiting review. The Field Record needs your reviewer's signed sign-off, and it has not been loaded yet.")
         if status != "ready":
-            raise ValueError("Finish every part of the path first, including the review.")
+            raise ValueError("Finish every part of the trail first, including the review.")
         if not clean:
             raise ValueError("Type the name you want on your Field Record.")
         version = current_version(conn)
@@ -1379,7 +1379,7 @@ def snapshot():
         remaining = sum(1 for m in missions if m["status"] != "verified")
         issued = state._certificate_view(cert_row) if cert_row else None
         track = {
-            "id": "deployer", "name": C.TITLE, "eyebrow": C.EYEBROW, "lore": C.LORE, "promise": C.PROMISE, "unit": "parts", "missions": missions, "levels": phases, "here": here,
+            "id": "deployer", "name": C.TITLE, "eyebrow": C.EYEBROW, "subtitle": C.SUBTITLE, "lore": C.LORE, "promise": C.PROMISE, "reviewer_note": C.REVIEWER_NOTE, "unit": "parts", "missions": missions, "levels": phases, "here": here,
             "verified_missions": len(missions) - remaining, "placement": {"available": False},
             "certificate": {"status": "issued" if issued else ("ready" if cert_status == "ready" else "in_progress"), "remaining": remaining, "title": "Guide Field Record", "issued": issued,
                             "words": {"awaiting_review": "Guide, awaiting review", "issued": "Field Record created", "ready": "Field Record ready to create"}.get(cert_status, "")},
@@ -1402,7 +1402,7 @@ def snapshot():
             "walkthrough": walkthrough_view(conn),
             "certificate": {
                 "status": cert_status,
-                "label": {"issued": "Guide Field Record created", "ready": "Guide, ready to create your Field Record", "awaiting_review": "Guide, awaiting review"}.get(cert_status, "Guide path in progress"),
+                "label": {"issued": "Guide Field Record created", "ready": "Guide, ready to create your Field Record", "awaiting_review": "Guide, awaiting review"}.get(cert_status, "Guide trail in progress"),
                 "issued": issued,
                 "reverify": reverify_view(conn),
                 "needs_version": not version["value"],

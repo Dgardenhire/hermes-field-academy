@@ -137,6 +137,9 @@ Severity is for the learner using the plugin as shipped. "Fixed" means fixed in 
 
 ### A8. Medium (disclosure): what planted problems do, and the keys written, weren't fully disclosed. Fixed.
 
+> Later change (Nov 10): the `_plant_always_allow` and `_plant_approvals_off` plants named below were removed. Field
+> Academy no longer writes `approvals.*` or `command_allowlist`; mission 9 plants a connector at default trust instead.
+
 - **Where:** `README.md`, `SECURITY.md`, `docs/privacy.md` as of `46dc1dc`; the behaviour is in `plants_a.py:322`
   `_plant_extra_connector`, `plants_b.py` `_setup_connectors`, `_plant_twin`, `_plant_always_allow` (`:394`),
   `_plant_approvals_off` (`:422`), `_plant_broken_connector` (`:449`) and `_plant_job_blocked` (`:483`).

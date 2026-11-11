@@ -112,13 +112,17 @@ export async function deskState(name, fixtures) {
     if (g) patch(g)
   }
 
+  const settings = { ai_help: true, practice_offer: false }
   async function rest(method, path, body) {
     if (method === 'GET' && path === '/replay/sample') return sample || { state: 'empty', words: '' }
     if (method === 'GET' && path.startsWith('/replay/')) {
       if (replayFails > 0) { replayFails -= 1; await pause(80); throw new Error('Gateway ticket bootstrap failed') }
       return replay
     }
-    if (path === '/settings/ai') return { ai_help: true, practice_offer: true }
+    if (path === '/settings/ai') {
+      for (const name of ['ai_help', 'practice_offer']) if (method === 'POST' && typeof body[name] === 'boolean') settings[name] = body[name]
+      return { ...settings }
+    }
     if (method === 'GET' && path === '/first-flight') return real.first_flight_info
     if (method === 'POST' && path === '/first-flight/start') return fd.view || clone(real.first_flight_start)
     if (method === 'GET' && path.startsWith('/guide/')) {

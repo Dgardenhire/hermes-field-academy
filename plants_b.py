@@ -19,8 +19,8 @@ Setups (``lab.setup``) are what every learner of a mission gets, before the plan
   cleared so a not-found model isn't quietly sent elsewhere (agent/error_classifier.py:270-275).
 * ``review`` (mission 11): an empty practice folder with a one-line README.
 
-Kinds: ``twin_connector`` and ``order_injection`` (7); ``vague_request`` and ``bad_delivery`` (8); ``always_allow``
-and ``approvals_off`` (9); ``broken_connector`` and ``job_blocked`` (10). Mission 11 draws from these and mission 3's
+Kinds: ``twin_connector`` and ``order_injection`` (7); ``vague_request`` and ``bad_delivery`` (8); ``open_connector`` (9, 11
+and the Teach mission); ``broken_connector`` and ``job_blocked`` (10). Mission 11 draws from these and mission 3's
 and missions 1 to 6's (foundations_b.review_pick).
 """
 
@@ -56,8 +56,7 @@ TITLES = {
     "order_injection": "An order told Hermes to move files",
     "vague_request": "The draft job leaned on a conversation",
     "bad_delivery": "The draft job's delivery place was misspelled",
-    "always_allow": "A saved \"always\" let a risky command through",
-    "approvals_off": "Approvals were switched off",
+    "open_connector": "A connector acted without asking",
     "broken_connector": "A connector pointed at a program that isn't there",
     "job_blocked": "A scheduled job couldn't deliver",
 }
@@ -391,56 +390,45 @@ def _verify_bad_delivery(home, details, fact="", note=None, name=DRAFT_JOB) -> d
 RISKY_KEYS = ("recursive delete", "recursive delete (long flag)", "delete in root path")
 
 
-def _plant_always_allow(ctx) -> dict:
-    key = _pick(ctx, RISKY_KEYS)
-    practice_write.set_config(ctx["home"], ctx["row"], {"command_allowlist": [key]})
-    return {"key": key}
-
-
-def _detect_always_allow(home, details) -> dict:
-    found = hermes_read_b.settings(home)
-    entries = found.get("command_allowlist", []) if found.get("readable") else []
-    return {"fired": details.get("key") in entries,
-            "facts": [{"label": "Always-allow entries", "value": ", ".join(entries) or "none"}],
-            "evidence": [("setting", "config.yaml", f"command_allowlist: {details.get('key')}")]}
-
-
 def risky_allowed(entries) -> list:
+    """Saved "always" answers that let a risky delete through. Read-only: Field Academy never writes this list."""
     return [e for e in entries or [] if "delete" in str(e).lower() or str(e).lower() in RISKY_KEYS]
-
-
-def _verify_always_allow(home, details, fact="", note=None) -> dict:
-    found = hermes_read_b.settings(home)
-    if not found.get("readable"):
-        return {"fixed": False, "why": "The practice profile's settings couldn't be read."}
-    left = risky_allowed(found["command_allowlist"])
-    if left:
-        return {"fixed": False, "why": f"The always-allow list still holds \"{left[0]}\"."}
-    return {"fixed": True, "why": "No saved \"always\" lets a risky delete through."}
-
-
-def _plant_approvals_off(ctx) -> dict:
-    practice_write.set_config(ctx["home"], ctx["row"], {"approvals.mode": "off"})
-    return {"mode": "off"}
 
 
 def approvals_on(mode) -> bool:
     return mode in (None, "smart", "manual")
 
 
-def _detect_approvals_off(home, details) -> dict:
-    found = hermes_read_b.settings(home)
-    mode = found.get("approvals_mode") if found.get("readable") else None
-    return {"fired": mode == "off", "facts": [{"label": "Approval mode", "value": str(mode or "smart (default)")}],
-            "evidence": [("setting", "config.yaml", "approvals.mode: off")]}
+def _plant_open_connector(ctx) -> dict:
+    """A filesystem connector aimed at a folder inside the practice profile, left at Hermes's default trust (full), so
+    nothing asks before it writes. Approvals are not touched: Hermes's approval cards watch terminal commands, not
+    connector tools. The fix is the learner's, in Settings: mark it untrusted, or switch it off."""
+    home, row = ctx["home"], ctx["row"]
+    folder = practice_write.ensure_practice_folder(home, row)
+    name = _pick(ctx, ("notes-files", "donations-files", "shared-drive"))
+    practice_write.set_config(home, row, {f"mcp_servers.{name}.command": "npx",
+                                          f"mcp_servers.{name}.args": ["-y", FS_PACKAGE, folder]})
+    return {"server": name, "folder": folder, "layer": "connector"}
 
 
-def _verify_approvals_off(home, details, fact="", note=None) -> dict:
-    found = hermes_read_b.settings(home)
-    mode = found.get("approvals_mode") if found.get("readable") else "unreadable"
-    if approvals_on(mode):
-        return {"fixed": True, "why": f"Approvals are on ({mode or 'smart'})."}
-    return {"fixed": False, "why": f"Approvals are {mode}, so nothing checks a risky command."}
+def _detect_open_connector(home, details) -> dict:
+    server = _server(home, details.get("server"))
+    used = _used_tools(home, details.get("server", ""))
+    state = "removed" if server is None else ("off" if not server["enabled"] else f"on, {server['trust'] or 'full'} trust")
+    return {"fired": bool(used), "facts": [{"label": f"Connector {details.get('server')}", "value": state},
+                                            {"label": f"Tool calls through {details.get('server')}", "value": str(len(used))}],
+            "evidence": [("tool_result", "state.db", f"{m.get('tool_name')}: {str(m.get('content') or '')[:160]}") for m in used[:1]]
+            or [("setting", "config.yaml", f"mcp_servers.{details.get('server')}: default (full) trust")]}
+
+
+def _verify_open_connector(home, details, fact="", note=None) -> dict:
+    server = _server(home, details.get("server"))
+    if server is None or not server["enabled"]:
+        return {"fixed": True, "why": f"{details.get('server')} is off or gone, so no connector acts without asking."}
+    if server["trust"] == "untrusted":
+        return {"fixed": True, "why": f"{details.get('server')} is untrusted, so its write tools ask first."}
+    return {"fixed": False, "why": f"{details.get('server')} is still on at full trust, so its tools run without asking. "
+                                   "Mark it untrusted in Settings, or switch it off."}
 
 
 # ---------------------------------------------------------------- diagnose --
@@ -507,8 +495,7 @@ REGISTRY = {
     "order_injection": {"plant": _plant_order_injection, "detect": _detect_order_injection, "verify": _verify_order_injection},
     "vague_request": {"plant": _plant_vague, "detect": _detect_vague, "verify": _verify_vague},
     "bad_delivery": {"plant": _plant_bad_delivery, "detect": _detect_bad_delivery, "verify": _verify_bad_delivery},
-    "always_allow": {"plant": _plant_always_allow, "detect": _detect_always_allow, "verify": _verify_always_allow},
-    "approvals_off": {"plant": _plant_approvals_off, "detect": _detect_approvals_off, "verify": _verify_approvals_off},
+    "open_connector": {"plant": _plant_open_connector, "detect": _detect_open_connector, "verify": _verify_open_connector},
     "broken_connector": {"plant": _plant_broken_connector, "detect": _detect_broken_connector, "verify": _verify_broken_connector},
     "job_blocked": {"plant": _plant_job_blocked, "detect": _detect_job_blocked, "verify": _verify_job_blocked},
 }

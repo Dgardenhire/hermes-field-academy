@@ -214,7 +214,8 @@ class NewScreenSourceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.src = (ROOT / "desktop" / "src" / "plugin.js").read_text(encoding="utf-8")
-        cls.api = (ROOT / "dashboard" / "plugin_api.py").read_text(encoding="utf-8")
+        # plugin_api.py mounts routes_ai.py's routes (the two settings switches, AI help) under the same prefix.
+        cls.api = (ROOT / "dashboard" / "plugin_api.py").read_text(encoding="utf-8") + (ROOT / "routes_ai.py").read_text(encoding="utf-8")
 
     def test_the_new_screens_exist(self):
         for name in ("function ReviewView", "function PlacementView", "function ReviewQueue", "function ChangesPanel",

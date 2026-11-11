@@ -14,8 +14,8 @@ Adaeze's entry, from her run:
 >
 > **Evidence:** the first lines of SOUL.md; the memory line; `approvals.mode` from the settings; the new chat's reply.
 >
-> **What I missed:** I switched the terminal off and never looked at approvals. They'd been set to off before I
-> started. Desmond would have had nothing between him and a risky change. I set them back to manual.
+> **What I missed:** I read the Approvals page, saw Smart, and stopped. The terminal toolset was still on, and Desmond
+> had said he didn't want programs run. I switched it off in the Tools tab.
 >
 > **Transfer:** a new chat won't start with the mum's rule, because it was typed in one chat; nothing asks her first,
 > because approvals are off. I'd put the rule in SOUL.md and turn approvals back on.

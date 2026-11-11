@@ -17,14 +17,15 @@ doors, two moments, six cells:
 
 Your try went through the middle door with checkpoints off, as every profile starts. Both its cells were empty.
 
-The practice profile has no connectors, so its bottom row is empty for a plainer reason. In its grid, write that, then
-what a new connector would bring: it starts fully trusted, so nothing would ask before and nothing could undo after.
+The practice profile has one connector, left at Hermes's default, full trust. Nothing asks before it acts. Mark it
+untrusted in **Settings**, or switch it off. Your grid describes the profile as you leave it.
 
 Two things in the table move with your settings:
 
-- **The terminal's "before" cell** is the only one Hermes fills for you. Its settings live in **Settings → Safety →
-  Approvals**. One answer empties it for good: **Always allow…** on an approval card saves that pattern, and every chat
-  and scheduled job in the profile then runs it without asking.
+- **The terminal's "before" cell** is the only one Hermes fills for you, in **Settings → Safety → Approvals**, which
+  you change yourself. Answer the card for your delete with **Deny** once, then **Allow this session**. **Always
+  allow…** empties the cell for good: it saves that pattern, and every chat and scheduled job in the profile then runs
+  it without asking.
 - **Both "after" cells** stay empty until you turn checkpoints on. The bottom-right cell never fills, whatever you set.
 
 ### Checkpoints

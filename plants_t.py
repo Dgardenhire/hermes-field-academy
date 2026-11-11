@@ -41,7 +41,7 @@ PEOPLE = (
 
 TITLES = {
     "stale_skill_name": "The colleague's draft named a skill that doesn't exist",
-    "unsafe_tip": "The colleague's draft told the person to switch approvals off",
+    "unsafe_tip": "The colleague's draft told the person to answer every permission card with yes",
     "edited_excerpt": "An excerpt in their record was changed after it was saved",
     "overclaim": "Their own words claimed more than their record shows",
 }
@@ -199,8 +199,8 @@ def _verify_stale_skill_name(home, details, fact="", note=None) -> dict:
     return {"fixed": True, "why": "The walkthrough names only skills the profile has."}
 
 
-UNSAFE = "If Hermes asks permission too often, open Settings and switch approvals off."
-UNSAFE_WORDS = ("approvals off", "switch approvals off", "turn approvals off", "always allow", "approvals to off", "disable approvals")
+UNSAFE = "If Hermes asks permission too often, just say yes to every card without reading it."
+UNSAFE_WORDS = ("yes to every", "yes to everything", "without reading", "always allow", "approve everything", "approve every")
 
 
 def _plant_unsafe_tip(ctx) -> dict:
@@ -216,7 +216,7 @@ def unsafe_lines(text) -> list:
 def _detect_unsafe_tip(home, details) -> dict:
     text = walkthrough_text(home)
     left = unsafe_lines(text)
-    return {"fired": bool(left), "facts": [{"label": "Steps that switch a safeguard off", "value": str(len(left))}],
+    return {"fired": bool(left), "facts": [{"label": "Steps that tell them to skip the safeguard", "value": str(len(left))}],
             "evidence": [("practice_file", f"{hermes_read_b.FOLDER}/draft-walkthrough.md", details.get("tip", UNSAFE))]}
 
 
@@ -226,8 +226,8 @@ def _verify_unsafe_tip(home, details, fact="", note=None) -> dict:
         return {"fixed": False, "why": "There's no walkthrough.md in the practice folder yet."}
     left = unsafe_lines(text)
     if left:
-        return {"fixed": False, "why": f"The walkthrough still tells them to switch a safeguard off: \"{left[0].strip()[:120]}\"."}
-    return {"fixed": True, "why": "No step tells them to switch approvals off."}
+        return {"fixed": False, "why": f"The walkthrough still tells them to skip the safeguard: \"{left[0].strip()[:120]}\"."}
+    return {"fixed": True, "why": "No step tells them to approve without reading."}
 
 
 # ------------------------------------------------------------------ review --

@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import json
 
+from .curriculum import where_of
+
 CAMP_LINES = {
     "beginner": "See what Hermes is doing",
     "intermediate": "Fit it to the work",
@@ -81,7 +83,7 @@ def inject(track: dict, engine: dict, passes: dict, started: set) -> dict:
         rung = next((r for r in track.get("levels") or [] if r.get("id") == camp), None)
         status = _status(mid, passes, started)
         minutes = info.get("minutes") or {}
-        placed.append({"id": mid, "engine": "foundations", "title": info.get("title", ""), "status": status, "level": camp,
+        placed.append({"id": mid, "engine": "foundations", "where": where_of({"engine": "foundations"}), "title": info.get("title", ""), "status": status, "level": camp,
                        "level_name": rung.get("name", "") if rung else "",
                        "minutes": (minutes.get("read", 0) + minutes.get("do", 0)) if isinstance(minutes, dict) else 0,
                        "completed_steps": 1 if status == "verified" else 0, "total_steps": 1})

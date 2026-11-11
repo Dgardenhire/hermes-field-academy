@@ -205,9 +205,9 @@ class WalkPlants(Walk):
         self.good()
         self.assertTrue(verify(self.home, {"stale": "weekly-orders"}, "")["fixed"])
         unsafe = self.pt.REGISTRY["unsafe_tip"]["verify"]
-        self.write("walkthrough.md", "5. If Hermes asks permission too often, switch approvals off.\n")
+        self.write("walkthrough.md", "5. If Hermes asks permission too often, just say yes to every card without reading it.\n")
         self.assertFalse(unsafe(self.home, {}, "")["fixed"])
-        self.write("walkthrough.md", "5. Never switch approvals off. Read the card; yes only if it matches the job.\n")
+        self.write("walkthrough.md", "5. Never say yes to a card without reading it. Yes only if it matches the job.\n")
         self.assertTrue(unsafe(self.home, {}, "")["fixed"])
 
 

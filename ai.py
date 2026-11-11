@@ -352,6 +352,23 @@ def _bounded(fn: Callable[[], Any], limit: float):
     return box.get("value")
 
 
+_FORMAT = {"plain": False}  # set once a provider refuses the structured-output request; lasts until the plugin reloads
+
+
+def format_refused(exc: BaseException) -> bool:
+    """True when Hermes or the provider refused the structured-output request itself, not the answer."""
+    msg = str(exc).lower()
+    if "structured output is supported" in msg:
+        return True
+    return ("400" in msg or "invalid_request" in msg) and any(k in msg for k in (
+        "additionalproperties", "output_config", "response_format", "json_schema", "structured output"))
+
+
+def _plain_hint(schema: dict) -> str:
+    return ("\n\nReply with one complete JSON object and nothing else: no code fence, no commentary. It must fit this "
+            "JSON Schema: " + json.dumps(schema, separators=(",", ":")))
+
+
 def call(task: str, *, instructions: str, inputs: list, schema: dict, schema_name: str, purpose: str,
          max_tokens: int = 800, timeout: float = DEFAULT_TIMEOUT, validate: Optional[Callable[[dict], None]] = None,
          llm=None, respect_switch: bool = True, attempt_id=None) -> dict:
@@ -376,11 +393,8 @@ def call(task: str, *, instructions: str, inputs: list, schema: dict, schema_nam
     repaired = False
     last_problem = ""
 
-    def once(note: str):
+    def send(kwargs: dict):
         nonlocal use_task
-        kwargs = dict(instructions=clean_instructions + (("\n\n" + note) if note else ""), input=blocks, json_schema=schema,
-                      schema_name=schema_name, max_tokens=max_tokens, timeout=max(1.0, deadline - time.monotonic()),
-                      purpose=f"field_academy.{purpose}")
         if use_task:
             try:
                 return model_api.complete_structured(task=task, **kwargs)
@@ -394,6 +408,24 @@ def call(task: str, *, instructions: str, inputs: list, schema: dict, schema_nam
                 _log.info("field-academy: task %s not registered here; using the main model", task)
                 use_task = False
         return model_api.complete_structured(**kwargs)
+
+    def once(note: str):
+        text = clean_instructions + (("\n\n" + note) if note else "")
+        kwargs = dict(input=blocks, max_tokens=max_tokens, timeout=max(1.0, deadline - time.monotonic()),
+                      purpose=f"field_academy.{purpose}")
+        if _FORMAT["plain"]:
+            return send(dict(kwargs, instructions=text + _plain_hint(schema)))
+        try:
+            return send(dict(kwargs, instructions=text, json_schema=schema, schema_name=schema_name))
+        except Exception as exc:
+            if not format_refused(exc):
+                raise
+            # Claude's strict output mode can reject the schema itself (a 400 before any answer). Ask in plain words
+            # from here on and read the JSON from the reply; check_schema below still holds it to the same shape.
+            _log.info("field-academy: the provider refused the format request; asking for JSON in plain text")
+            _FORMAT["plain"] = True
+            kwargs["timeout"] = max(1.0, deadline - time.monotonic())
+            return send(dict(kwargs, instructions=text + _plain_hint(schema)))
 
     for attempt in range(2):
         note = "" if attempt == 0 else REPAIR_NOTE + (f" (The problem: {last_problem}.)" if last_problem else "")

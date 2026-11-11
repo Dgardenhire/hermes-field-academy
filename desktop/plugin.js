@@ -688,6 +688,7 @@ function withPlaced(track) {
   return { ...t, missions, levels, here, verified_missions: missions.filter((m) => obj(m).status === "verified").length };
 }
 function trailModel(track) {
+  const extraIds = new Set(arr(obj(track).placed).map((m) => obj(m).id).filter(Boolean));
   const t = obj(withPlaced(track));
   const missions = arr(t.missions).filter((m) => m && typeof m === "object" && str(m.id));
   const byId = new Map(missions.map((m) => [m.id, m]));
@@ -728,6 +729,7 @@ function trailModel(track) {
         status: status2,
         passed: status2 === "passed",
         here: id === here,
+        extra: extraIds.has(id),
         minutes: num(m.minutes, 0),
         camp: ci,
         index: waypoints.length
@@ -740,6 +742,8 @@ function trailModel(track) {
     delete camp.ids;
   }
   const passed = waypoints.filter((w) => w.passed).length;
+  const own = waypoints.filter((w) => !w.extra);
+  const extras = waypoints.filter((w) => w.extra);
   const hereIndex = waypoints.findIndex((w) => w.here);
   const allPassed = waypoints.length > 0 && passed === waypoints.length;
   const marker = hereIndex >= 0 ? hereIndex + 1 : allPassed ? waypoints.length + 1 : 0;
@@ -749,16 +753,31 @@ function trailModel(track) {
     id: str(t.id, "path"),
     name: str(t.name, "Path"),
     eyebrow: str(t.eyebrow),
+    subtitle: str(t.subtitle),
     promise: str(t.promise),
     unit: str(t.unit, "missions"),
     camps,
     waypoints,
     passed,
     total: waypoints.length,
+    recordPassed: own.filter((w) => w.passed).length,
+    recordTotal: own.length,
+    extraPassed: extras.filter((w) => w.passed).length,
+    extraTotal: extras.length,
     marker,
     currentCamp: camps.findIndex((c) => c.current),
-    summit: { status, remaining: num(cert.remaining, waypoints.length - passed), words: str(cert.words) }
+    summit: { status, remaining: num(cert.remaining, own.length - own.filter((w) => w.passed).length), words: str(cert.words) }
   };
+}
+function countWords(model) {
+  const m = obj(model);
+  const unit = str(m.unit, "missions") === "parts" ? ["part", "parts"] : ["mission", "missions"];
+  const total = num(m.recordTotal, num(m.total, 0));
+  const head = `${num(m.recordPassed, num(m.passed, 0))} of ${total} ${total === 1 ? unit[0] : unit[1]} passed`;
+  const extra = num(m.extraTotal, 0);
+  if (!extra) return `${head}.`;
+  const kind = m.id === "deployer" ? ["teaching mission", "teaching missions"] : ["practice mission", "practice missions"];
+  return `${head}, plus ${num(m.extraPassed, 0)} of ${extra} ${extra === 1 ? kind[0] : kind[1]} placed here, which the Field Record doesn't need.`;
 }
 function overview(passport) {
   const p = obj(passport);
@@ -964,6 +983,7 @@ var FIELD_CSS = `
 .fa-map-head{grid-column:2;position:relative;height:34px;border-bottom:1px dashed var(--hk-stroke)}
 .fa-map-head span{position:absolute;top:12px;transform:translateX(-50%);white-space:nowrap;font-size:var(--hk-fs-sm)}
 .fa-map-head[data-lines]{height:66px}
+@container (min-width:521px){.fa-map-head .fa-map-tight{font-size:12px;letter-spacing:0}.fa-map-head .fa-map-two{top:3px;line-height:1.15;text-align:center}}
 .fa-map-head .fa-map-col{display:grid;gap:3px;justify-items:center;text-align:center;white-space:normal}
 .fa-map-head .fa-map-col>span{position:static;transform:none}
 .fa-map-line{display:block;font-size:12px;line-height:1.3;font-weight:400;letter-spacing:0;text-transform:none;opacity:.85}
@@ -975,7 +995,8 @@ var FIELD_CSS = `
 .fa-trail-label:focus-visible{outline:2px solid var(--hk-accent);outline-offset:-2px}
 .fa-trail-top{display:flex;align-items:baseline;gap:8px;min-width:0}
 .fa-trail-name{font-size:var(--hk-fs-h2);font-weight:600;flex:1;min-width:0;line-height:1.25}
-.fa-trail-promise{font-size:var(--hk-fs-sm);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.fa-trail-sub{font-size:var(--hk-fs-sm);font-weight:600;line-height:1.3}
+.fa-trail-promise{font-size:var(--hk-fs-sm);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .fa-trail-cert{font-size:var(--hk-fs-sm);display:inline-flex;gap:5px;align-items:center}
 .fa-trail-cert .codicon{color:var(--fa-blaze-ink)}
 .fa-map-svg{grid-column:2;display:block;overflow:visible}
@@ -1248,7 +1269,8 @@ function trailLines(model, stops, segs, from) {
   ];
 }
 var ROW = 138;
-function TrailRow({ model, layout, y, active, onOpenMission, onOpenTrack }) {
+var HEAD_BREAKS = { Intermediate: ["Inter-", "mediate"] };
+function TrailRow({ model, layout, y, active, marked = true, onOpenMission, onOpenTrack }) {
   const { stops, segs } = layout;
   const motion = useTrailMotion(`map:${model.id}`, model.marker);
   const at = stops[Math.min(motion.shown, stops.length - 1)];
@@ -1258,7 +1280,7 @@ function TrailRow({ model, layout, y, active, onOpenMission, onOpenTrack }) {
     jsx3("circle", { className: "fa-start", cx: stops[0].x, cy: stops[0].y, r: 3.5 }),
     ...stops.filter((s) => s.kind === "waypoint").map((stop) => jsx3(Waypoint, { stop, onOpen: onOpenMission }, stop.point.id)),
     jsx3(SummitFlag, { stop: stops[stops.length - 1], status: model.summit.status, onOpen: () => onOpenTrack(model.id) }),
-    model.total ? jsx3(Marker, { x: at.x, y: at.y }) : null
+    model.total && marked ? jsx3(Marker, { x: at.x, y: at.y }) : null
   ] });
 }
 function trailCertWords(model) {
@@ -1268,7 +1290,7 @@ function trailCertWords(model) {
   const unit = model.unit === "parts" ? model.summit.remaining === 1 ? "part" : "parts" : model.summit.remaining === 1 ? "mission" : "missions";
   return `${model.summit.remaining} ${unit} to the Field Record`;
 }
-function TrailMap({ models, list, onOpenTrack, onOpenMission, foot, lines = null, summitLine = "" }) {
+function TrailMap({ models, list, onOpenTrack, onOpenMission, foot, lines = null, summitLine = "", here }) {
   const [ref, width] = useWidth();
   const camps = models[0] ? models[0].camps : [];
   const height = models.length * ROW;
@@ -1282,12 +1304,17 @@ function TrailMap({ models, list, onOpenTrack, onOpenMission, foot, lines = null
       jsx3("div", { className: "fa-map-head", ref, "data-lines": lines ? "" : void 0, children: columns ? [
         ...camps.map((camp, i) => {
           const col = columns.camps[Math.min(i, columns.camps.length - 1)];
-          const name = col.x1 - col.x0 < 150 ? camp.short || camp.name : `${camp.short || camp.name} camp`;
+          const span = col.x1 - col.x0;
+          const bare = camp.short || camp.name;
+          const tight = span < 100 && bare.length > 9;
+          const split = tight && HEAD_BREAKS[bare];
+          const name = split ? [split[0], jsx3("br", {}, "br"), split[1]] : span < 150 ? bare : `${bare} camp`;
+          const cls = split ? "fa-sc fa-map-tight fa-map-two" : tight ? "fa-sc fa-map-tight" : "fa-sc";
           const line = lines && lines[camp.id];
           return line ? jsxs3("span", { className: "fa-map-col", style: { left: (col.x0 + col.x1) / 2, width: Math.max(80, col.x1 - col.x0 - 10) }, children: [
-            jsx3("span", { className: "fa-sc", children: name }),
+            jsx3("span", { className: cls, title: camp.name, children: name }),
             jsx3("small", { className: "fa-map-line", children: line })
-          ] }, camp.id) : jsx3("span", { className: "fa-sc", style: { left: (col.x0 + col.x1) / 2 }, children: name }, camp.id);
+          ] }, camp.id) : jsx3("span", { className: cls, title: camp.name, style: { left: (col.x0 + col.x1) / 2 }, children: name }, camp.id);
         }),
         summitLine ? jsxs3("span", { className: "fa-map-col", style: { left: "auto", right: 4, transform: "none", width: 64, justifyItems: "end", textAlign: "right" }, children: [
           jsx3("span", { className: "fa-sc", children: "Summit" }),
@@ -1304,9 +1331,12 @@ function TrailMap({ models, list, onOpenTrack, onOpenMission, foot, lines = null
           model.eyebrow ? jsx3("span", { className: "fa-sc fa-sc-blaze", children: model.eyebrow }) : null,
           jsxs3("span", { className: "fa-trail-top", children: [
             jsx3("span", { className: "fa-trail-name", children: model.name }),
-            jsxs3("span", { className: "fa-num fa-num-m", children: [model.passed, jsx3("small", { children: `of ${model.total}` })] })
+            jsxs3("span", { className: "fa-num fa-num-m", title: countWords(model), children: [model.recordPassed ?? model.passed, jsx3("small", { children: `of ${model.recordTotal ?? model.total}` })] })
           ] }),
-          model.promise ? jsx3("span", { className: "fa-trail-promise", title: model.promise, children: model.promise }) : null,
+          // One line of what the trail teaches. The longer promise stays as the hover text: both together overran
+          // the row and the promise was cut off mid-line (Guide row, Nov 11).
+          model.subtitle ? jsx3("span", { className: "fa-trail-sub", title: model.promise || void 0, children: model.subtitle }) : null,
+          model.promise && !model.subtitle ? jsx3("span", { className: "fa-trail-promise", title: model.promise, children: model.promise }) : null,
           jsx3("span", { className: "fa-trail-cert", children: trailCertWords(model) })
         ]
       }, model.id)),
@@ -1317,7 +1347,7 @@ function TrailMap({ models, list, onOpenTrack, onOpenMission, foot, lines = null
         viewBox: `0 0 ${width} ${height}`,
         style: { gridRow: `2 / span ${models.length}` },
         role: "group",
-        "aria-label": "Trail map of your paths",
+        "aria-label": "Trail map of your trails",
         children: [
           ...columns ? [...columns.camps.slice(1).map((c) => c.x0), columns.camps[columns.camps.length - 1].x1 + 8].map((x, i) => jsx3("line", { className: "fa-divider", x1: x, x2: x, y1: 0, y2: height }, `d${i}`)) : [],
           ...models.map((model, i) => jsx3(TrailRow, {
@@ -1325,6 +1355,7 @@ function TrailMap({ models, list, onOpenTrack, onOpenMission, foot, lines = null
             layout: layouts[i],
             y: i * ROW,
             active: list.index === i,
+            marked: here === void 0 || here === model.id,
             onOpenMission,
             onOpenTrack
           }, model.id))
@@ -1624,7 +1655,7 @@ function createDeployerViews(ui) {
     const up = () => go({ name: "path", id: "deployer" });
     return jsx4(Frame2, { width: "narrow", up, children: [
       jsx4(PageHeader, {
-        back: jsx4(Back, { label: "Guide path", onClick: up }),
+        back: jsx4(Back, { label: "Guide trail", onClick: up }),
         eyebrow: jsx4(Label2, { children: TITLE_FOR_PART[part] || "Guide" }),
         title,
         lead
@@ -1691,7 +1722,7 @@ function createDeployerViews(ui) {
     return jsx4("div", { id: "fa-dp-route", children: jsx4(Card, { tone, tint: cert.status !== "in_progress" && cert.status !== "not_started", children: jsxs4("div", { className: "hk-stack", style: { gap: 6 }, children: [
       jsx4(Label2, { children: "Summit" }),
       jsx4("h2", { className: "hk-h2", children: cert.label }),
-      cert.status === "awaiting_review" ? jsx4("p", { children: "Every part is done. Your Guide Field Record still needs the reviewer you chose to read and sign your packet. Until then you hold Guide, awaiting review." }) : cert.status === "issued" ? jsx4("p", { children: "Created with the signed sign-off of the reviewer you chose, on the Hermes version shown on the record." }) : jsx4("p", { children: "Your Guide Field Record needs all nine parts of this path, and the signature of a reviewer you choose on your packet. Without that signature the most you hold is Guide, awaiting review." }),
+      cert.status === "awaiting_review" ? jsx4("p", { children: "Every part is done. Your Guide Field Record still needs the reviewer you chose to read and sign your packet. Until then you hold Guide, awaiting review." }) : cert.status === "issued" ? jsx4("p", { children: "Created with the signed sign-off of the reviewer you chose, on the Hermes version shown on the record." }) : jsx4("p", { children: "Your Guide Field Record needs all nine parts of this trail, and the signature of a reviewer you choose on your packet. Without that signature the most you hold is Guide, awaiting review." }),
       reverify && reverify.status === "reverify" ? jsx4(Pill, { tone: "warn", icon: "history", children: "Re-verify needed" }) : reverify && reverify.status === "current" ? jsx4(Pill, { tone: "good", icon: "check", children: "Current for this Hermes" }) : null,
       reverify ? jsx4("p", { className: "hk-small", children: reverify.words }) : null,
       jsxs4("div", { className: "hk-actions", children: [
@@ -1758,7 +1789,7 @@ function createDeployerViews(ui) {
       id: m.id,
       title: m.title,
       minutes: m.minutes,
-      detail: "Practice mission",
+      detail: "Teaching mission, extra to the Field Record",
       state: m.status === "verified" ? "verified" : m.status === "not_started" ? "not_started" : "in_progress"
     }));
     const itemById = Object.fromEntries([...data.items, ...placed].map((item) => [item.id, item]));
@@ -1768,17 +1799,18 @@ function createDeployerViews(ui) {
       jsx4(PageHeader, {
         back: jsx4(Back, { label: "Trail map", onClick: () => go({ name: "map" }) }),
         eyebrow: jsx4(Label2, { children: track.eyebrow }),
-        title: `${track.name} path`,
+        title: track.subtitle ? `${track.name}: ${track.subtitle}` : `${track.name} trail`,
         lead: track.promise
       }, "head"),
       track.lore ? jsx4("p", { className: "fa-lore", children: track.lore }, "lore") : null,
+      data.track.reviewer_note ? jsx4(Card, { tone: "warn", tint: true, children: jsx4("p", { children: data.track.reviewer_note }) }, "reviewer") : null,
       jsx4(AboutPanel, { about: data.about }, "about"),
       jsx4(ElevationProfile, {
         model,
         onOpenMission: (id) => go(partFor(id)),
         onOpenSummit: () => scrollToId2("fa-dp-route"),
         children: [
-          jsx4("p", { children: `${data.track.verified_missions} of ${data.track.missions.length} parts passed. ${data.certificate.label}.` }, "where"),
+          jsx4("p", { children: `${countWords(model)} ${data.certificate.label}.` }, "where"),
           jsx4(Legend, {}, "legend")
         ]
       }, "profile"),
@@ -2176,7 +2208,7 @@ function createDeployerViews(ui) {
     return jsx4("div", { className: "hk-stack", children: [
       status === "locked" && waiting.length ? jsx4(Card, { key: "locked", tone: "info", children: jsxs4("div", { className: "hk-stack", style: { gap: 4 }, children: [
         jsx4("strong", { children: "Not yet" }),
-        jsx4("p", { children: "The packet is built when everything else on the path is done. Still to do:" }),
+        jsx4("p", { children: "The packet is built when everything else on the trail is done. Still to do:" }),
         jsx4(Bullets, { items: waiting })
       ] }) }) : null,
       status === "ready" || status === "stale" ? jsx4(Card, { key: "build", children: jsxs4("div", { className: "hk-stack", children: [
@@ -2230,7 +2262,7 @@ function createDeployerViews(ui) {
     if (cert.status === "awaiting_review") {
       return jsx4(Card, { tone: "warn", tint: true, children: jsxs4("div", { className: "hk-stack", style: { gap: 4 }, children: [
         jsx4("strong", { children: "Guide, awaiting review" }),
-        jsx4("p", { children: "You can create your Field Record once your reviewer's signed sign-off is loaded and every part of the path stands. You are not missing anything else." })
+        jsx4("p", { children: "You can create your Field Record once your reviewer's signed sign-off is loaded and every part of the trail stands. You are not missing anything else." })
       ] }) });
     }
     if (cert.status !== "ready") return null;
@@ -2278,11 +2310,11 @@ function createDeployerViews(ui) {
     const up = () => go({ name: "path", id: "deployer" });
     if (!issued) {
       return jsx4(Frame2, { width: "narrow", up, children: [
-        jsx4(Back, { label: "Guide path", onClick: up }, "back"),
+        jsx4(Back, { label: "Guide trail", onClick: up }, "back"),
         jsx4("div", { className: "fa-panel", key: "none", children: jsxs4("div", { className: "hk-stack", style: { gap: 3 }, children: [
           jsx4(Label2, { children: "Summit" }),
           jsx4("h1", { className: "hk-h1", children: data.certificate.label }),
-          jsx4("p", { children: "There is no Field Record yet. It needs every part of the path and the signed sign-off of a reviewer you choose." })
+          jsx4("p", { children: "There is no Field Record yet. It needs every part of the trail and the signed sign-off of a reviewer you choose." })
         ] }) })
       ] });
     }
@@ -2290,7 +2322,7 @@ function createDeployerViews(ui) {
     const display = issued.display || { issuer: body.issuer, shows: body.shows, does_not_show: body.does_not_show, disclaimer: body.disclaimer || data.about && data.about.disclaimer || "" };
     const rv = data.certificate.reverify;
     return jsx4(Frame2, { up, children: [
-      jsx4(Back, { label: "Guide path", onClick: up }, "back"),
+      jsx4(Back, { label: "Guide trail", onClick: up }, "back"),
       jsx4("article", { key: "cert", className: "fa-cert hk-enter", "aria-label": `Guide Field Record for ${body.name}, self-issued with Field Academy`, children: jsxs4("div", { className: "fa-cert-inner", children: [
         jsx4(Contours, { width: 900, height: 600, seed: 11 }),
         jsx4(CertCorners, {}),
@@ -2302,7 +2334,7 @@ function createDeployerViews(ui) {
           jsx4(Label2, { plain: true, children: "Kept by" }),
           jsx4("p", { className: "fa-cert-name", children: body.name }),
           jsx4(Label2, { plain: true, children: "who completed every part of the" }),
-          jsx4("h1", { className: "fa-cert-path", children: "Guide path" }),
+          jsx4("h1", { className: "fa-cert-path", children: "Guide trail" }),
           jsx4("p", { className: "fa-cert-promise", children: body.path_promise }),
           jsx4("p", { children: `Created ${longDate2(body.issued_at)}, on the holder's own computer. Recorded on Hermes ${body.hermes_version.value}.` })
         ] }),
@@ -2478,7 +2510,7 @@ function BannerArt({ camps = [], summitDone = false }) {
     jsx5("path", { className: "fa-bn-crest", "data-layer": "near", d: crest(BANNER_RIDGES.near) })
   ] });
 }
-function Banner({ eyebrow, promise, facts = [], camps = [], summitDone = false, compact = false }) {
+function Banner({ eyebrow, promise, facts = [], links = [], camps = [], summitDone = false, compact = false }) {
   return jsxs5("header", { className: "fa-bn hk-enter", "data-compact": compact ? "" : void 0, children: [
     jsx5(BannerArt, { camps, summitDone }, "art"),
     jsx5("span", { className: "fa-bn-scrim", "aria-hidden": "true" }, "scrim"),
@@ -2490,7 +2522,10 @@ function Banner({ eyebrow, promise, facts = [], camps = [], summitDone = false, 
         jsx5("span", { children: "Academy" }, "b")
       ] }, "mark"),
       jsx5("p", { className: "fa-bn-promise", children: promise }, "promise"),
-      facts.length ? jsx5("p", { className: "fa-bn-facts", children: facts.map((f) => jsx5("span", { children: f }, f)) }, "facts") : null
+      facts.length || links.length ? jsx5("p", { className: "fa-bn-facts", children: [
+        ...facts.map((f) => jsx5("span", { children: f }, f)),
+        ...links.map((l) => jsx5("button", { type: "button", className: "fa-bn-link", onClick: l.onClick, title: l.title, children: l.label }, l.label))
+      ] }, "facts") : null
     ] }, "copy")
   ] });
 }
@@ -2533,6 +2568,9 @@ var BANNER_CSS = `
 .fa-bn-promise{font-size:14px;line-height:1.5;max-width:44ch}
 .fa-bn-facts{display:flex;flex-wrap:wrap;gap:6px;font-size:var(--hk-fs-sm);font-weight:600}
 .fa-bn-facts span{padding:1px 8px;border-radius:999px;border:1px solid var(--hk-stroke);background:color-mix(in srgb,var(--hk-bg) 82%,transparent)}
+.fa-bn-link{font:inherit;color:var(--hk-accent);cursor:pointer;padding:1px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--hk-accent) 55%,transparent);background:color-mix(in srgb,var(--hk-bg) 82%,transparent)}
+.fa-bn-link:hover{background:color-mix(in srgb,var(--hk-accent) 14%,var(--hk-bg))}
+.fa-bn-link:focus-visible{outline:2px solid var(--hk-accent);outline-offset:2px}
 @container (max-width:640px){
   .fa-bn{flex-direction:column;align-items:stretch;min-height:0}
   .fa-bn-art{position:relative;inset:auto;height:150px;order:-1;border-bottom:1px solid var(--hk-stroke)}
@@ -3914,8 +3952,14 @@ function bracketWords(replay) {
 function fixChanges(first, after) {
   const before = Object.fromEntries(arr5(obj3(first).checks).map((c) => [c.id, c]));
   return arr5(obj3(after).checks).filter((c) => c && c.passed && before[c.id] && before[c.id].passed === false).map((c) => {
-    const was = arr5(before[c.id].facts)[0];
-    const now = arr5(c.facts).find((f) => was && f.label === was.label) || arr5(c.facts)[0];
+    const wasAll = arr5(before[c.id].facts);
+    const nowAll = arr5(c.facts);
+    const changed = wasAll.find((w) => {
+      const n = nowAll.find((f) => f.label === w.label);
+      return n && n.value !== w.value;
+    });
+    const was = changed || wasAll[0];
+    const now = nowAll.find((f) => was && f.label === was.label) || nowAll[0];
     return { id: c.id, title: c.title, was: was ? `${was.label}: ${was.value}` : "", now: was && now ? `${now.label}: ${now.value}` : str5(c.detail) };
   });
 }
@@ -3932,8 +3976,8 @@ function huntStarted(guideView, explain) {
 }
 function explainShown(sentences) {
   const all = arr5(sentences).map(str5).filter(Boolean);
-  const kept = all.filter((t) => !/\b\d{1,2}:\d{2}\b/.test(t));
-  return kept.length ? kept : all.slice(0, 1);
+  const kept2 = all.filter((t) => !/\b\d{1,2}:\d{2}\b/.test(t));
+  return kept2.length ? kept2 : all.slice(0, 1);
 }
 function explainMerged(items) {
   const words = (t) => new Set(str5(t).toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter((w) => w.length > 2));
@@ -4017,7 +4061,7 @@ function homePreview(sample) {
 
 // desktop/src/desk.js
 var DESK_CSS = `
-.fa-root kbd[data-slot=kbd]{font-size:12px}
+.fa-root .hk-keys kbd{font-size:12px}
 .fa-desk{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);align-items:start;padding:16px 20px 40px;width:100%;max-width:1500px;margin:0 auto}
 .fa-desk-head{display:grid;gap:6px}
 .fa-desk-rail{display:none}
@@ -4158,6 +4202,9 @@ var DESK_CSS = `
 .fa-top{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);align-items:start}
 @container (min-width:1000px){.fa-top{grid-template-columns:minmax(0,1fr) 340px}}
 .fa-top-map,.fa-top-start{min-width:0}
+.fa-top-start{display:grid;gap:12px;align-content:start}
+.fa-switch{display:flex;gap:10px;align-items:flex-start;cursor:pointer;max-width:70ch}
+.fa-switch input{margin-top:3px;width:16px;height:16px;flex:none;accent-color:var(--fa-blaze,currentColor)}
 .fa-top-map{container-type:inline-size}
 @container (max-width:700px){.fa-map-head span{font-size:12px;letter-spacing:0}}
 @container (max-width:520px){.fa-map-head span{font-size:0}.fa-map-head span::first-letter{font-size:12px}}
@@ -4407,16 +4454,21 @@ function createDeskViews(ui) {
   }
   function FixCommands({ commands, attemptId, practiceName }) {
     const [drafted, setDrafted] = useState7("");
+    const [next, setNext] = useState7(0);
     const text = commands.join("\n");
+    const ordinal = (i) => ["first", "second", "third", "fourth"][i] || `next`;
     return jsxs8("div", { className: "hk-stack", style: { gap: 8 }, children: [
       jsx9("ol", { className: "fa-guide-cmd", children: commands.map((c) => jsx9("li", { children: jsx9("code", { children: c }) }, c)) }),
       jsxs8("div", { className: "fa-f-row", children: [
         jsx9(Button5, { variant: "secondary", onClick: async () => {
-          const ok = draftInPractice ? await draftInPractice(practiceName, commands[0] || "") : false;
-          setDrafted(ok ? "The first command is in the practice chat, not sent. Press Enter there, then send the second." : "Copied. Paste them in the practice chat and press Enter after each.");
+          const i = Math.min(next, commands.length - 1);
+          const ok = draftInPractice ? await draftInPractice(practiceName, commands[i] || "") : false;
+          const more = i + 1 < commands.length;
+          setDrafted(ok ? `The ${ordinal(i)} command is in the practice chat, not sent. Press Send there${more ? ", then come back and press this button for the next one." : "."}` : "Copied. Paste them in the practice chat and press Send after each.");
           if (!ok) copyText2(text, "Copied the commands.");
-          post(`/guide/${attemptId}/help`, { action: "do_it_with_me", step: "fix" }).catch(() => null);
-        }, children: "Put it in the practice chat" }),
+          else setNext(more ? i + 1 : 0);
+          if (i === 0) post(`/guide/${attemptId}/help`, { action: "do_it_with_me", step: "fix" }).catch(() => null);
+        }, children: next > 0 && commands.length > 1 ? `Put the ${ordinal(next)} command in the practice chat` : "Put it in the practice chat" }),
         jsx9(Button5, { variant: "secondary", onClick: () => copyText2(text, "Copied the commands."), children: "Copy the commands" })
       ] }),
       drafted ? jsx9("p", { className: "hk-small", role: "status", style: { margin: 0 }, children: drafted }) : null
@@ -4800,6 +4852,8 @@ var FOUNDATIONS_CSS = `
 var NEW_PROFILE_TIMEOUT_MS = 12e4;
 function createFoundationsViews(ui) {
   const { Frame: Frame2, Label: Label2, ctxRest: ctxRest2, errorText: errorText2, copyText: copyText2, openFolder: openFolder2, sendInNewChat: sendInNewChat2, plural: plural3, longDate: longDate2 } = ui;
+  const loadFoundations2 = ui.loadFoundations || (() => ctxRest2("/foundations"));
+  const loadSample2 = ui.loadSample || (() => ctxRest2("/replay/sample"));
   const post = (path, body) => ctxRest2(path, { method: "POST", body: body || {} });
   const support = () => hostSupport(host4);
   const requestPractice = async (name, method, params) => {
@@ -5745,7 +5799,11 @@ function createFoundationsViews(ui) {
     const [preview, setPreview] = useState8(null);
     const [withhold, setWithhold] = useState8([]);
     const [sure, setSure] = useState8(false);
-    const action = useAction(reloadAll);
+    const [justAdded, setJustAdded] = useState8(null);
+    const action = useAction((out) => {
+      if (out && out.added) setJustAdded(out.added);
+      else return reloadAll();
+    });
     useEffect6(() => {
       let live = true;
       post(`/foundations/attempt/${view.attempt.id}/record/preview`, { withhold }).then((p) => {
@@ -5757,7 +5815,7 @@ function createFoundationsViews(ui) {
         live = false;
       };
     }, [view.attempt.status, withhold.join(",")]);
-    const added = view.record || preview?.added;
+    const added = view.record || preview?.added || justAdded;
     const entry = preview?.entry;
     return jsx10(StepFrame, { title: "Record", eyebrow: "Step 12", lead: "This is the entry exactly as it would go into your Field Record. Read every excerpt first: you can keep any of them out.", children: [
       jsx10(Problem, { text: action.error }, "e"),
@@ -5795,7 +5853,8 @@ function createFoundationsViews(ui) {
       added ? jsx10(Notice, { tone: "good", title: "In your record", children: jsxs9("div", { className: "hk-stack", children: [
         jsx10("p", { style: { margin: 0 }, children: `Added ${longDate2(added.created_at)}. It can't be changed; a correction would be added below it.` }),
         go ? jsx10("div", { className: "hk-actions", children: jsx10(Button6, { variant: "secondary", onClick: () => go({ name: "f-record" }), children: "See your Field Record" }) }) : null,
-        jsx10(DeletePractice, { view, listing, reloadAll })
+        // No reload once the entry is in: it would start the mission again (see justAdded above). The receipt says it.
+        jsx10(DeletePractice, { view, listing, reloadAll: null })
       ] }) }, "added") : preview && preview.ready ? jsxs9("div", { className: "hk-stack", children: [
         jsxs9("label", { className: "fa-f-withhold", children: [jsx10("input", { type: "checkbox", checked: sure, onChange: (e) => setSure(e.target.checked) }), "I've read the entry. Adding it can't be undone."] }),
         jsx10("div", { className: "hk-actions", children: jsx10(Button6, { disabled: !sure, loading: action.busy === "add", onClick: () => action.run("add", () => post(`/foundations/attempt/${view.attempt.id}/record`, { withhold, confirm: true })), children: "Add to my record" }) })
@@ -6175,12 +6234,15 @@ function createFoundationsViews(ui) {
       ] }) }, "issued") : null
     ] });
   }
-  function useFoundations(wanted = true) {
-    const [state, setState] = useState8({ loading: true, data: null, error: "" });
+  function useFoundations(wanted = true, { fromCopy = false } = {}) {
+    const [state, setState] = useState8(() => {
+      const copy = wanted && fromCopy && ui.keptFoundations ? ui.keptFoundations() : null;
+      return copy ? { loading: false, data: copy, error: "" } : { loading: true, data: null, error: "" };
+    });
     useEffect6(() => {
       if (!wanted) return void 0;
       let live = true;
-      ctxRest2("/foundations").then((data) => live && setState({ loading: false, data, error: "" })).catch((e) => live && setState({ loading: false, data: null, error: errorText2(e) }));
+      loadFoundations2().then((data) => live && setState({ loading: false, data, error: "" })).catch((e) => live && setState({ loading: false, data: null, error: errorText2(e) }));
       return () => {
         live = false;
       };
@@ -6190,12 +6252,24 @@ function createFoundationsViews(ui) {
   function missionStatus(m) {
     return missionWords(m);
   }
-  function FoundationsCard({ go, foundations }) {
+  function FoundationsCard({ go, foundations, compact = false }) {
     const own = useFoundations(!foundations);
     const f = foundations || own;
     const missions = (f.data?.missions || []).filter((m) => !m.trail);
     if (!missions.length) return null;
     const done = missions.filter((m) => (m.attempts || []).some((a) => a.status === "done")).length;
+    if (compact) {
+      const begun2 = missions.some((m) => (m.attempts || []).length);
+      return jsx10(Card, { className: "fa-f-next", children: jsxs9("div", { className: "hk-stack", style: { gap: 6 }, children: [
+        jsx10(Label2, { children: begun2 ? "Foundations: where you left off" : "Then: Foundations" }),
+        jsx10("h3", { className: "hk-h2", style: { margin: 0 }, children: `${plural3(missions.length, "mission", "missions")} on how Hermes really works` }),
+        jsx10("p", { style: { margin: 0 }, children: "Each runs in a practice profile with one problem planted first. The check reads Hermes's own files, not your word." }),
+        jsxs9("div", { className: "hk-actions", children: [
+          jsx10(Button6, { variant: begun2 ? "default" : "secondary", onClick: () => go({ name: "foundations" }), children: "Open Foundations" }),
+          jsx10("span", { className: "hk-small", children: `${done} of ${missions.length} in your record` })
+        ] })
+      ] }) });
+    }
     const beat = (icon, title, body, files) => jsxs9("li", { className: "fa-f-beat", children: [
       jsxs9("div", { className: "fa-f-row", children: [jsx10(Codicon5, { name: icon, size: 16 }), jsx10("strong", { children: title })] }),
       jsx10("p", { children: body }),
@@ -6238,7 +6312,7 @@ function createFoundationsViews(ui) {
     const [sample, setSample] = useState8(null);
     useEffect6(() => {
       let live = true;
-      ctxRest2("/replay/sample").then((d) => {
+      loadSample2().then((d) => {
         if (live) setSample(d);
       }).catch(() => {
         if (live) setSample({ state: "empty", words: "" });
@@ -6344,9 +6418,211 @@ function createFoundationsViews(ui) {
   return { FoundationsCard, FoundationsPath, MissionLoop, FieldRecordView, CalibrationView, useFoundations, FirstFlightCard, SampleRun };
 }
 
+// desktop/src/opencache.js
+var OPEN_CACHE_VERSION = 1;
+var OPEN_CACHE_KINDS = ["passport", "deployer", "foundations"];
+var OPEN_CACHE_MAX_CHARS = 64 * 1024;
+var OPEN_CACHE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1e3;
+var obj4 = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : {};
+var arr6 = (value) => Array.isArray(value) ? value : [];
+var isObj = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
+function openCacheKey(kind) {
+  return `open-cache.${kind}`;
+}
+function openScope(profile, connectionId) {
+  const p = typeof profile === "string" ? profile.trim() : "";
+  if (!p) return "";
+  const c = connectionId === null || connectionId === void 0 ? "" : String(connectionId);
+  return `${c}|${p}`;
+}
+var SECRET_KEY = /^(?:.*[_-])?(?:token|secret|password|passwd|passphrase|api[_-]?key|apikey|access[_-]?key|private[_-]?key|auth|authorization|cookie|credentials?|session[_-]?key|client[_-]?secret|bearer)$/i;
+var SECRET_VALUE = [
+  /\bsk-(?:ant-|proj-)?[A-Za-z0-9_-]{16,}/,
+  // OpenAI and Anthropic style keys
+  /\bgh[pousr]_[A-Za-z0-9]{20,}/,
+  // GitHub tokens
+  /\bgithub_pat_[A-Za-z0-9_]{20,}/,
+  /\bxox[abprs]-[A-Za-z0-9-]{10,}/,
+  // Slack tokens
+  /\bAKIA[0-9A-Z]{16}\b/,
+  // AWS access key ids
+  /\bAIza[0-9A-Za-z_-]{30,}/,
+  // Google API keys
+  /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
+  /\bBearer\s+[A-Za-z0-9._~+/=-]{16,}/i,
+  /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}/,
+  // JWTs
+  /\b\d{8,10}:[A-Za-z0-9_-]{30,}/
+  // Telegram bot tokens
+];
+function isSecretKey(key) {
+  return SECRET_KEY.test(String(key));
+}
+function carriesSecret(value, depth = 0) {
+  if (depth > 40) return true;
+  if (typeof value === "string") return SECRET_VALUE.some((re) => re.test(value));
+  if (Array.isArray(value)) return value.some((item) => carriesSecret(item, depth + 1));
+  if (isObj(value)) return Object.entries(value).some(([k, v]) => carriesSecret(k, depth + 1) || carriesSecret(v, depth + 1));
+  return false;
+}
+function withoutSecretKeys(value, depth = 0) {
+  if (depth > 40) return null;
+  if (Array.isArray(value)) return value.map((item) => withoutSecretKeys(item, depth + 1));
+  if (!isObj(value)) return value;
+  const out = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (isSecretKey(k)) continue;
+    out[k] = withoutSecretKeys(v, depth + 1);
+  }
+  return out;
+}
+var MISSION_KEEP = ["id", "title", "status", "level", "level_name", "minutes", "completed_steps", "total_steps", "version", "use_text", "strength", "strength_word", "changed", "time", "placed", "trail", "camp"];
+var CERTIFICATE_KEEP = ["status", "remaining", "words", "label", "title"];
+function pick(value, keys) {
+  if (!isObj(value)) return value;
+  const out = {};
+  for (const key of keys) if (key in value) out[key] = value[key];
+  return out;
+}
+function slimMission(mission) {
+  return pick(mission, MISSION_KEEP);
+}
+function slimTrack(track) {
+  if (!isObj(track)) return track;
+  const out = { ...track };
+  if (Array.isArray(track.missions)) out.missions = track.missions.map(slimMission);
+  if (Array.isArray(track.placed)) out.placed = track.placed.map(slimMission);
+  if (isObj(track.certificate)) out.certificate = pick(track.certificate, CERTIFICATE_KEEP);
+  return out;
+}
+function slimPassport(passport) {
+  if (!isObj(passport) || !Array.isArray(passport.tracks)) return null;
+  const { recent_evidence, ...rest } = passport;
+  return { ...rest, tracks: passport.tracks.map(slimTrack) };
+}
+function slimDeployer(deployer) {
+  if (!isObj(deployer)) return null;
+  const out = { available: deployer.available };
+  if (isObj(deployer.track)) out.track = slimTrack(deployer.track);
+  const cert = obj4(deployer.certificate);
+  out.certificate = { label: cert.label, status: cert.status };
+  out.about = { disclaimer: obj4(deployer.about).disclaimer };
+  return out;
+}
+function slimFoundations(foundations) {
+  if (!isObj(foundations) || !Array.isArray(foundations.missions)) return null;
+  return {
+    missions: foundations.missions.map((m) => {
+      if (!isObj(m)) return m;
+      return {
+        id: m.id,
+        order: m.order,
+        title: m.title,
+        kind: m.kind,
+        level: m.level,
+        minutes: m.minutes,
+        trail: m.trail,
+        camp: m.camp,
+        attempts: arr6(m.attempts).map((a) => isObj(a) ? { id: a.id, status: a.status, stage: a.stage } : a)
+      };
+    })
+  };
+}
+var SLIM = { passport: slimPassport, deployer: slimDeployer, foundations: slimFoundations };
+function slimFor(kind, data) {
+  const slim = SLIM[kind];
+  if (!slim) return null;
+  let out = null;
+  try {
+    out = slim(data);
+  } catch (error) {
+    return null;
+  }
+  if (!out) return null;
+  out = withoutSecretKeys(out);
+  if (carriesSecret(out)) return null;
+  return out;
+}
+function packSnapshot(kind, data, scope, now = Date.now()) {
+  if (!scope) return null;
+  const slim = slimFor(kind, data);
+  if (!slim) return null;
+  let text = "";
+  try {
+    text = JSON.stringify(slim);
+  } catch (error) {
+    return null;
+  }
+  if (text.length > OPEN_CACHE_MAX_CHARS) return null;
+  return { v: OPEN_CACHE_VERSION, scope, at: now, data: slim };
+}
+function unpackSnapshot(kind, record, scope, now = Date.now()) {
+  if (!isObj(record) || !scope) return null;
+  if (record.v !== OPEN_CACHE_VERSION || record.scope !== scope) return null;
+  const at = Number(record.at);
+  if (!Number.isFinite(at) || at > now + 6e4 || now - at > OPEN_CACHE_MAX_AGE_MS) return null;
+  return slimFor(kind, record.data);
+}
+function readSnapshot(storage, kind, scope, now = Date.now()) {
+  try {
+    if (!storage || typeof storage.get !== "function") return null;
+    return unpackSnapshot(kind, storage.get(openCacheKey(kind), null), scope, now);
+  } catch (error) {
+    return null;
+  }
+}
+function writeSnapshot(storage, kind, data, scope, now = Date.now()) {
+  try {
+    if (!storage || typeof storage.set !== "function") return false;
+    const record = packSnapshot(kind, data, scope, now);
+    if (!record) {
+      if (typeof storage.remove === "function") storage.remove(openCacheKey(kind));
+      return false;
+    }
+    storage.set(openCacheKey(kind), record);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+function openPlan({ live = {}, cached = {}, view = "map", homeReady = true } = {}) {
+  const map = view === "map";
+  const present = (value) => value !== void 0 && value !== null;
+  let passport = homeReady ? live.passport : void 0;
+  let passportCopy = false;
+  if (!present(passport) && map) {
+    passport = present(live.passport) ? live.passport : cached.passport;
+    passportCopy = present(passport);
+  }
+  const deployerSettled = homeReady && Boolean(live.deployerSettled);
+  let deployer = deployerSettled ? live.deployer : void 0;
+  let deployerCopy = false;
+  if (!deployerSettled && map) {
+    const copy = present(live.deployer) ? live.deployer : cached.deployer;
+    if (present(copy)) {
+      deployer = copy;
+      deployerCopy = true;
+    }
+  }
+  if (!present(passport) || !deployerSettled && !deployerCopy) return { state: "skeleton", passport: void 0, deployer: void 0, preview: false };
+  return { state: "ready", passport, deployer, preview: passportCopy || deployerCopy };
+}
+var HOLD_SELECTOR = 'button, a[href], [role="button"], [role="link"], [role="menuitem"], [role="tab"], input[type="submit"], input[type="button"]';
+function previewIntent(event) {
+  const e = event || {};
+  const target = e.target && typeof e.target.closest === "function" ? e.target : null;
+  if (e.type === "click") return target && target.closest(HOLD_SELECTOR) ? "hold" : "pass";
+  if (e.type === "keydown" && (e.key === "Enter" || e.key === " ")) {
+    const field = target && target.closest('textarea, input, [contenteditable="true"], select');
+    if (field) return e.key === "Enter" && (e.metaKey || e.ctrlKey) ? "block" : "pass";
+    return "pass";
+  }
+  return "pass";
+}
+
 // desktop/src/learn.js
 var str6 = (value) => typeof value === "string" ? value : "";
-var obj4 = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : {};
+var obj5 = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : {};
 var norm = (value) => String(value == null ? "" : value).trim().toLowerCase();
 function blob(value) {
   try {
@@ -6390,12 +6666,12 @@ var CONNECTION_KEYS = { "this computer": "local", "another computer": "remote", 
 function flattenSkills(response) {
   const raw = response && typeof response === "object" && !Array.isArray(response) && "skills" in response ? response.skills : response;
   const items = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? Object.values(raw).flat() : [];
-  return items.map((skill) => (typeof skill === "string" ? skill : String(obj4(skill).name || obj4(skill).id || "")).trim()).filter(Boolean);
+  return items.map((skill) => (typeof skill === "string" ? skill : String(obj5(skill).name || obj5(skill).id || "")).trim()).filter(Boolean);
 }
 function jobRequestRead(job) {
   const full = jobRequest(job);
   if (full) return { text: full, cut: false };
-  const preview = typeof obj4(job).prompt_preview === "string" ? obj4(job).prompt_preview.trim() : "";
+  const preview = typeof obj5(job).prompt_preview === "string" ? obj5(job).prompt_preview.trim() : "";
   if (!preview) return { text: "", cut: false };
   const cut = preview.endsWith("...");
   return { text: cut ? preview.slice(0, -3).trimEnd() : preview, cut };
@@ -6421,18 +6697,18 @@ function promptCues(text) {
   return CUES.map((cue) => ({ id: cue.id, label: cue.label, found: cue.pattern.test(body) }));
 }
 function jobRequest(job) {
-  const record = obj4(job);
+  const record = obj5(job);
   for (const key of ["prompt", "request", "instruction", "instructions", "task", "message", "text", "command", "description"]) {
     if (typeof record[key] === "string" && record[key].trim()) return record[key].trim();
   }
   return "";
 }
 function jobHasSchedule(job) {
-  const record = obj4(job);
+  const record = obj5(job);
   return ["schedule", "cron", "cron_expression", "expression", "every", "interval", "next_run", "next_run_at", "run_at", "at", "when"].some((key) => record[key] !== void 0 && record[key] !== null && record[key] !== "" && record[key] !== "?" && record[key] !== false);
 }
 function recordTime(record) {
-  const r = obj4(record);
+  const r = obj5(record);
   for (const key of ["started_at", "created_at", "updated_at", "last_active", "last_active_at", "timestamp", "time"]) {
     const raw = r[key];
     if (raw === void 0 || raw === null || raw === "") continue;
@@ -6448,6 +6724,7 @@ var QUERY_KEY = ["field-academy", "passport"];
 var DIRECTIVE = "field-academy-practice";
 var MISSION_ID_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/i;
 var CSS = `
+.hk input:not([type=checkbox]):not([type=radio]):not([type=range]),.hk textarea{border-color:color-mix(in srgb,currentColor 45%,transparent)}
 .fa-paths{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
 .fa-links{display:grid;gap:6px}
 .fa-link{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:8px 10px;border-radius:var(--hk-radius);border:1px solid var(--hk-stroke);background:var(--hk-surface);color:inherit;font:inherit;cursor:pointer;transition:border-color 140ms ease,background-color 140ms ease}
@@ -6845,10 +7122,54 @@ function ctxRest(path, options) {
     return out;
   });
 }
+function currentScope() {
+  const profile = activeProfile();
+  if (!profile || isPracticeProfile(profile)) {
+    const target = knownHome();
+    return target ? openScope(target.profile, target.connectionId) : "";
+  }
+  let connectionId = null;
+  try {
+    connectionId = host5.state?.connectionId?.get?.() ?? null;
+  } catch (error) {
+    connectionId = null;
+  }
+  return openScope(profile, connectionId);
+}
+function kept(kind, request) {
+  const scope = currentScope();
+  return request().then((out) => {
+    writeSnapshot(api?.storage, kind, out, scope);
+    return out;
+  });
+}
+function keptCopies() {
+  const scope = currentScope();
+  return Object.fromEntries(OPEN_CACHE_KINDS.map((kind) => [kind, readSnapshot(api?.storage, kind, scope)]));
+}
+var EARLY_MS = 15e3;
+var early = /* @__PURE__ */ new Map();
+function startEarly(path) {
+  const now = Date.now();
+  const held = early.get(path);
+  if (held && now - held.at < EARLY_MS) return;
+  const promise = ctxRest(path);
+  promise.catch(() => {
+  });
+  early.set(path, { at: now, promise });
+}
+function takeEarly(path) {
+  const held = early.get(path);
+  early.delete(path);
+  return held && Date.now() - held.at < EARLY_MS ? held.promise : ctxRest(path);
+}
+var loadFoundations = () => kept("foundations", () => takeEarly("/foundations"));
+var loadSample = () => takeEarly("/replay/sample");
+var keptFoundations = () => readSnapshot(api?.storage, "foundations", currentScope());
 function usePassport() {
   return usePolled({
     key: QUERY_KEY,
-    fn: () => ctxRest("/passport"),
+    fn: () => kept("passport", () => ctxRest("/passport")),
     staleTime: 5e3,
     options: { refetchOnWindowFocus: true }
   });
@@ -6860,7 +7181,7 @@ var DEPLOYER_KEY = ["field-academy", "deployer"];
 function useDeployer() {
   return usePolled({
     key: DEPLOYER_KEY,
-    fn: () => ctxRest("/deployer"),
+    fn: () => kept("deployer", () => ctxRest("/deployer")),
     staleTime: 5e3,
     options: { refetchOnWindowFocus: true }
   });
@@ -6926,13 +7247,16 @@ async function syncVersion(deployer) {
   } catch (error) {
   }
 }
+var MANUAL_URL = "https://linchpin.studio/school-of-hermes/manual/";
 function openLink(url) {
   if (api?.os?.openExternal) api.os.openExternal(url);
 }
+var NO_BACKEND = "Field Academy's backend isn't answering. In Hermes, open Capabilities, then Plugins, and check Field Academy is on, then quit Hermes and open it again.";
 function errorText(error) {
   const raw = String(error?.message || error || "");
   const match = raw.match(/"detail"\s*:\s*"([^"]+)"/);
-  return match ? match[1] : raw;
+  const text = match ? match[1] : raw;
+  return /^(?:404:?\s*)?not found\.?$/i.test(text.trim()) ? NO_BACKEND : text;
 }
 function shortDate(iso) {
   if (!iso) return "";
@@ -6986,7 +7310,7 @@ function CertificateBezel({ track, size = 64 }) {
   const total = (track.missions || []).length;
   return jsx11(Bezel, { passed: track.verified_missions || 0, total, size, children: [
     jsx11("span", { className: "fa-num fa-num-m", children: track.verified_missions || 0 }, "n"),
-    jsx11("span", { className: "fa-sc", style: { fontSize: 11 }, children: `of ${total}` }, "of")
+    jsx11("span", { className: "fa-sc", style: { fontSize: 12 }, children: `of ${total}` }, "of")
   ] });
 }
 var LINK_ICON = { video: "play-circle", docs: "book", guide: "compass", article: "note", course: "mortar-board" };
@@ -7064,7 +7388,7 @@ function scrollToId(id) {
   const reduced = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
 }
-var foundationsViews = createFoundationsViews({ Frame, Label, ctxRest, errorText, copyText, openFolder, sendInNewChat, plural: plural2, longDate });
+var foundationsViews = createFoundationsViews({ Frame, Label, ctxRest, errorText, copyText, openFolder, sendInNewChat, plural: plural2, longDate, loadFoundations, loadSample, keptFoundations });
 var deployerViews = createDeployerViews({
   Prose,
   withoutExampleWord,
@@ -7121,7 +7445,7 @@ function GoalCard({ data }) {
   return jsx11(Card, { tone: "info", tint: !goal.asked, className: "hk-enter", children: jsxs10("div", { className: "hk-stack", style: { gap: 8 }, children: [
     jsx11(Label, { children: goal.asked ? "Your goal" : "Before you start" }),
     jsx11("h2", { className: "hk-h2", children: "What do you want Hermes to do for you?" }),
-    jsx11("p", { children: "One or two sentences about your own work. Your answer becomes the example in the practice prompts and missions on the paths. Foundations uses its own made-up examples. You can change it any time, or skip it." }),
+    jsx11("p", { children: "One or two sentences about your own work. Your answer becomes the example in the practice prompts and missions on the trails. Foundations uses its own made-up examples. You can change it any time, or skip it." }),
     jsx11(Textarea5, {
       style: { minHeight: "4.5rem", width: "100%" },
       value: text,
@@ -7137,10 +7461,12 @@ function GoalCard({ data }) {
     ] })
   ] }) });
 }
-function WherePanel({ info, data }) {
+function WherePanel({ info: paths, data, deployer }) {
+  const guide = deployer && deployer.track ? trailModel(deployer.track) : null;
+  const info = guide ? { ...paths, passed: paths.passed + guide.passed, total: paths.total + guide.total } : paths;
   const { goal, camp } = info;
   const started = info.passed > 0 || info.tracks.some((track) => track.waypoints.some((w) => w.status !== "waiting"));
-  const where = !goal || !started ? "At the trailhead" : camp ? `${goal.name} path, ${camp.name} camp` : goal.summit.status === "issued" ? `${goal.name} path, at the summit` : `${goal.name} path, below the summit`;
+  const where = !goal || !started ? "At the trailhead" : camp ? `${goal.name} trail, ${camp.name} camp` : goal.summit.status === "issued" ? `${goal.name} trail, at the summit` : `${goal.name} trail, below the summit`;
   const honest = data.honest || { passed: 0, holding: 0 };
   return jsxs10("div", { className: "fa-panel fa-where hk-enter", children: [
     jsx11(Bezel, { passed: info.passed, total: info.total, children: [
@@ -7161,22 +7487,22 @@ function NextStep({ next, info, go }) {
     return jsxs10("div", { className: "fa-panel fa-next hk-enter", children: [
       jsx11(Label, { children: "Next best step" }),
       jsx11("h2", { className: "hk-h2", children: "Every mission passed" }),
-      jsx11("p", { children: "Create a Field Record for each path you finished. Each one waits at the summit of its trail." })
+      jsx11("p", { children: "Create a Field Record for each trail you finished. Each one waits at the summit of its trail." })
     ] });
   }
   const started = info.tracks.some((track) => track.waypoints.some((w) => w.status !== "waiting"));
   return jsxs10("div", { className: `fa-panel fa-next hk-enter${started ? "" : " fa-next-quiet"}`, children: [
     // Foundations holds the page's one Start here; this card is the next step on the paths (0.9 persona test).
-    jsx11(Label, { children: started ? "Next best step on the paths" : "When you want a path" }),
+    jsx11(Label, { children: started ? "Next best step on the trails" : "When you want a trail" }),
     jsx11("h2", { className: "hk-h2", children: next.title }),
     jsxs10("div", { className: "fa-next-meta", children: [
-      jsxs10("span", { children: [jsx11(Codicon6, { name: "location", size: 13 }), `${next.track_name} path`] }),
+      jsxs10("span", { children: [jsx11(Codicon6, { name: "location", size: 13 }), `${next.track_name} trail`] }),
       jsxs10("span", { children: [jsx11(Codicon6, { name: "milestone", size: 13 }), `${next.level_name} camp`] }),
       jsxs10("span", { children: [jsx11(Codicon6, { name: "watch", size: 13 }), minutesWords(next.minutes)] })
     ] }),
     jsx11("p", { children: next.reason }),
     next.use_text ? jsx11("div", { className: "fa-use", children: [jsx11(Label, { plain: true, children: "Why this matters to you" }, "l"), jsx11("p", { children: next.use_text }, "p")] }) : null,
-    jsx11("div", { className: "hk-actions", children: jsx11(Button7, { variant: started ? "default" : "secondary", onClick: () => go({ name: "mission", id: next.mission_id }), children: started ? "Continue" : "Start this path mission" }) })
+    jsx11("div", { className: "hk-actions", children: jsx11(Button7, { variant: started ? "default" : "secondary", onClick: () => go({ name: "mission", id: next.mission_id }), children: started ? "Continue" : "Start this trail mission" }) })
   ] });
 }
 function ReviewQueue({ data, go }) {
@@ -7250,7 +7576,7 @@ function ChangesPanel({ data, go }) {
       setBusy("");
     }
   };
-  const title = changes.length ? "What changed since you learned this" : "New on paths you started";
+  const title = changes.length ? "What changed since you learned this" : "New on trails you started";
   return jsx11(Section, { title, count: changes.length + fresh.length, children: jsxs10("div", { className: "hk-stack", children: [
     changes.length ? jsx11("p", { className: "hk-small", children: "Your passes stay passed. When a check changed after you passed a mission, you can run the new one to re-verify. If it misses, the mission stays passed." }) : null,
     problem ? jsx11(Result, { result: { passed: false, title: problem } }) : null,
@@ -7258,7 +7584,7 @@ function ChangesPanel({ data, go }) {
       jsxs10("div", { className: "hk-row", style: { flexWrap: "wrap", gap: 10 }, children: [
         jsxs10("div", { className: "hk-grow", children: [
           jsx11("strong", { children: change.title }),
-          jsx11("div", { className: "hk-small", children: `${change.track_name} path · ${change.level_name} · you passed version ${change.passed_version}, now version ${change.version}${change.carried_over ? " · passed before version 0.5" : ""}` })
+          jsx11("div", { className: "hk-small", children: `${change.track_name} trail · ${change.level_name} · you passed version ${change.passed_version}, now version ${change.version}${change.carried_over ? " · passed before version 0.5" : ""}` })
         ] }),
         jsx11(Pill, { tone: change.needs === "check" ? "warn" : "info", children: change.needs === "check" ? "The check changed" : "The lesson changed" })
       ] }),
@@ -7271,7 +7597,7 @@ function ChangesPanel({ data, go }) {
     ...fresh.map((item) => jsx11(Card, { tone: "info", children: jsxs10("div", { className: "hk-row", style: { flexWrap: "wrap", gap: 10 }, children: [
       jsxs10("div", { className: "hk-grow hk-stack", style: { gap: 2 }, children: [
         jsx11("strong", { children: `New: ${item.title}` }),
-        jsx11("div", { className: "hk-small", children: `${item.track_name} path · ${item.level_name}` }),
+        jsx11("div", { className: "hk-small", children: `${item.track_name} trail · ${item.level_name}` }),
         jsx11("p", { children: item.summary })
       ] }),
       jsx11(Button7, { variant: "secondary", onClick: () => go({ name: "mission", id: item.mission_id }), children: "Open it" })
@@ -7279,15 +7605,16 @@ function ChangesPanel({ data, go }) {
   ] }) }, "changes");
 }
 var MAP_SHAPE = [{ title: true, lines: 2, button: true, dot: true }, { title: true, lines: 6 }];
-function DeployerTrailPanel({ deployer, list, offset, go }) {
+function DeployerTrailPanel({ deployer, list, offset, go, here }) {
   const model = trailModel(deployer.track);
   const mine = { index: list.index - offset, itemProps: (i) => list.itemProps(i + offset) };
-  return jsx11(Section, { title: `${deployer.track.name} path`, children: jsxs10("div", { className: "hk-stack", children: [
+  return jsx11(Section, { title: `${deployer.track.name} trail`, children: jsxs10("div", { className: "hk-stack", children: [
     jsx11(Prose, { text: "Set up, deploy and run Hermes for a small client. You do the real work:\n- Repair four broken client setups\n- Write a proposal\n- Answer nine hard cases\n- Run a real service for several days, then break it and recover it" }),
-    jsx11("p", { className: "hk-small", children: "The Guide Field Record needs a reviewer you choose to read and sign your evidence. Until someone signs, the path ends at Guide, awaiting review." }),
+    jsx11("p", { className: "hk-small", children: "The Guide Field Record needs a reviewer you choose to read and sign your evidence. Until someone signs, the trail ends at Guide, awaiting review." }),
     jsx11(TrailMap, {
       models: [model],
       list: mine,
+      here,
       onOpenTrack: () => go({ name: "path", id: "deployer" }),
       onOpenMission: (id) => go(partFor(id)),
       foot: [jsx11("span", { className: "hk-small", key: "tip" }, deployer.certificate.label)]
@@ -7301,18 +7628,24 @@ function bannerCamps(info, deployer) {
   if (deployer && deployer.track) camps.push({ label: deployer.track.name, done: deployer.certificate?.status === "issued" });
   return camps.slice(0, 5);
 }
+var COUNT_LINE = "The banner counts every waypoint on the map. A trail's number, like 0 of 5, counts what its Field Record needs; the practice and teaching missions placed on a trail are extra.";
 function bannerFacts(info, deployer, foundations = 0) {
-  const paths = info.tracks.length + (deployer && deployer.track ? 1 : 0);
+  const guide = deployer && deployer.track ? trailModel(deployer.track) : null;
+  const paths = info.tracks.length + (guide ? 1 : 0);
+  const stops = info.total + (guide ? guide.total : 0);
   const first = foundations ? [plural2(foundations, "Foundations mission", "Foundations missions")] : [];
-  return [...first, `${plural2(info.total, "mission", "missions")} on ${plural2(paths, "trail", "trails")}`, "Checks on real work"];
+  const trails = first.length ? `${stops} more on ${plural2(paths, "trail", "trails")}` : `${plural2(stops, "mission", "missions")} on ${plural2(paths, "trail", "trails")}`;
+  return [...first, trails, "Checks on real work"];
 }
 function MapView({ data, go, deployer }) {
   const info = overview(data);
-  const foundations = foundationsViews.useFoundations();
+  const foundations = foundationsViews.useFoundations(true, { fromCopy: true });
   const placedIds = new Set((data.tracks || []).flatMap((t) => (t.placed || []).map((m) => m.id)));
   const fCount = (foundations.data?.missions || []).filter((m) => !m.trail && !placedIds.has(m.id)).length;
   const camps = bannerCamps(info, deployer);
   const models = info.tracks;
+  const anyStarted = models.some((m) => m.waypoints.some((w) => w.status !== "waiting"));
+  const mapHere = data.goal_track === "deployer" && deployer && deployer.track ? "deployer" : anyStarted && info.goal ? info.goal.id : "";
   const extra = deployer && deployer.track ? 1 : 0;
   const list = useListKeys({
     count: models.length + extra,
@@ -7321,12 +7654,15 @@ function MapView({ data, go, deployer }) {
   const banner = jsx11(Banner, {
     promise: data.school_line || "Get good at Hermes by using it, learn all of what it can do, then learn to help other people use it.",
     facts: bannerFacts(info, deployer, fCount),
+    // The manual on linchpin.studio, in the user's own browser (Nov 11: no plugin linked its manual).
+    links: [{ label: "The manual", title: "Open the manual in your browser", onClick: () => openLink(MANUAL_URL) }],
     camps,
     summitDone: camps.length > 0 && camps.every((camp) => camp.done),
     compact: true
   }, "head");
   return jsx11(Frame, { onKey: list.keyProps.onKeyDown, children: [
     banner,
+    jsx11(ChatSuggestCard, {}, "suggest"),
     jsxs10("div", { className: "fa-top", children: [
       jsx11("div", { className: "fa-top-map", children: jsx11("div", { children: [
         jsx11(Section, {
@@ -7336,34 +7672,43 @@ function MapView({ data, go, deployer }) {
           children: jsx11(TrailMap, {
             models,
             list,
+            here: mapHere,
             onOpenTrack: (id) => go({ name: "path", id }),
             onOpenMission: (id) => go({ name: "mission", id }),
             lines: data.camp_lines || null,
             summitLine: data.summit_line || "",
-            foot: [jsx11(Legend, {}, "legend"), jsx11("span", { className: "hk-small", children: "Click a trail, a waypoint or a flag to open it." }, "tip")]
+            foot: [
+              jsx11(Legend, {}, "legend"),
+              jsx11("span", { className: "hk-small", children: "Click a trail, a waypoint or a flag to open it." }, "tip"),
+              jsx11("span", { className: "hk-small", style: { flexBasis: "100%" }, children: COUNT_LINE }, "counts")
+            ]
           })
         }, "map")
       ] }) }),
-      jsx11("div", { className: "fa-top-start", children: jsx11(foundationsViews.FirstFlightCard, { go, foundations, compact: true }) })
+      jsxs10("div", { className: "fa-top-start", children: [
+        jsx11(foundationsViews.FirstFlightCard, { go, foundations, compact: true }, "first"),
+        jsx11(foundationsViews.FoundationsCard, { go, foundations, compact: true }, "foundations")
+      ] })
     ] }, "top"),
-    extra ? jsx11(DeployerTrailPanel, { deployer, list, offset: models.length, go }, "deployer") : null,
-    jsx11("p", { className: "hk-lead", children: `${plural2(models.length + extra, "path", "paths")} up the mountain, each named for one of Hermes's old jobs. Every path climbs from Beginner to Advanced, then a capstone on your own problem, and ends at the summit with a Field Record of the work you did.` }, "lead"),
+    extra ? jsx11(DeployerTrailPanel, { deployer, list, offset: models.length, go, here: mapHere }, "deployer") : null,
+    jsx11("p", { className: "hk-lead", children: `${plural2(models.length + extra, "trail", "trails")} up the mountain, each named for one of Hermes's old jobs. Messenger, Traveler, Crossroads and Boundary Keeper climb from Beginner to Advanced, then a capstone on your own problem. The Guide climbs from an audit to staged verification. Each trail ends at the summit with a Field Record of the work you did.` }, "lead"),
     jsx11(GoalCard, { data }, "goal"),
     jsxs10("div", { className: "fa-here", children: [
-      jsx11(WherePanel, { info, data }, "where"),
+      jsx11(WherePanel, { info, data, deployer }, "where"),
       jsx11(NextStep, { next: data.next_up, info, go }, "next")
     ] }, "here"),
     jsx11(ReviewQueue, { data, go }, "review"),
     jsx11(ChangesPanel, { data, go }, "changes"),
-    jsx11(foundationsViews.FoundationsCard, { go, foundations }, "foundations"),
+    jsx11(Section, { title: "Settings", children: jsx11(SettingsPanel, {}) }, "settings"),
+    jsx11(Section, { title: "Your data", children: jsx11(DataPanel, {}) }, "data"),
     jsxs10(Section, { title: "How the trail works", children: [
       jsxs10("ol", { className: "fa-numbered", children: [
-        jsx11("li", { children: jsx11("span", { children: "Foundations, just above, works differently: each of its missions runs in a practice profile Field Academy makes, with a problem planted first. The steps below are for the paths." }) }),
+        jsx11("li", { children: jsx11("span", { children: "Foundations, beside the map, works differently: each of its missions runs in a practice profile Field Academy makes, with a problem planted first. The steps below are for the trails." }) }),
         jsx11("li", { children: jsx11("span", { children: "Pick a trail and open its first mission. Each mission shows how long it takes before you start." }) }),
         jsx11("li", { children: jsx11("span", { children: "Read a short lesson, then see a finished example, then fill the gaps in a half-finished one. The help fades, and then you do it on your own." }) }),
         jsx11("li", { children: jsx11("span", { children: "Try it in your own Hermes, answer one question in your own words, and click Check my work. Each check reads something you made." }) }),
         jsx11("li", { children: jsx11("span", { children: "When you miss, you see exactly what was missing, then a hint, then a worked example. You can retry as often as you like." }) }),
-        jsx11("li", { children: jsx11("span", { children: "Pass every mission and the capstone on a trail to reach its summit and create your Field Record for that path. Already know a level? Take the placement check on the path." }) })
+        jsx11("li", { children: jsx11("span", { children: "Pass every mission and the capstone on a trail to reach its summit and create your Field Record for that trail. Already know a level? Take the placement check on the trail." }) })
       ] }),
       jsx11("p", { className: "hk-small", children: data.credential_note })
     ] }, "how")
@@ -7397,7 +7742,7 @@ function Camp({ rung, track, go, rows, list }) {
             jsx11(TrailMark, { status: markStatus(mission.status), here }),
             jsxs10("span", { className: "hk-grow", children: [
               jsx11("span", { style: { display: "block", fontWeight: 600 }, children: mission.title }),
-              jsx11("span", { className: "fa-row-meta", children: `${minutesWords(mission.minutes)} · ${statusWords(mission)}` })
+              jsx11("span", { className: "fa-row-meta", children: `${mission.where ? `${mission.where} · ` : ""}${minutesWords(mission.minutes)} · ${statusWords(mission)}${mission.engine === "foundations" ? " · Practice mission, extra to the Field Record" : ""}` })
             ] }),
             here ? jsx11("span", { className: "fa-here-tag", children: "Next" }) : null,
             jsx11(Codicon6, { name: "chevron-right", size: 13 })
@@ -7455,13 +7800,13 @@ function CertificateRoute({ track, go }) {
       jsxs10("div", { className: "hk-grow hk-stack", style: { gap: 3 }, children: [
         jsx11(Label, { children: "Summit" }),
         jsx11("strong", { children: route.status === "issued" ? "Field Record created" : route.status === "ready" ? "Every mission passed" : `${plural2(route.remaining, "mission", "missions")} to go` }),
-        jsx11("p", { className: "hk-small", children: `${track.verified_missions} of ${track.missions.length} missions on this trail passed.` })
+        jsx11("p", { className: "hk-small", children: countWords(trailModel(track)) })
       ] }),
       route.status === "issued" ? jsx11(Button7, { onClick: () => go({ name: "certificate", id: track.id }), children: "View your Field Record" }) : route.status !== "ready" && track.here ? jsx11(Button7, { onClick: () => go({ name: "mission", id: track.here }), children: "Go to your next mission" }) : null
     ] }) }),
     route.status === "ready" ? jsxs10(Card, { tone: "warn", tint: true, className: "hk-enter", children: [
       jsx11("h3", { className: "hk-h2", children: "Create your Field Record" }, "h"),
-      jsx11("p", { children: "Every mission on this path passed. Type your name the way you want it on your record. Field Academy writes the record on your computer, and it stays yours." }, "p"),
+      jsx11("p", { children: "Every mission on this trail passed. Type your name the way you want it on your record. Field Academy writes the record on your computer, and it stays yours." }, "p"),
       jsxs10("div", { className: "hk-actions", key: "a", children: [
         jsx11("div", { style: { minWidth: "16rem", flex: 1 }, children: jsx11(Input6, {
           value: name,
@@ -7526,7 +7871,7 @@ function PathView({ track: own, go }) {
     jsx11(PageHeader, {
       back: jsx11(Back, { label: "Trail map", onClick: () => go({ name: "map" }) }),
       eyebrow: jsx11(Label, { children: track.eyebrow }),
-      title: `${track.name} path`,
+      title: track.subtitle ? `${track.name}: ${track.subtitle}` : `${track.name} trail`,
       lead: track.promise
     }, "head"),
     track.lore ? jsx11("p", { className: "fa-lore", children: track.lore }, "lore") : null,
@@ -7535,7 +7880,7 @@ function PathView({ track: own, go }) {
       onOpenMission: (id) => go({ name: "mission", id }),
       onOpenSummit: () => scrollToId(`fa-route-${track.id}`),
       children: [
-        jsx11("p", { children: rung ? `You're at Camp ${rung.number}, ${rung.name}. ${track.verified_missions} of ${track.missions.length} missions passed.` : "Every mission on this path passed. The summit is yours." }, "where"),
+        jsx11("p", { children: rung ? `You're at Camp ${rung.number}, ${rung.name}. ${countWords(model)}` : "Every mission on this trail passed. The summit is yours." }, "where"),
         jsx11(Legend, {}, "legend")
       ]
     }, "profile"),
@@ -8019,7 +8364,7 @@ function PassedBanner({ mission, track, go }) {
     jsx11(BadgeIcon, { name: "pass-filled", tone: "good" }),
     jsxs10("div", { className: "hk-grow hk-stack", style: { gap: 2 }, children: [
       jsx11("strong", { children: `Passed ${shortDate(mission.passed_at)}` }),
-      jsx11("p", { children: next ? `Next waypoint: ${next.title} · ${next.level_name} · ${minutesWords(next.minutes)}` : ready ? "Every mission on this path passed. Your Field Record is ready to create at the summit." : "Every mission on this path passed." }),
+      jsx11("p", { children: next ? `Next waypoint: ${next.title} · ${next.level_name} · ${minutesWords(next.minutes)}` : ready ? "Every mission on this trail passed. Your Field Record is ready to create at the summit." : "Every mission on this trail passed." }),
       due ? jsx11("p", { className: "hk-small", children: `This mission comes back for a short review. ${due}.` }) : null
     ] }),
     next ? jsx11(Button7, { onClick: () => go({ name: "mission", id: next.id }), children: "Start" }) : jsx11(Button7, { onClick: () => go({ name: "path", id: track.id }), children: ready ? "Create your Field Record" : "See your path" })
@@ -8036,8 +8381,8 @@ function MissionView({ mission, track, go, onChanged, changes = [], focus }) {
   const change = changes.find((item) => item.mission_id === mission.id);
   return jsx11(Frame, { width: "narrow", up: () => go({ name: "path", id: track.id }), children: [
     jsx11(PageHeader, {
-      back: jsx11(Back, { label: `${track.name} path`, onClick: () => go({ name: "path", id: track.id }) }),
-      eyebrow: jsx11(Label, { children: `Field note · ${track.name} path · ${mission.level_name} camp` }),
+      back: jsx11(Back, { label: `${track.name} trail`, onClick: () => go({ name: "path", id: track.id }) }),
+      eyebrow: jsx11(Label, { children: `Field note · ${track.name} trail · ${mission.level_name} camp${mission.where ? ` · ${mission.where}` : ""}` }),
       title: mission.title,
       lead: mission.promise
     }, "head"),
@@ -8063,13 +8408,13 @@ function CertificateView({ track, go }) {
   const up = () => go({ name: "path", id: track.id });
   if (!issued) {
     return jsx11(Frame, { width: "narrow", up, children: [
-      jsx11(Back, { label: `${track.name} path`, onClick: up }, "back"),
+      jsx11(Back, { label: `${track.name} trail`, onClick: up }, "back"),
       jsx11("div", { className: "fa-panel", key: "none", children: jsxs10("div", { className: "hk-row", style: { flexWrap: "nowrap", gap: 16 }, children: [
         jsx11(CertificateBezel, { track, size: 72 }),
         jsxs10("div", { className: "hk-stack", style: { gap: 3 }, children: [
           jsx11(Label, { children: "Summit" }),
           jsx11("h1", { className: "hk-h1", children: "No Field Record yet" }),
-          jsx11("p", { children: `Pass every mission on the ${track.name} path to create it.` })
+          jsx11("p", { children: `Pass every mission on the ${track.name} trail to create it.` })
         ] })
       ] }) })
     ] });
@@ -8088,7 +8433,7 @@ function CertificateView({ track, go }) {
     }
   };
   return jsx11(Frame, { up, children: [
-    jsx11(Back, { label: `${track.name} path`, onClick: up }, "back"),
+    jsx11(Back, { label: `${track.name} trail`, onClick: up }, "back"),
     jsx11("article", { className: "fa-cert hk-enter", "aria-label": `Field Record for ${body.name}, self-issued with Field Academy`, children: jsxs10("div", { className: "fa-cert-inner", children: [
       jsx11(Contours, { width: 900, height: 600, seed: 7 }),
       jsx11(CertCorners, {}),
@@ -8106,7 +8451,7 @@ function CertificateView({ track, go }) {
         jsx11(Label, { plain: true, children: "Kept by" }),
         jsx11("p", { className: "fa-cert-name", children: body.name }),
         jsx11(Label, { plain: true, children: "who passed every mission on the" }),
-        jsx11("h1", { className: "fa-cert-path", children: `${body.path} path` }),
+        jsx11("h1", { className: "fa-cert-path", children: `${body.path} trail` }),
         jsx11("p", { className: "fa-cert-promise", children: body.path_promise }),
         jsx11("p", { children: `Created ${longDate(body.issued_at)}, on the holder's own computer` })
       ] }),
@@ -8300,7 +8645,7 @@ function PlacementView({ trackId, track, go }) {
       live = false;
     };
   }, [trackId]);
-  if (error) return jsx11(Frame, { width: "narrow", up, children: [jsx11(Back, { label: `${track?.name || "Path"} path`, onClick: up }, "back"), jsx11(Result, { result: { passed: false, title: error } }, "err")] });
+  if (error) return jsx11(Frame, { width: "narrow", up, children: [jsx11(Back, { label: `${track?.name || "This"} trail`, onClick: up }, "back"), jsx11(Result, { result: { passed: false, title: error } }, "err")] });
   if (!spec) return jsx11(Frame, { width: "narrow", children: jsx11(SkeletonPage, { label: "Getting the placement check", cards: [{ title: true, lines: 5 }] }) });
   const answered = spec.questions.every((q) => picks[q.id] !== void 0);
   const submit = async () => {
@@ -8332,7 +8677,7 @@ function PlacementView({ trackId, track, go }) {
   const known = outcome?.known_levels || [];
   return jsx11(Frame, { width: "narrow", up, children: [
     jsx11(PageHeader, {
-      back: jsx11(Back, { label: `${track?.name || "Path"} path`, onClick: up }),
+      back: jsx11(Back, { label: `${track?.name || "This"} trail`, onClick: up }),
       eyebrow: jsx11(Label, { children: "Placement check" }),
       title: spec.title,
       lead: spec.intro
@@ -8359,7 +8704,7 @@ function PlacementView({ trackId, track, go }) {
           setPicks({});
           setApplied(null);
         }, children: "Take it again" }),
-        jsx11(Button7, { onClick: up, children: `Back to the ${track?.name || ""} path` })
+        jsx11(Button7, { onClick: up, children: `Back to the ${track?.name || ""} trail` })
       ] }, "after")
     ] : [
       ...spec.questions.map((q, index) => jsxs10("fieldset", { className: "fa-q", children: [
@@ -8394,9 +8739,9 @@ function Offline({ error, onRetry }) {
 }
 function DeployerUnavailable({ loading, error, go }) {
   return jsx11(Frame, { width: "narrow", up: () => go({ name: "map" }), children: [
-    jsx11(PageHeader, { back: jsx11(Back, { label: "Trail map", onClick: () => go({ name: "map" }) }), eyebrow: jsx11(Label, { children: "For clients, in practice" }), title: "Deployer path", lead: loading ? "Loading." : "The part of Field Academy that saves your progress does not know this path yet." }, "head"),
+    jsx11(PageHeader, { back: jsx11(Back, { label: "Trail map", onClick: () => go({ name: "map" }) }), eyebrow: jsx11(Label, { children: "For clients, in practice" }), title: "Guide trail", lead: loading ? "Loading." : "The part of Field Academy that saves your progress does not know this trail yet." }, "head"),
     loading ? null : jsx11(Card, { key: "why", tone: "warn", children: jsxs10("div", { className: "hk-stack", children: [
-      jsx11("p", { children: "The Deployer path needs Field Academy 0.6.0 or newer running inside Hermes. Quit Hermes and open it again to load it." }),
+      jsx11("p", { children: "The Guide trail needs Field Academy 0.6.0 or newer running inside Hermes. Quit Hermes and open it again to load it." }),
       error ? jsx11("p", { className: "hk-small", children: errorText(error) }) : null
     ] }) })
   ] });
@@ -8415,8 +8760,13 @@ function Page2() {
   const [away, setAway] = useState9(false);
   const query = usePassport();
   const deployerQuery = useDeployer();
-  const deployer = deployerQuery.data && deployerQuery.data.track ? deployerQuery.data : null;
+  const liveDeployer = deployerQuery.data && deployerQuery.data.track ? deployerQuery.data : null;
   const [view, setView] = useState9(() => readView());
+  const [copies] = useState9(() => keptCopies());
+  const startCards = () => {
+    startEarly("/foundations");
+    startEarly("/replay/sample");
+  };
   const goHome = async () => {
     const ok = await comeHome();
     setAway(!ok);
@@ -8424,18 +8774,65 @@ function Page2() {
     if (ok) {
       refresh();
       refreshDeployer();
+      if (view.name === "map") startCards();
     }
   };
   useEffect7(() => {
     if (!homeReady) goHome();
+    else if (view.name === "map") startCards();
   }, []);
   useEffect7(() => {
-    if (deployer) syncVersion(deployer);
-  }, [Boolean(deployer)]);
-  const go = (next) => {
+    if (liveDeployer) syncVersion(liveDeployer);
+  }, [Boolean(liveDeployer)]);
+  const deployerSettled = !(deployerQuery.loading && !deployerQuery.data);
+  const plan = openPlan({
+    live: { passport: query.data, deployer: deployerQuery.data, deployerSettled },
+    cached: copies,
+    view: view.name,
+    homeReady
+  });
+  const deployer = plan.deployer && plan.deployer.track ? plan.deployer : null;
+  const offline = homeReady && Boolean(query.error) && !query.data && deployerSettled;
+  const previewing = plan.state === "ready" && plan.preview && !away && !offline;
+  const preview = useRef6(previewing);
+  preview.current = previewing;
+  const held = useRef6(null);
+  const [holding, setHolding] = useState9(false);
+  const goNow = (next) => {
     const id = next && (next.name === "mission" ? next.id : next.name === "deployer" ? next.part : "");
     setView(/^f\./.test(String(id || "")) ? { name: "f-mission", id } : next);
   };
+  const go = (next) => {
+    if (!preview.current) return goNow(next);
+    held.current = { next };
+    setHolding(true);
+  };
+  const onPreviewEvent = (event) => {
+    if (!preview.current) return;
+    const what = previewIntent(event);
+    if (what === "pass") return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (what === "hold") {
+      held.current = { control: event.target.closest(HOLD_SELECTOR) };
+      setHolding(true);
+    }
+  };
+  useEffect7(() => {
+    if (previewing) return;
+    if (!held.current) {
+      if (holding) setHolding(false);
+      return;
+    }
+    const { control, next } = held.current;
+    held.current = null;
+    setHolding(false);
+    if (control) {
+      if (control.isConnected) control.click();
+    } else if (next) {
+      goNow(next);
+    }
+  }, [previewing]);
   useEffect7(() => {
     const apply = (id) => {
       pendingMission = null;
@@ -8447,12 +8844,12 @@ function Page2() {
   let body = null;
   if (away) {
     body = jsx11(AwayFromHome, { onRetry: goHome });
-  } else if (!homeReady || query.loading) {
-    body = jsx11(Frame, { children: jsx11(SkeletonPage, { label: "Loading your paths", cards: MAP_SHAPE }) });
-  } else if (query.error && !query.data) {
+  } else if (offline) {
     body = jsx11(Offline, { error: query.error, onRetry: () => query.refetch() });
+  } else if (plan.state === "skeleton") {
+    body = jsx11(Frame, { children: jsx11(SkeletonPage, { label: "Loading your trails", cards: MAP_SHAPE }) });
   } else {
-    const data = query.data || {};
+    const data = plan.passport || {};
     const track = (data.tracks || []).find((item) => item.id === view.id);
     if (view.name === "foundations") {
       body = jsx11(foundationsViews.FoundationsPath, { go });
@@ -8482,8 +8879,17 @@ function Page2() {
     }
   }
   return jsxs10("div", { className: "fa-root", style: { height: "100%", minHeight: 0, display: "grid", gridTemplateRows: "auto 1fr" }, children: [
-    query.stale ? jsx11("div", { className: "hk", style: { padding: "8px 24px 0" }, children: jsx11(StaleNotice, { error: query.error, updatedAt: query.updatedAt, onRetry: query.refetch }) }) : jsx11("span", {}),
-    jsx11("div", { style: { minHeight: 0 }, children: body }, `${view.name}:${view.id || ""}`)
+    // A failed refresh of either read shows the notice, and Refresh asks for both: the Guide trail has no poll of its own, so
+    // without this a timed-out first read would leave the map one trail short with nothing said.
+    // Only over a page that is showing something: with nothing kept, the Offline card says it once, in plain words.
+    query.data && (query.stale || deployerQuery.error && !deployerQuery.data && !deployerQuery.loading) ? jsx11("div", { className: "hk", style: { padding: "8px 24px 0" }, children: jsx11(StaleNotice, { error: new Error(errorText(query.error || deployerQuery.error)), updatedAt: query.updatedAt, onRetry: refreshDeployer }) }) : jsx11("span", {}),
+    jsx11("div", {
+      style: { minHeight: 0, cursor: holding ? "progress" : void 0 },
+      "aria-busy": previewing ? "true" : void 0,
+      onClickCapture: onPreviewEvent,
+      onKeyDownCapture: onPreviewEvent,
+      children: body
+    }, `${view.name}:${view.id || ""}`)
   ] });
 }
 function StatusChip() {
@@ -8494,6 +8900,167 @@ function StatusChip() {
   return jsxs10("button", { type: "button", className: "hk fa-chip", onClick: () => host5.navigate(ROUTE), children: [
     track ? jsx11(Ring, { value: track.missions.length ? track.verified_missions / track.missions.length : 0, size: 14, stroke: 2, tone: "info" }) : null,
     label
+  ] });
+}
+var SWITCHES = [
+  {
+    name: "ai_help",
+    label: "AI help",
+    text: "The Field guide, Explain my miss, replay notes and Score my answer ask your own model. Off, Field Academy makes no model calls. Checks still work, because they never use a model."
+  },
+  {
+    name: "practice_offer",
+    label: "Suggest missions while I chat",
+    text: "Field Academy asks you about this the first time it opens. On, after you pick a trail, Hermes may end a reply in your own chats with one line suggesting a mission that fits what you were just doing. Off, Field Academy adds nothing to any chat."
+  }
+];
+var aiSettings = { values: null, problem: "", busy: "", loading: false, listeners: /* @__PURE__ */ new Set() };
+function tellAiSettings(patch) {
+  Object.assign(aiSettings, patch);
+  for (const listener of aiSettings.listeners) listener();
+}
+function loadAiSettings(attempt) {
+  aiSettings.loading = true;
+  ctxRest("/settings/ai").then((values) => {
+    aiSettings.loading = false;
+    tellAiSettings({ values, problem: "" });
+  }).catch((error) => {
+    tellAiSettings({ problem: errorText(error) });
+    if (attempt < 20 && aiSettings.listeners.size) setTimeout(() => loadAiSettings(attempt + 1), 3e3);
+    else aiSettings.loading = false;
+  });
+}
+function useAiSettings() {
+  const [, bump] = useState9(0);
+  useEffect7(() => {
+    const listener = () => bump((n) => n + 1);
+    aiSettings.listeners.add(listener);
+    if (!aiSettings.loading) loadAiSettings(0);
+    return () => {
+      aiSettings.listeners.delete(listener);
+    };
+  }, []);
+  const flip = async (name, on) => {
+    tellAiSettings({ busy: name, problem: "" });
+    try {
+      tellAiSettings({ values: await ctxRest("/settings/ai", { method: "POST", body: { [name]: on } }), busy: "" });
+    } catch (error) {
+      tellAiSettings({ problem: errorText(error), busy: "" });
+    }
+  };
+  return { values: aiSettings.values, problem: aiSettings.problem, busy: aiSettings.busy, flip };
+}
+function SettingsPanel() {
+  const { values, problem, busy, flip } = useAiSettings();
+  return jsxs10("div", { className: "hk-stack fa-settings", style: { gap: 12 }, children: [
+    ...SWITCHES.map((item) => jsxs10("label", { className: "fa-switch", children: [
+      jsx11("input", {
+        type: "checkbox",
+        checked: Boolean(values && values[item.name]),
+        disabled: !values || Boolean(busy),
+        onChange: (event) => flip(item.name, event.target.checked),
+        "aria-describedby": `fa-set-${item.name}`
+      }),
+      jsxs10("span", { className: "hk-stack", style: { gap: 2 }, children: [
+        jsx11("strong", { children: `${item.label}: ${!values ? "…" : values[item.name] ? "on" : "off"}` }),
+        jsx11("span", { id: `fa-set-${item.name}`, className: "hk-small", children: item.text })
+      ] })
+    ] }, item.name)),
+    problem ? jsx11("p", { role: "status", className: "hk-small", children: problem }) : null
+  ] });
+}
+function ChatSuggestCard() {
+  const { values, problem, busy, flip } = useAiSettings();
+  if (!values) return null;
+  const on = Boolean(values.practice_offer);
+  const asked = Boolean(values.practice_offer_asked);
+  const trouble = problem ? jsx11("p", { role: "status", className: "hk-small", children: problem }) : null;
+  const strip = (words, buttons) => jsxs10("div", { className: "fa-suggest", style: { display: "flex", flexWrap: "wrap", gap: "10px 24px", alignItems: "center", justifyContent: "space-between" }, children: [
+    jsx11("div", { className: "hk-stack", style: { gap: 4, flex: "1 1 420px", minWidth: 0 }, children: words }),
+    jsx11("div", { className: "hk-row", style: { gap: 10, flexWrap: "wrap", flex: "0 0 auto" }, children: buttons })
+  ] });
+  if (!asked) {
+    return jsx11(Card, { tone: "info", tint: true, className: "hk-enter", children: strip([
+      jsx11(Label, { children: "One question" }, "l"),
+      jsx11("h2", { className: "hk-h2", children: "Want mission suggestions while you chat?" }, "h"),
+      jsx11("p", { children: "Say yes and Field Academy shows up in your Hermes chats: once you pick a trail, Hermes may end a reply with one line suggesting a mission that fits what you were just doing. It adds nothing unless you say yes." }, "p"),
+      jsx11("span", { className: "hk-small", children: "Only in the desktop app and terminal, never in messaging apps or scheduled runs. You can change this any time." }, "s"),
+      trouble
+    ], [
+      jsx11(Button7, { loading: busy === "practice_offer", onClick: () => flip("practice_offer", true), children: "Yes, suggest missions" }, "y"),
+      jsx11(Button7, { variant: "secondary", disabled: Boolean(busy), onClick: () => flip("practice_offer", false), children: "Not now" }, "n")
+    ]) });
+  }
+  return jsx11(Card, { tone: on ? "info" : void 0, children: strip([
+    jsx11(Label, { children: "In your chats" }, "l"),
+    jsx11("strong", { children: on ? "Mission suggestions are on" : "Mission suggestions are off" }, "h"),
+    jsx11("span", { className: "hk-small", children: on ? "Once you pick a trail, Hermes may end a reply with one line suggesting a mission that fits what you were just doing. Say no and it moves on." : "Field Academy adds nothing to your Hermes chats. Turn this on and, once you pick a trail, Hermes may suggest a mission that fits what you were just doing." }, "p"),
+    trouble
+  ], [
+    jsx11(Button7, {
+      variant: on ? "secondary" : "default",
+      disabled: Boolean(busy),
+      "aria-pressed": on,
+      onClick: () => flip("practice_offer", !on),
+      children: on ? "Turn off" : "Turn on"
+    }, "b")
+  ]) });
+}
+var DELETE_CHOICES = {
+  progress: { keep: true, button: "Delete my progress", ask: "Delete your progress, answers, practice labs and history? Your saved Field Records stay.", yes: "Yes, delete my progress" },
+  everything: { keep: false, button: "Delete everything", ask: "Delete everything Field Academy keeps, saved Field Records included? This can't be undone.", yes: "Yes, delete everything" }
+};
+function DataPanel() {
+  const [sure, setSure] = useState9("");
+  const [busy, setBusy] = useState9(false);
+  const [words, setWords] = useState9("");
+  const [problem, setProblem] = useState9("");
+  const run = async (which) => {
+    setBusy(true);
+    setProblem("");
+    try {
+      const { practice_left: left = [] } = await ctxRest("/data/delete");
+      for (const name of left) {
+        if (typeof host5.deleteProfile !== "function") {
+          throw new Error(`This Hermes app can't delete a profile from here. Delete ${name} in Settings, Profiles, then try again.`);
+        }
+        await ctxRest("/foundations/practice/remove", { method: "POST", body: { name, confirm: true } });
+        await host5.deleteProfile(name);
+        await ctxRest("/foundations/practice/removed", { method: "POST", body: { name } });
+      }
+      const out = await ctxRest("/data/delete", { method: "POST", body: { keep_records: DELETE_CHOICES[which].keep } });
+      setWords(out.words);
+      setSure("");
+      try {
+        for (const kind of OPEN_CACHE_KINDS) api?.storage?.remove?.(`open-cache.${kind}`);
+      } catch (e) {
+      }
+      queryClient.invalidateQueries();
+    } catch (error) {
+      setProblem(errorText(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const choice = DELETE_CHOICES[sure];
+  return jsxs10("div", { className: "hk-stack", style: { gap: 10 }, children: [
+    jsx11("p", { style: { margin: 0 }, children: "Field Academy keeps your progress and saved Field Records on this computer only. Delete them here. Your own profiles and any record you saved somewhere else are never touched." }),
+    choice ? jsxs10("div", { className: "hk-actions", children: [
+      jsx11("span", { children: choice.ask }),
+      jsx11(Button7, { variant: "destructive", loading: busy, onClick: () => run(sure), children: choice.yes }),
+      jsx11(Button7, { variant: "ghost", disabled: busy, onClick: () => setSure(""), children: "Cancel" })
+    ] }) : jsxs10("div", { className: "hk-actions", children: [
+      jsx11(Button7, { variant: "secondary", onClick: () => {
+        setWords("");
+        setSure("progress");
+      }, children: DELETE_CHOICES.progress.button }),
+      jsx11(Button7, { variant: "ghost", onClick: () => {
+        setWords("");
+        setSure("everything");
+      }, children: DELETE_CHOICES.everything.button })
+    ] }),
+    words ? jsx11("p", { role: "status", className: "hk-small", children: words }) : null,
+    problem ? jsx11("p", { role: "alert", className: "hk-small", children: problem }) : null
   ] });
 }
 function PracticeOffer({ attrs }) {
@@ -8512,7 +9079,7 @@ function PracticeOffer({ attrs }) {
 var plugin_default = {
   id: "field-academy",
   name: "Field Academy",
-  description: "Learn Hermes along four paths, Beginner to Advanced, then a capstone on your own problem, with checks on real work, spaced review and a Field Record you keep for each path.",
+  description: "The School of Hermes. Learn Hermes by using it: eleven Foundations missions in practice profiles, then five trails, Messenger, Traveler, Crossroads, Boundary Keeper and Guide, done in your own Hermes, with checks that read Hermes itself, spaced review and a Field Record you keep.",
   defaultEnabled: true,
   register(ctx) {
     api = ctx;
@@ -8532,11 +9099,19 @@ var plugin_default = {
         keywords: ["learn", "field record", "training", "hermes", "academy", "path"],
         run: () => host5.navigate(ROUTE)
       }],
-      keybinds: [{ id: "field-academy.open", label: "Field Academy: open your paths", run: () => host5.navigate(ROUTE) }],
+      keybinds: [{ id: "field-academy.open", label: "Field Academy: open your trails", run: () => host5.navigate(ROUTE) }],
       extra: [
         { id: "practice", area: TRANSCRIPT_DIRECTIVE_AREA, data: { name: DIRECTIVE, render: ({ attrs }) => jsx11(PracticeOffer, { attrs }) } }
       ]
     });
+    if (typeof ctx.registerSettingsPage === "function") {
+      ctx.registerSettingsPage({
+        id: "settings",
+        title: "Field Academy",
+        icon: "mortar-board",
+        render: () => jsx11("div", { className: "hk hk-stack", style: { padding: 4, gap: 20 }, children: [jsx11(SettingsPanel, {}, "s"), jsx11(DataPanel, {}, "d")] })
+      });
+    }
   }
 };
 export {

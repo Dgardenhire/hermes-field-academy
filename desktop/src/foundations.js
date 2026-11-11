@@ -112,6 +112,9 @@ const NEW_PROFILE_TIMEOUT_MS = 120000 // Hermes seeds a new profile in a separat
 
 export function createFoundationsViews(ui) {
   const { Frame, Label, ctxRest, errorText, copyText, openFolder, sendInNewChat, plural, longDate } = ui
+  // The map's first requests go out when the page opens and keep a copy for the next open (plugin.js, open fast).
+  const loadFoundations = ui.loadFoundations || (() => ctxRest('/foundations'))
+  const loadSample = ui.loadSample || (() => ctxRest('/replay/sample'))
 
   /* ------------------------------------------------------------- plumbing -- */
 
@@ -1126,13 +1129,16 @@ export function createFoundationsViews(ui) {
     const [preview, setPreview] = useState(null)
     const [withhold, setWithhold] = useState([])
     const [sure, setSure] = useState(false)
-    const action = useAction(reloadAll)
+    // Adding closes the attempt. A reload here would ask to start the mission again and land on a fresh, blank try,
+    // hiding "In your record" (Nov 11 live check), so the add keeps this attempt on screen with the answer it returns.
+    const [justAdded, setJustAdded] = useState(null)
+    const action = useAction(out => { if (out && out.added) setJustAdded(out.added); else return reloadAll() })
     useEffect(() => {
       let live = true
       post(`/foundations/attempt/${view.attempt.id}/record/preview`, { withhold }).then(p => { if (live) setPreview(p) }).catch(e => { if (live) action.setError(errorText(e)) })
       return () => { live = false }
     }, [view.attempt.status, withhold.join(',')])
-    const added = view.record || preview?.added
+    const added = view.record || preview?.added || justAdded
     const entry = preview?.entry
     return jsx(StepFrame, { title: 'Record', eyebrow: 'Step 12', lead: 'This is the entry exactly as it would go into your Field Record. Read every excerpt first: you can keep any of them out.', children: [
       jsx(Problem, { text: action.error }, 'e'),
@@ -1163,7 +1169,8 @@ export function createFoundationsViews(ui) {
       added ? jsx(Notice, { tone: 'good', title: 'In your record', children: jsxs('div', { className: 'hk-stack', children: [
         jsx('p', { style: { margin: 0 }, children: `Added ${longDate(added.created_at)}. It can't be changed; a correction would be added below it.` }),
         go ? jsx('div', { className: 'hk-actions', children: jsx(Button, { variant: 'secondary', onClick: () => go({ name: 'f-record' }), children: 'See your Field Record' }) }) : null,
-        jsx(DeletePractice, { view, listing, reloadAll }),
+        // No reload once the entry is in: it would start the mission again (see justAdded above). The receipt says it.
+        jsx(DeletePractice, { view, listing, reloadAll: null }),
       ] }) }, 'added')
         : preview && preview.ready ? jsxs('div', { className: 'hk-stack', children: [
           jsxs('label', { className: 'fa-f-withhold', children: [jsx('input', { type: 'checkbox', checked: sure, onChange: e => setSure(e.target.checked) }), 'I\'ve read the entry. Adding it can\'t be undone.'] }),
@@ -1515,12 +1522,17 @@ export function createFoundationsViews(ui) {
 
   /* ------------------------------------------------------- the path + card -- */
 
-  function useFoundations(wanted = true) {
-    const [state, setState] = useState({ loading: true, data: null, error: '' })
+  /** The Foundations list. On the map (fromCopy) the last list kept for this Hermes shows at once while the live one
+   *  loads; the map holds every click until its live answers are in, so nothing acts on the copy. */
+  function useFoundations(wanted = true, { fromCopy = false } = {}) {
+    const [state, setState] = useState(() => {
+      const copy = wanted && fromCopy && ui.keptFoundations ? ui.keptFoundations() : null
+      return copy ? { loading: false, data: copy, error: '' } : { loading: true, data: null, error: '' }
+    })
     useEffect(() => {
       if (!wanted) return undefined
       let live = true
-      ctxRest('/foundations').then(data => live && setState({ loading: false, data, error: '' })).catch(e => live && setState({ loading: false, data: null, error: errorText(e) }))
+      loadFoundations().then(data => live && setState({ loading: false, data, error: '' })).catch(e => live && setState({ loading: false, data: null, error: errorText(e) }))
       return () => { live = false }
     }, [])
     return state
@@ -1532,12 +1544,25 @@ export function createFoundationsViews(ui) {
 
   /** The Foundations card, first under the banner: what a mission does that a prompt can't, shown with the real
    *  files it reads. Hidden on a backend from before 0.9. */
-  function FoundationsCard({ go, foundations }) {
+  function FoundationsCard({ go, foundations, compact = false }) {
     const own = useFoundations(!foundations)
     const f = foundations || own
     const missions = (f.data?.missions || []).filter(m => !m.trail)
     if (!missions.length) return null
     const done = missions.filter(m => (m.attempts || []).some(a => a.status === 'done')).length
+    if (compact) {
+      // Beside Start here on the home page: the eleven missions that come right after the first practice.
+      const begun = missions.some(m => (m.attempts || []).length)
+      return jsx(Card, { className: 'fa-f-next', children: jsxs('div', { className: 'hk-stack', style: { gap: 6 }, children: [
+        jsx(Label, { children: begun ? 'Foundations: where you left off' : 'Then: Foundations' }),
+        jsx('h3', { className: 'hk-h2', style: { margin: 0 }, children: `${plural(missions.length, 'mission', 'missions')} on how Hermes really works` }),
+        jsx('p', { style: { margin: 0 }, children: 'Each runs in a practice profile with one problem planted first. The check reads Hermes\'s own files, not your word.' }),
+        jsxs('div', { className: 'hk-actions', children: [
+          jsx(Button, { variant: begun ? 'default' : 'secondary', onClick: () => go({ name: 'foundations' }), children: 'Open Foundations' }),
+          jsx('span', { className: 'hk-small', children: `${done} of ${missions.length} in your record` }),
+        ] }),
+      ] }) })
+    }
     const beat = (icon, title, body, files) => jsxs('li', { className: 'fa-f-beat', children: [
       jsxs('div', { className: 'fa-f-row', children: [jsx(Codicon, { name: icon, size: 16 }), jsx('strong', { children: title })] }),
       jsx('p', { children: body }),
@@ -1573,7 +1598,7 @@ export function createFoundationsViews(ui) {
     const [sample, setSample] = useState(null)
     useEffect(() => {
       let live = true
-      ctxRest('/replay/sample').then(d => { if (live) setSample(d) }).catch(() => { if (live) setSample({ state: 'empty', words: '' }) })
+      loadSample().then(d => { if (live) setSample(d) }).catch(() => { if (live) setSample({ state: 'empty', words: '' }) })
       return () => { live = false }
     }, [])
     return sample

@@ -1,7 +1,8 @@
 {
  "response": {
   "ai_help": false,
-  "practice_offer": true
+  "practice_offer": false,
+  "practice_offer_asked": false
  },
  "route": "POST /settings/ai"
 }
