@@ -2,6 +2,10 @@
 
 ![Field Academy card: new version 0.9, 11 new missions](docs/card.jpg)
 
+[![Field Academy: watch the 30-second demo](docs/demo-poster.jpg)](https://linchpin.studio/hermes/video/field-academy.mp4)
+
+**[Watch the 30-second demo](https://linchpin.studio/hermes/video/field-academy.mp4)** · [Manual](https://linchpin.studio/school-of-hermes/manual/) · [All four plugins](https://linchpin.studio/hermes/)
+
 **New in 0.9:** Foundations, eleven new missions that teach how Hermes really works, each in a practice copy with one problem planted in it, and a trail map of the five trails.
 
 Field Academy, The School of Hermes, teaches you Hermes Agent by having you use it. Start with 11 Foundations missions
