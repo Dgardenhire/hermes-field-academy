@@ -37,7 +37,7 @@ Fixed before release (Nov 10 and 11):
   deleted progress for a moment.
 - **The Fix step drafts each command in turn.** When a fix takes more than one command, each press of **Put it in the
   practice chat** puts the next one in the chat's box, so you never type a slash command by hand. Before, only the
-  first went in, and a second typed past Hermes's command picker came out wrong in a live run.
+  first went in, and a second typed past Hermes's command picker came out wrong.
 - **Your fix worked shows the file that changed.** A save that landed in `USER.md` used to show `MEMORY.md`'s
   unchanged numbers as the before and after.
 - **Record stays on In your record.** After you add an entry to your Field Record, the step keeps showing it. It used
@@ -97,10 +97,10 @@ Fixed before release (Nov 10 and 11):
 - **Easier to read.** No text under 12px, and the mission steps no longer crowd each other in a narrow window.
 - **A practice job meant to start paused can't be left running.** If Hermes doesn't confirm the job is paused, Field
   Academy pauses it by the id the job list gives it, deletes it if it still won't pause, and makes nothing after it.
-  If it can't do either, the page says the job is on and how to stop it (security audit B1).
+  If it can't do either, the page says the job is on and how to stop it.
 
-Fixes from the persona test (three people walking the release: a careful first-week user, an experienced developer and
-a hiring manager reading a Field Record):
+Fixes for three kinds of user (a careful first-week user, an experienced developer and a hiring manager reading a
+Field Record):
 
 - **Every mission asks its own try questions.** Missions 7 to 10 showed mission 3's memory form on the Practice step
   ("how much does Hermes carry?") and wrote it into the record. Each now has its own guesses and counts, mission 11
@@ -275,8 +275,8 @@ watching Hermes work, and every mission can open with a story instead of a lectu
 
 ## 0.7.0 (2026-10-05)
 
-Ready for an outside reviewer: an end-to-end audit of every path, every check against Hermes's own source, every
-lesson against the Hermes docs, and every screen in light, dark and narrow widths. Learners who passed a mission
+Every path checked end to end, every check against Hermes's own source, every lesson against the Hermes docs, and
+every screen in light, dark and narrow widths. Learners who passed a mission
 whose lesson or check changed see it under "What changed since you learned this".
 
 **Fixed: checks that could not pass on a real Hermes**
@@ -331,8 +331,7 @@ whose lesson or check changed see it under "What changed since you learned this"
 - `REVIEWER-GUIDE.md`, a ten-minute tour and the open questions. README: screenshots, plain install steps, what is
   verified and what is not, privacy.
 - Credits for the Nous Learning Path level names and for Orgo.
-- Tests for every fix above (`tests/test_audit_070.py`, `tests/test_audit_070_deployer.py`, `tests/test_release.py`,
-  `tests/release.test.mjs`).
+- Tests for every fix above.
 
 ## 0.6.0
 
@@ -414,7 +413,7 @@ come back for review, and each path ends on your own problem.
   words, and a name, number, price, time or list where a section asks for one, with
   placeholder text, repeated sections, a copy of the example, and a file that
   already passed another mission all failing. Three document gates also read the
-  live app. The audit, and the checks that still cannot be made strong, are in
+  live app. The checks that still cannot be made strong are in
   docs/checks.md.
 - **Real feedback on a miss.** A miss says exactly what was missing, gives one
   hint, and on the second miss adds a worked example for the same item. Applies to

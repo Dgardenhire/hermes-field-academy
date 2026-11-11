@@ -8,7 +8,9 @@ import re
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-ENTRY = (ROOT / "docs" / "catalog" / "field-academy.yaml").read_text(encoding="utf-8")
+ENTRY_PATH = ROOT / "docs" / "catalog" / "field-academy.yaml"
+# docs/catalog is private (.public-exclude): the public package has no catalog entry to check.
+ENTRY = ENTRY_PATH.read_text(encoding="utf-8") if ENTRY_PATH.exists() else ""
 PLUGIN = (ROOT / "plugin.yaml").read_text(encoding="utf-8")
 
 
@@ -17,6 +19,7 @@ def field(text, name):
     return match.group(1) if match else None
 
 
+@unittest.skipUnless(ENTRY_PATH.exists(), "docs/catalog is left out of the public package (.public-exclude)")
 class CatalogEntry(unittest.TestCase):
     def test_the_description_is_short_and_carries_one_disclosure_sentence(self):
         description = field(ENTRY, "description")

@@ -78,8 +78,10 @@ class DeskJsTests(unittest.TestCase):
                   r"Find your first snag", r"Your chat says saved\. The file says held", r"Make it remember, and prove it",
                   r"Caught with \d+ hints?", r"Caught after one nudge", r"Caught on your own", r"So far: ", r"Not there yet\.",
                   r"Hunt for it", r"Show me what it was", r"Nudge me"]
-        places = [ROOT / "desktop" / "plugin.js", ROOT / "README.md", ROOT / "docs" / "catalog" / "field-academy.yaml",
-                  ROOT / "guide.py", ROOT / "recorder.py"]
+        places = [ROOT / "desktop" / "plugin.js", ROOT / "README.md", ROOT / "guide.py", ROOT / "recorder.py"]
+        card = ROOT / "docs" / "catalog" / "field-academy.yaml"
+        if card.exists():  # private (.public-exclude): the public package checks everything else
+            places.append(card)
         places += sorted((ROOT / "desktop" / "src").glob("*.js")) + sorted((ROOT / "content" / "foundations").glob("*.py"))
         for path in places:
             text = path.read_text(encoding="utf-8")
